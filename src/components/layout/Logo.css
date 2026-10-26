@@ -1,0 +1,45 @@
+/* ==========================================================================
+   LOGO
+   ========================================================================== */
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+/* Emblema suelto, sin caja alrededor */
+.logo__image {
+  width: 5.2rem;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.logo__text {
+  display: grid;
+  line-height: 1.1;
+}
+
+/* "Grither" con el degradado de los colores del logo */
+.logo__name {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background-image: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.logo__subtitle {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+}
+
+/* Emblema grande con brillo */
+.logo-emblem {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 2.4rem var(--color-accent-soft));
+}

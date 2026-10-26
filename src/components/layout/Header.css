@@ -1,0 +1,121 @@
+/* ==========================================================================
+   CABECERA
+   ========================================================================== */
+
+/* Pegada arriba al hacer scroll.
+   RENDIMIENTO: fondo sólido en vez de semitransparente + blur; el blur se
+   recalculaba en cada scroll y en cada cambio de la página. */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 0.1rem solid var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  min-height: var(--header-height);
+}
+
+.header__menu {
+  display: flex;
+  align-items: center;
+  gap: 2.4rem;
+}
+
+.header__links {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.header__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 4rem;
+  padding: 0.6rem 1.4rem;
+  font-size: 1.5rem;
+  border-radius: var(--radius-md);
+  border: 0.1rem solid transparent;
+  color: var(--color-text);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.header__link:hover {
+  color: var(--color-accent);
+}
+
+/* Página actual: fondo suave + borde del color de acento */
+.header__link--active {
+  color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.header__user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header__user-name {
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.header__logout-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+/* El botón hamburguesa se oculta en escritorio */
+.header__menu-btn {
+  display: none;
+}
+
+/* ---------- Tablet y celular: menú desplegable ---------- */
+@media (max-width: 900px) {
+  .header__menu-btn {
+    display: inline-grid;
+  }
+
+  .header__menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2rem;
+    padding: 2rem;
+    border-bottom: 0.1rem solid var(--color-border);
+    background-color: var(--color-bg);
+    box-shadow: var(--shadow-card);
+  }
+
+  .header__menu--open {
+    display: flex;
+  }
+
+  .header__links {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header__actions {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+}

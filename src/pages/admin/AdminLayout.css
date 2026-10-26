@@ -1,0 +1,336 @@
+/* ==========================================================================
+   PANEL ADMINISTRADOR: ESTRUCTURA
+   ========================================================================== */
+
+/* Barra lateral fija + contenido */
+.admin {
+  flex: 1;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  min-height: 100vh;
+  /* Fondo y borde de la barra lateral pintados en el contenedor para que
+     lleguen hasta el final aunque la página sea muy larga */
+  background-image: linear-gradient(
+    90deg,
+    var(--color-bg-soft) 0,
+    var(--color-bg-soft) calc(var(--sidebar-width) - 0.1rem),
+    var(--color-border) calc(var(--sidebar-width) - 0.1rem),
+    var(--color-border) var(--sidebar-width),
+    transparent var(--sidebar-width)
+  );
+}
+
+.admin__sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3.2rem;
+  height: 100vh;
+  padding: 2.4rem 1.6rem;
+  overflow-y: auto;
+}
+
+.admin__nav-title {
+  margin: 0 1.2rem 1rem;
+  font-size: 1.2rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.admin__nav-list {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.admin__link {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  min-height: 4.6rem;
+  padding: 0.8rem 1.4rem;
+  border-radius: var(--radius-md);
+  border: 0.1rem solid transparent;
+  color: var(--color-text);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.admin__link svg {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.admin__link:hover {
+  background-color: var(--color-surface-2);
+}
+
+.admin__link--active {
+  color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+}
+
+/* Botón "Proyectos" (desplegable): mismo aspecto que un enlace */
+.admin__link--group {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+}
+
+.admin__link--group.admin__link--active {
+  background-color: var(--color-accent-soft);
+}
+
+.admin__chevron {
+  margin-left: auto;
+  transition: transform var(--transition-fast);
+}
+
+.admin__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Submenú: línea guía a la izquierda y opciones sangradas */
+.admin__sublist {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0.4rem 2.4rem;
+  padding-left: 1.2rem;
+  border-left: 0.1rem solid var(--color-border-strong);
+}
+
+.admin__sublink {
+  display: flex;
+  align-items: center;
+  min-height: 4rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+}
+
+.admin__sublink:hover {
+  background-color: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.admin__sublink--active {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* Parte inferior: herramientas y tarjeta del usuario */
+.admin__sidebar-bottom {
+  display: grid;
+  gap: 1.6rem;
+  margin-top: auto;
+}
+
+.admin__sidebar-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 0.6rem;
+}
+
+.admin__site-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+}
+
+.admin__site-link:hover {
+  color: var(--color-accent);
+}
+
+.admin__site-link svg {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.admin__user {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.2rem;
+  border-radius: var(--radius-lg);
+  border: 0.1rem solid var(--color-border-strong);
+  background-color: var(--color-surface);
+}
+
+.admin__avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: 50%;
+  font-weight: 800;
+  color: var(--btn-primary-text);
+  background: var(--btn-primary-bg);
+}
+
+.admin__user-info {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.admin__user-name {
+  font-weight: 700;
+  font-size: 1.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin__user-role {
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+}
+
+/* Contenido de cada sección */
+.admin__content {
+  min-width: 0; /* permite que la tabla haga scroll horizontal en vez de romper el layout */
+  padding: 4rem;
+  background-image: var(--hero-glow);
+  background-repeat: no-repeat;
+  background-size: 100% 40rem;
+}
+
+/* ---------- Encabezado común de cada sección del panel ---------- */
+.admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 3.2rem;
+}
+
+.admin-header__title {
+  font-size: clamp(2.8rem, 3.5vw, 4rem);
+}
+
+.admin-header__text {
+  margin-top: 0.6rem;
+  color: var(--color-text-muted);
+}
+
+.admin-header__btn-icon {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+/* Bloques de formulario dentro de las secciones de edición */
+.admin-form-section {
+  display: grid;
+  gap: 2rem;
+}
+
+.admin-form-section + .admin-form-section {
+  margin-top: 2.4rem;
+}
+
+.admin-form-section__title {
+  font-size: 2rem;
+}
+
+.admin-form-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.2rem;
+  margin-top: 2.4rem;
+  padding: 1.6rem 0;
+  /* Fondo sólido (sin blur) para no repintar el formulario al hacer scroll */
+  background-color: var(--color-bg);
+  border-top: 0.1rem solid var(--color-border);
+}
+
+/* ---------- Responsive: la barra lateral pasa arriba ---------- */
+@media (max-width: 900px) {
+  .admin {
+    grid-template-columns: 1fr;
+    background-image: none;
+  }
+
+  .admin__sidebar {
+    position: static;
+    height: auto;
+    gap: 1.6rem;
+    padding: 1.6rem 2rem;
+    border-bottom: 0.1rem solid var(--color-border);
+    background-color: var(--color-bg-soft);
+  }
+
+  .admin__nav-title {
+    display: none;
+  }
+
+  /* Menú en una fila con scroll horizontal */
+  .admin__nav-list {
+    display: flex;
+    gap: 0.6rem;
+    overflow-x: auto;
+    padding-bottom: 0.4rem;
+  }
+
+  .admin__link {
+    white-space: nowrap;
+    min-height: 4.2rem;
+  }
+
+  /* Proyectos desplegable: en celular el botón y sus opciones van en la misma fila */
+  .admin__nav-list > li:first-child {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .admin__link--group {
+    width: auto;
+  }
+
+  .admin__chevron {
+    margin-left: 0;
+  }
+
+  .admin__sublist {
+    display: flex;
+    margin: 0;
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .admin__sublink {
+    white-space: nowrap;
+    min-height: 4.2rem;
+  }
+
+  .admin__sidebar-bottom {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .admin__content {
+    padding: 2.4rem 2rem 4rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin__sidebar-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-form-actions .btn {
+    flex: 1;
+  }
+}

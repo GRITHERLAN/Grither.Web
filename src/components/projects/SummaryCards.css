@@ -1,0 +1,51 @@
+/* ==========================================================================
+   TARJETAS RESUMEN
+   ========================================================================== */
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1.6rem;
+  margin-bottom: 2.4rem;
+}
+
+.summary-card {
+  display: grid;
+  gap: 0.6rem;
+  padding: 2.4rem;
+}
+
+.summary-card__label {
+  font-size: 1.2rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.summary-card__value {
+  font-size: clamp(2.2rem, 2vw, 3rem);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.summary-card__value--accent {
+  color: var(--color-accent);
+}
+
+.summary-card__value--success {
+  color: var(--color-success);
+}
+
+.summary-card__value--warning {
+  color: var(--color-warning);
+}
+
+.summary-card__value--danger {
+  color: var(--color-danger);
+}
+
+.summary-card__hint {
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+}

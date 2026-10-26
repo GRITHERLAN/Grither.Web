@@ -1,0 +1,24 @@
+/* ==========================================================================
+   PANEL USUARIO
+   ========================================================================== */
+
+.user-projects__header {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.user-projects__title {
+  font-size: clamp(3rem, 4.5vw, 4.4rem);
+}
+
+.user-projects__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(32rem, 1fr));
+  gap: 2rem;
+}
+
+@media (max-width: 400px) {
+  .user-projects__grid {
+    grid-template-columns: 1fr;
+  }
+}

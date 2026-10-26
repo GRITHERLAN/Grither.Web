@@ -1,0 +1,43 @@
+/* ==========================================================================
+   EDITOR DE INDICADORES
+   ========================================================================== */
+
+.indicators-editor {
+  display: grid;
+  gap: 1.2rem;
+  border: none;
+}
+
+.indicators-editor__list {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Valor (corto) | descripción (largo) | botón quitar */
+.indicators-editor__row {
+  display: grid;
+  grid-template-columns: 12rem 1fr auto;
+  align-items: center;
+  gap: 1rem;
+}
+
+.indicators-editor__add {
+  justify-self: start;
+}
+
+.indicators-editor__add-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .indicators-editor__row {
+    grid-template-columns: 8rem 1fr auto;
+    gap: 0.6rem;
+  }
+}

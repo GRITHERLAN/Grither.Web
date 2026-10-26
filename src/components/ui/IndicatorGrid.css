@@ -1,0 +1,32 @@
+/* ==========================================================================
+   INDICADORES
+   ========================================================================== */
+
+.indicator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.6rem;
+}
+
+/* Cada indicador es una tarjeta; el valor se muestra arriba con flex */
+.indicator-grid__item {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.4rem;
+  padding: 2.4rem;
+  border-radius: var(--radius-lg);
+  border: 0.1rem solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.indicator-grid__value {
+  font-family: var(--font-mono);
+  font-size: 3.2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.indicator-grid__label {
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+}

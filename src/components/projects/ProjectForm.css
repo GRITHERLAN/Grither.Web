@@ -1,0 +1,112 @@
+/* ==========================================================================
+   FORMULARIO DE PROYECTO
+   ========================================================================== */
+
+.project-form__auto {
+  padding: 1rem 1.4rem;
+  font-size: 1.2rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+}
+
+.field__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.field > .field__hint {
+  font-size: 1.3rem;
+}
+
+.project-form__media {
+  border: none;
+}
+
+/* Zona para elegir archivos */
+.project-form__dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 8rem;
+  padding: 2rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 0.2rem dashed var(--color-border-strong);
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-soft);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.project-form__dropzone:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.project-form__dropzone:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.project-form__dropzone svg {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+/* Miniaturas de los archivos */
+.project-form__previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 1rem;
+}
+
+.project-form__preview {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 0.1rem solid var(--color-border-strong);
+  background-color: #000000;
+}
+
+.project-form__preview img,
+.project-form__preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.project-form__video-tag {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 0.6rem;
+  padding: 0.1rem 0.8rem;
+  font-size: 1.1rem;
+  border-radius: var(--radius-full);
+  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* Botón × para quitar la miniatura */
+.project-form__remove {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  display: grid;
+  place-items: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.65);
+}
+
+.project-form__remove:hover {
+  background-color: var(--color-danger);
+}
+
+.project-form__remove svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}

@@ -1,0 +1,148 @@
+/* ==========================================================================
+   DESPLEGABLE (Select)
+   --------------------------------------------------------------------------
+   Campo: usa la clase .field__input (mismo borde, alto y foco que los inputs).
+   Lista: tarjeta flotante con esquinas redondeadas, sombra de la web y
+   opciones con resaltado de acento. Solo anima opacidad y transform
+   (barato para el navegador, sin titileos).
+   ========================================================================== */
+
+.select {
+  position: relative;
+}
+
+/* ---------- Botón (campo) ---------- */
+.select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.select__trigger:hover:not(:disabled) {
+  border-color: var(--color-accent-border);
+}
+
+/* Mientras la lista está abierta el campo se ve "activo" */
+.select__trigger--open {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 0.3rem var(--color-accent-soft);
+}
+
+.select__trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.select__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Opción vacía ("Selecciona una categoría") en gris, como un placeholder */
+.select__value--placeholder {
+  color: var(--color-text-soft);
+}
+
+.select__chevron {
+  flex-shrink: 0;
+  width: 1.8rem;
+  height: 1.8rem;
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+
+.select__trigger--open .select__chevron {
+  transform: rotate(180deg);
+  color: var(--color-accent);
+}
+
+/* ---------- Lista flotante ---------- */
+.select__list {
+  /* fixed: no la recorta el scroll de la ventana modal. La posición exacta
+     (left, width, top/bottom) la calcula Select.jsx al abrir. */
+  position: fixed;
+  z-index: 1000;
+  margin: 0;
+  padding: 0.6rem;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--radius-md);
+  border: 0.1rem solid var(--color-border-strong);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transform-origin: top center;
+  animation: select-in 120ms ease-out;
+}
+
+.select__list--up {
+  transform-origin: bottom center;
+}
+
+/* Barra de desplazamiento fina y discreta */
+.select__list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+.select__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  min-height: 4rem;
+  padding: 0.8rem 1.2rem;
+  border-radius: var(--radius-sm);
+  font-size: 1.5rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+/* Opción bajo el mouse o el teclado */
+.select__option--active {
+  background-color: var(--color-accent-soft);
+}
+
+/* Opción elegida actualmente */
+.select__option--selected {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.select__option-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.select__check {
+  flex-shrink: 0;
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+@keyframes select-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.4rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Respeta a quienes piden menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .select__list,
+  .select__chevron {
+    animation: none;
+    transition: none;
+  }
+}

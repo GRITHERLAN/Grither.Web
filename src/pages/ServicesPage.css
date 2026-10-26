@@ -1,0 +1,165 @@
+/* ==========================================================================
+   PÁGINA SERVICIOS
+   ========================================================================== */
+
+/* ---------- Héroe centrado ---------- */
+.services-hero {
+  display: grid;
+  justify-items: center;
+  gap: 2.4rem;
+  max-width: 88rem;
+  margin-inline: auto;
+  padding-top: 4rem;
+  text-align: center;
+}
+
+.services-hero__title {
+  font-size: clamp(3.4rem, 6vw, 6.4rem);
+  letter-spacing: -0.02em;
+}
+
+.services-hero__text {
+  max-width: 60rem;
+  font-size: 1.8rem;
+  color: var(--color-text-muted);
+}
+
+.services-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.2rem;
+  margin-top: 0.8rem;
+}
+
+/* ---------- Tarjetas de servicios: 3 columnas que bajan a 1 ---------- */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
+  gap: 2rem;
+}
+
+.service-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  height: 100%;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.service-card:hover {
+  border-color: var(--color-accent-border);
+  transform: translateY(-0.3rem);
+}
+
+.service-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.service-card__code {
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+}
+
+.service-card__title {
+  font-size: 2rem;
+}
+
+.service-card__text {
+  flex: 1;
+  color: var(--color-text-muted);
+}
+
+/* ---------- Planes ---------- */
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
+  gap: 2rem;
+  align-items: stretch;
+}
+
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  height: 100%;
+}
+
+/* Plan destacado: borde del color de acento y brillo */
+.plan-card--featured {
+  border-color: var(--color-accent-border);
+  background-image: linear-gradient(180deg, var(--color-accent-soft), transparent 50%);
+  box-shadow: var(--logo-glow);
+}
+
+.plan-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.plan-card__name {
+  font-size: 1.3rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.plan-card--featured .plan-card__name {
+  color: var(--color-accent);
+}
+
+.plan-card__badge {
+  padding: 0.3rem 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+.plan-card__price {
+  font-size: 2.8rem;
+  color: var(--color-accent);
+}
+
+.plan-card__from {
+  display: block;
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+}
+
+.plan-card__currency {
+  margin-left: 0.8rem;
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+}
+
+.plan-card__text {
+  color: var(--color-text-muted);
+}
+
+.plan-card__features {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  flex: 1;
+}
+
+.plan-card__features li {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.plan-card__check {
+  flex-shrink: 0;
+  width: 1.8rem;
+  height: 1.8rem;
+  color: var(--color-accent);
+}

@@ -1,0 +1,22 @@
+/* ==========================================================================
+   PIE DE PÁGINA
+   ========================================================================== */
+
+.footer {
+  border-top: 0.1rem solid var(--color-border);
+  /* espacio extra abajo para que el botón fijo de WhatsApp no tape el texto */
+  padding: 3rem 0 10rem;
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+}
+
+.footer__inner {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer__made {
+  font-size: 1.3rem;
+}

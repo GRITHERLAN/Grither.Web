@@ -1,0 +1,130 @@
+/* ==========================================================================
+   VARIABLES (TOKENS) DE DISEÑO
+   --------------------------------------------------------------------------
+   Todos los colores, sombras, radios y fuentes de la web viven aquí.
+   El atributo data-theme del <html> decide qué paleta se usa:
+     - data-theme="dark"  -> Modo Oscuro (cian / azul / magenta del logo)
+     - data-theme="light" -> Modo Claro  (negro / morado del logo blanco)
+   Así los componentes solo usan var(--...) y nunca colores "a mano".
+   ========================================================================== */
+
+:root {
+  /* ---------- Tipografía (fuentes del sistema: sin dependencias externas) ---------- */
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Code", "JetBrains Mono", Consolas, "SFMono-Regular", Menlo, monospace;
+
+  /* ---------- Radios de borde ---------- */
+  --radius-sm: 0.8rem;
+  --radius-md: 1.2rem;
+  --radius-lg: 1.6rem;
+  --radius-xl: 2.4rem;
+  --radius-full: 99.9rem;
+
+  /* ---------- Medidas de layout ---------- */
+  --container-width: 120rem;
+  --header-height: 7.2rem;
+  --sidebar-width: 26rem;
+
+  /* ---------- Colores de estado (iguales en ambos temas, cambian sus fondos) ---------- */
+  --color-success: #22c55e;
+  --color-warning: #f5b40b;
+  --color-danger: #f0506e;
+  --color-whatsapp: #25d366;
+
+  /* ---------- Transiciones ---------- */
+  --transition-fast: 150ms ease;
+  --transition: 250ms ease;
+}
+
+/* ==========================================================================
+   MODO OSCURO (por defecto)
+   ========================================================================== */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #05070f;
+  --color-bg-soft: #070b18;
+  --color-surface: #0b1024;
+  --color-surface-2: #0f152e;
+  --color-border: #1c2440;
+  --color-border-strong: #2a3558;
+
+  --color-text: #e8ecf8;
+  --color-text-muted: #9aa3bf;
+  --color-text-soft: #6b7494;
+
+  /* Color de acento: cian del logo */
+  --color-accent: #2ee6e6;
+  --color-accent-2: #a855f7;
+  --color-accent-3: #e040fb;
+  --color-accent-soft: rgba(46, 230, 230, 0.1);
+  --color-accent-border: rgba(46, 230, 230, 0.35);
+
+  /* Degradado del nombre "Grither" (colores del logo oscuro) */
+  --gradient-brand: linear-gradient(90deg, #2ee6e6 0%, #4f8cff 40%, #a855f7 70%, #e040fb 100%);
+  /* Degradado para palabras resaltadas en títulos */
+  --gradient-highlight: linear-gradient(90deg, #2ee6e6 0%, #4f8cff 35%, #a855f7 70%, #e040fb 100%);
+
+  /* Botón principal */
+  --btn-primary-bg: linear-gradient(90deg, #2ee6e6 0%, #4f8cff 100%);
+  --btn-primary-text: #05070f;
+  --btn-primary-shadow: 0 0.8rem 2.4rem rgba(46, 230, 230, 0.25);
+
+  /* Fondos suaves de los estados */
+  --color-success-soft: rgba(34, 197, 94, 0.12);
+  --color-warning-soft: rgba(245, 180, 11, 0.12);
+  --color-danger-soft: rgba(240, 80, 110, 0.12);
+
+  /* Brillo azul de la parte superior de las páginas */
+  --hero-glow: radial-gradient(ellipse at top, rgba(40, 70, 200, 0.28) 0%, transparent 60%);
+  --logo-glow: 0 0 6rem rgba(79, 140, 255, 0.35);
+
+  --shadow-card: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+  --overlay: rgba(2, 4, 10, 0.75);
+}
+
+/* ==========================================================================
+   MODO CLARO
+   ========================================================================== */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --color-bg: #ffffff;
+  --color-bg-soft: #faf7fc;
+  --color-surface: #ffffff;
+  --color-surface-2: #f6f2f8;
+  --color-border: #ece6f0;
+  --color-border-strong: #d9cfe0;
+
+  --color-text: #111114;
+  --color-text-muted: #5b5866;
+  --color-text-soft: #8a8694;
+
+  /* Color de acento: morado del logo blanco */
+  --color-accent: #a23bbf;
+  --color-accent-2: #a23bbf;
+  --color-accent-3: #c04fd8;
+  --color-accent-soft: #f6e8fa;
+  --color-accent-border: #e3b8ef;
+
+  /* Degradado del nombre "Grither" (negro + morado del logo claro) */
+  --gradient-brand: linear-gradient(90deg, #111114 0%, #111114 55%, #a23bbf 100%);
+  --gradient-highlight: linear-gradient(90deg, #a23bbf 0%, #a23bbf 100%);
+
+  --btn-primary-bg: #111114;
+  --btn-primary-text: #ffffff;
+  --btn-primary-shadow: 0 0.8rem 2.4rem rgba(17, 17, 20, 0.18);
+
+  --color-success: #15803d;
+  --color-warning: #b45309;
+  --color-danger: #c81e3a;
+  --color-success-soft: #e7f7ec;
+  --color-warning-soft: #fdf3e2;
+  --color-danger-soft: #fde8ec;
+
+  --hero-glow: radial-gradient(ellipse at top, rgba(162, 59, 191, 0.08) 0%, transparent 60%);
+  --logo-glow: 0 0 6rem rgba(162, 59, 191, 0.18);
+
+  --shadow-card: 0 1rem 3rem rgba(60, 20, 80, 0.08);
+  --overlay: rgba(20, 10, 30, 0.45);
+}

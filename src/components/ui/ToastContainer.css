@@ -1,0 +1,85 @@
+/* ==========================================================================
+   AVISOS (Toasts)
+   ========================================================================== */
+
+/* Pila fija arriba a la derecha, por encima de todo */
+.toasts {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  display: grid;
+  gap: 1.2rem;
+  width: min(38rem, calc(100vw - 4rem));
+  pointer-events: none; /* deja hacer clic en lo que está debajo */
+}
+
+.toast {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 1.2rem;
+  padding: 1.4rem 1.6rem;
+  border-radius: var(--radius-md);
+  border: 0.1rem solid var(--color-border-strong);
+  border-left-width: 0.4rem;
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  pointer-events: auto;
+  animation: toast-in 250ms ease-out;
+}
+
+.toast--success {
+  border-left-color: var(--color-success);
+}
+
+.toast--error {
+  border-left-color: var(--color-danger);
+}
+
+.toast--info {
+  border-left-color: var(--color-accent);
+}
+
+.toast__icon svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.toast--success .toast__icon {
+  color: var(--color-success);
+}
+
+.toast--error .toast__icon {
+  color: var(--color-danger);
+}
+
+.toast--info .toast__icon {
+  color: var(--color-accent);
+}
+
+.toast__message {
+  font-size: 1.4rem;
+  line-height: 1.45;
+}
+
+.toast__close {
+  color: var(--color-text-muted);
+}
+
+.toast__close svg {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+/* Entrada suave desde la derecha */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -1,0 +1,44 @@
+/* ==========================================================================
+   ETIQUETA DE ESTADO
+   ========================================================================== */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 1.2rem;
+  font-size: 1.4rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  border: 0.1rem solid currentColor;
+  white-space: nowrap;
+}
+
+/* Punto de color a la izquierda */
+.status-badge::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.status-badge--activo {
+  color: var(--color-success);
+  background-color: var(--color-success-soft);
+}
+
+.status-badge--inactivo {
+  color: var(--color-warning);
+  background-color: var(--color-warning-soft);
+}
+
+.status-badge--terminado {
+  color: var(--color-accent);
+  background-color: var(--color-accent-soft);
+}
+
+.status-badge--cancelado {
+  color: var(--color-danger);
+  background-color: var(--color-danger-soft);
+}

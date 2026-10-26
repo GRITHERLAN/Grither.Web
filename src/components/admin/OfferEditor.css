@@ -1,0 +1,86 @@
+/* ==========================================================================
+   EDITORES DE SERVICIOS Y PLANES (estilos compartidos)
+   ========================================================================== */
+
+/* Separación entre el bloque de Servicios y el de Planes */
+.admin-offers {
+  display: grid;
+  gap: 2.4rem;
+}
+
+.offer-editor {
+  display: grid;
+  gap: 2rem;
+}
+
+.offer-editor__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+}
+
+.offer-editor__btn-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+/* Lista de cards editables: se acomodan en columnas si hay espacio */
+.offer-editor__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(34rem, 1fr));
+  gap: 2rem;
+}
+
+/* Cada card editable */
+.offer-card {
+  display: grid;
+  align-content: start;
+  gap: 2rem;
+  padding: 2.4rem;
+  border-radius: var(--radius-lg);
+  border: 0.1rem solid var(--color-border-strong);
+  background-color: var(--color-bg-soft);
+}
+
+.offer-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.offer-card__code {
+  font-size: 1.3rem;
+  letter-spacing: 0.15em;
+  color: var(--color-accent);
+}
+
+.offer-card__textarea {
+  min-height: 9rem;
+}
+
+/* Casilla "Más elegido" alineada con el input de al lado */
+.offer-card__featured {
+  align-content: end;
+  min-height: 4.8rem;
+}
+
+.offer-editor__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 480px) {
+  .offer-editor__list {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-card {
+    padding: 2rem 1.6rem;
+  }
+
+  .offer-editor__actions .btn {
+    width: 100%;
+  }
+}

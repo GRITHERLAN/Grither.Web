@@ -1,0 +1,199 @@
+/* ==========================================================================
+   TABLA DE PROYECTOS
+   ========================================================================== */
+
+.project-table {
+  padding: 0;
+  overflow: hidden;
+}
+
+.project-table__summary {
+  padding: 2rem 2.4rem;
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+  border-bottom: 0.1rem solid var(--color-border);
+}
+
+.project-table__empty {
+  margin: 2.4rem;
+}
+
+/* Si la tabla no cabe, hace scroll horizontal dentro de la tarjeta */
+.project-table__scroll {
+  overflow-x: auto;
+}
+
+.project-table__table {
+  width: 100%;
+  min-width: 100rem;
+  border-collapse: collapse;
+  font-size: 1.5rem;
+}
+
+.project-table__table th {
+  padding: 1.6rem 1.6rem;
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  border-bottom: 0.1rem solid var(--color-border);
+}
+
+.project-table__table td {
+  padding: 2rem 1.2rem;
+  vertical-align: middle;
+  border-bottom: 0.1rem solid var(--color-border);
+}
+
+.project-table__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.project-table__table tbody tr:hover {
+  background-color: var(--color-surface-2);
+}
+
+.project-table__num {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.project-table__date {
+  white-space: nowrap;
+  color: var(--color-text-muted);
+}
+
+.project-table__id {
+  font-size: 1.3rem;
+  color: var(--color-accent);
+}
+
+.project-table__name {
+  font-weight: 700;
+  min-width: 18rem;
+  max-width: 26rem;
+}
+
+.project-table__reason {
+  max-width: 26rem;
+  margin-top: 0.4rem;
+  font-size: 1.3rem;
+  color: var(--color-danger);
+}
+
+.project-table__actions-head {
+  text-align: right !important;
+}
+
+.project-table__actions {
+  /* Dos filas alineadas a la derecha: botones con texto arriba e iconos abajo */
+  display: grid;
+  justify-items: end;
+  gap: 0.6rem;
+}
+
+.project-table__actions-row {
+  display: flex;
+  flex-wrap: nowrap; /* en escritorio cada fila de botones va en una sola línea */
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.project-table__status-btn {
+  white-space: nowrap;
+}
+
+
+/* Fase debajo de la categoría */
+.project-table__phase {
+  margin-top: 0.6rem;
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+}
+
+.project-table__btn-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+/* ---------- Celular: cada fila se vuelve una tarjeta ---------- */
+@media (max-width: 1200px) {
+  .project-table__table {
+    min-width: 0;
+  }
+
+  .project-table__table thead {
+    position: absolute;
+    width: 0.1rem;
+    height: 0.1rem;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .project-table__table,
+  .project-table__table tbody,
+  .project-table__table tr,
+  .project-table__table td {
+    display: block;
+  }
+
+  .project-table__table tr {
+    padding: 1.6rem 2rem;
+    border-bottom: 0.1rem solid var(--color-border);
+  }
+
+  .project-table__table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.6rem;
+    padding: 0.8rem 0;
+    border-bottom: none;
+    text-align: right;
+  }
+
+  /* Título de cada dato a la izquierda */
+  .project-table__table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    text-align: left;
+  }
+
+  /* La celda del proyecto y la de acciones ocupan todo el ancho */
+  .project-table__table td[data-label="Proyecto"],
+  .project-table__table td[data-label="Acciones"] {
+    display: block;
+    text-align: left;
+  }
+
+  .project-table__table td[data-label="Proyecto"]::before,
+  .project-table__table td[data-label="Acciones"]::before {
+    display: none;
+  }
+
+  .project-table__name,
+  .project-table__reason {
+    max-width: none;
+  }
+
+  .project-table__actions {
+    justify-items: start;
+    padding-top: 0.8rem;
+  }
+}
+
+@media (max-width: 1200px) {
+  .project-table__actions-row {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}

@@ -1,0 +1,42 @@
+/* ==========================================================================
+   PANEL ADMIN: SOBRE NOSOTROS
+   ========================================================================== */
+
+.about-admin__brand {
+  min-height: 16rem;
+}
+
+/* Foto + botones */
+.about-admin__photo-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.about-admin__photo {
+  width: 9rem;
+  height: 9rem;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+}
+
+.about-admin__photo--initials {
+  display: grid;
+  place-items: center;
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--btn-primary-text);
+  background: var(--btn-primary-bg);
+}
+
+.about-admin__photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.about-admin__btn-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}

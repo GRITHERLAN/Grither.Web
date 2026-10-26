@@ -1,0 +1,45 @@
+/* ==========================================================================
+   TOGGLE SWITCH DE TEMA
+   ========================================================================== */
+
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  width: 6.4rem;
+  height: 3.4rem;
+  padding: 0 0.8rem;
+  border-radius: var(--radius-full);
+  border: 0.1rem solid var(--color-border-strong);
+  background-color: var(--color-surface-2);
+}
+
+.theme-toggle__icon {
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+}
+
+.theme-toggle__icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Bolita deslizante: a la izquierda (claro) o derecha (oscuro) */
+.theme-toggle__thumb {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.3rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background: var(--btn-primary-bg);
+  box-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.3);
+  transition: transform var(--transition);
+}
+
+.theme-toggle[aria-checked="true"] .theme-toggle__thumb {
+  transform: translateX(3rem);
+}

@@ -1,0 +1,143 @@
+/* ==========================================================================
+   PÁGINA INICIAR SESIÓN
+   ========================================================================== */
+
+.auth-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-image: radial-gradient(ellipse at 25% 40%, var(--color-accent-soft) 0%, transparent 55%);
+}
+
+.auth-page__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.6rem;
+  min-height: 9rem;
+  padding-block: 1.6rem;
+}
+
+.auth-page__top-actions {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.auth-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.auth-page__back:hover {
+  color: var(--color-accent);
+}
+
+.auth-page__back svg {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+/* Dos columnas centradas en la pantalla */
+.auth-page__main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 6rem;
+  padding-block: 4rem 8rem;
+}
+
+.auth-page__intro {
+  display: grid;
+  gap: 2rem;
+}
+
+.auth-page__emblem {
+  width: min(40rem, 80%);
+  margin-bottom: 1rem;
+}
+
+.auth-page__title {
+  font-size: clamp(3.2rem, 4.5vw, 5rem);
+  letter-spacing: -0.02em;
+}
+
+.auth-page__text {
+  max-width: 48rem;
+  font-size: 1.8rem;
+  color: var(--color-text-muted);
+}
+
+/* ---------- Tarjeta de acceso ---------- */
+.auth-card {
+  display: grid;
+  gap: 2.4rem;
+  padding: 3.2rem;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+.auth-card__header {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.auth-card__title {
+  font-size: 2.6rem;
+}
+
+.auth-card__btn-icon {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+/* Nota inferior con punto de color */
+.auth-card__note {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 2rem;
+  font-size: 1.2rem;
+  color: var(--color-text-muted);
+  border-top: 0.1rem solid var(--color-border);
+}
+
+.auth-card__note::before {
+  content: "";
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+}
+
+@media (max-width: 900px) {
+  .auth-page__main {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+    padding-top: 1rem;
+  }
+
+  /* En celular el formulario va primero */
+  .auth-card {
+    order: -1;
+  }
+
+  .auth-page__emblem {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 2.4rem 2rem;
+  }
+
+  .auth-page__back {
+    font-size: 1.4rem;
+  }
+}

@@ -1,0 +1,132 @@
+/* ==========================================================================
+   PANEL ADMIN: USUARIOS
+   ========================================================================== */
+
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr));
+  gap: 1.6rem;
+}
+
+.user-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 1.6rem;
+  padding: 2.4rem;
+}
+
+.user-card__avatar {
+  display: grid;
+  place-items: center;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  font-weight: 800;
+  color: var(--btn-primary-text);
+  background: var(--btn-primary-bg);
+}
+
+.user-card__info {
+  min-width: 0;
+}
+
+.user-card__name {
+  font-weight: 700;
+  font-size: 1.7rem;
+}
+
+.user-card__email {
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Datos en 4 columnas bajo el nombre (2 en pantallas angostas) */
+.user-card__data {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding-top: 1.6rem;
+  border-top: 0.1rem solid var(--color-border);
+}
+
+.user-card__data dt {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.user-card__data dd {
+  margin-top: 0.4rem;
+  font-size: 1.4rem;
+}
+
+.user-card__role--admin {
+  color: var(--color-accent);
+  border-color: var(--color-accent-border);
+  background-color: var(--color-accent-soft);
+}
+
+/* Usuario inactivo: se ve atenuado */
+.user-card--inactive .user-card__avatar,
+.user-card--inactive .user-card__info {
+  opacity: 0.55;
+}
+
+.user-card__you {
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* Estado: punto de color + texto */
+.user-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--color-warning);
+}
+
+.user-card__status::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.user-card__status--active {
+  color: var(--color-success);
+}
+
+/* Botones de acción al pie de la tarjeta */
+.user-card__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  padding-top: 1.6rem;
+  border-top: 0.1rem solid var(--color-border);
+}
+
+.user-card__actions .icon-btn {
+  margin-left: auto;
+}
+
+.user-card__btn-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+@media (max-width: 400px) {
+  .users-grid {
+    grid-template-columns: 1fr;
+  }
+}

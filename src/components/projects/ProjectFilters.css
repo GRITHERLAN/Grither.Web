@@ -1,0 +1,67 @@
+/* ==========================================================================
+   FILTROS DE PROYECTOS
+   ========================================================================== */
+
+.project-filters {
+  display: grid;
+  gap: 1.6rem;
+  padding: 2rem;
+  margin-bottom: 2.4rem;
+}
+
+/* Dos buscadores lado a lado */
+.project-filters__search {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+  gap: 1.2rem;
+}
+
+/* Input con la lupa dentro */
+.project-filters__search-field {
+  position: relative;
+  display: block;
+}
+
+.project-filters__search-field svg {
+  position: absolute;
+  top: 50%;
+  left: 1.6rem;
+  transform: translateY(-50%);
+  width: 1.8rem;
+  height: 1.8rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.project-filters__search-field .field__input {
+  padding-left: 4.6rem;
+}
+
+.project-filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.project-filters__selects {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) auto;
+  align-items: end;
+  gap: 1.2rem;
+}
+
+@media (max-width: 1100px) {
+  .project-filters__selects {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .project-filters {
+    padding: 1.6rem;
+  }
+
+  .project-filters__selects {
+    grid-template-columns: 1fr;
+  }
+}

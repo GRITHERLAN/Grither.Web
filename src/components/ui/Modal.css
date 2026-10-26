@@ -1,0 +1,119 @@
+/* ==========================================================================
+   VENTANA MODAL (<dialog>)
+   ========================================================================== */
+
+/* El <dialog> es transparente: el panel interno es lo que se ve */
+.modal {
+  width: calc(100% - 3.2rem);
+  max-height: calc(100vh - 4rem);
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  overflow: visible;
+}
+
+.modal--sm {
+  max-width: 48rem;
+}
+
+.modal--md {
+  max-width: 64rem;
+}
+
+.modal--lg {
+  max-width: 88rem;
+}
+
+/* Fondo oscuro detrás de la ventana.
+   RENDIMIENTO: no se usa backdrop-filter (blur). El desenfoque obliga al
+   navegador a redibujar toda la página de fondo en cada cambio (al escribir,
+   al abrir un desplegable...), lo que causaba lentitud y titileo. */
+.modal::backdrop {
+  background-color: var(--overlay);
+}
+
+/* Entrada rápida: solo opacidad y transform, que la GPU anima sin repintar */
+.modal[open]::backdrop {
+  animation: backdrop-in 150ms ease-out;
+}
+
+.modal[open] .modal__panel {
+  animation: modal-in 150ms ease-out;
+}
+
+.modal__panel {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 4rem);
+  border-radius: var(--radius-xl);
+  border: 0.1rem solid var(--color-border-strong);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.6rem;
+  padding: 2.4rem 2.8rem 1.6rem;
+  border-bottom: 0.1rem solid var(--color-border);
+}
+
+.modal__title {
+  font-size: 2.2rem;
+}
+
+.modal__description {
+  margin-top: 0.4rem;
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+}
+
+/* El cuerpo hace scroll si el contenido es largo */
+.modal__body {
+  padding: 2.4rem 2.8rem 2.8rem;
+  overflow-y: auto;
+}
+
+/* Fila de botones al final de los formularios dentro del modal */
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  margin-top: 0.8rem;
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.2rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .modal__header,
+  .modal__body {
+    padding-inline: 2rem;
+  }
+
+  .modal__actions .btn {
+    flex: 1;
+  }
+}

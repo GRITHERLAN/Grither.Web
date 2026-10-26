@@ -1,0 +1,35 @@
+/* ==========================================================================
+   EDITOR DE LISTA DE TEXTOS
+   ========================================================================== */
+
+.string-list {
+  display: grid;
+  gap: 1.2rem;
+  border: none;
+}
+
+.string-list__items {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Input (largo) | botón quitar */
+.string-list__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1rem;
+}
+
+.string-list--error .field__input {
+  border-color: var(--color-danger);
+}
+
+.string-list__add {
+  justify-self: start;
+}
+
+.string-list__add-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}

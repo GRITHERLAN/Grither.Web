@@ -1,0 +1,96 @@
+/* ==========================================================================
+   INDICADOR DE FASES
+   ========================================================================== */
+
+/* Cuatro columnas iguales con una línea que las une */
+.phase-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+}
+
+.phase-stepper__step {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+  text-align: center;
+}
+
+/* Línea entre círculos (no se dibuja después del último) */
+.phase-stepper__step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 1.8rem;
+  left: calc(50% + 2.4rem);
+  width: calc(100% - 4rem);
+  height: 0.2rem;
+  background-color: var(--color-border-strong);
+}
+
+.phase-stepper__step--done:not(:last-child)::after {
+  background-image: var(--gradient-highlight);
+}
+
+.phase-stepper__circle {
+  display: grid;
+  place-items: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  border: 0.2rem solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  background-color: var(--color-surface);
+}
+
+.phase-stepper__circle svg {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.phase-stepper__label {
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+}
+
+/* Fase completada */
+.phase-stepper__step--done .phase-stepper__circle {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Fase actual: relleno con el botón principal y brillo */
+.phase-stepper__step--current .phase-stepper__circle {
+  border-color: transparent;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  box-shadow: 0 0 0 0.5rem var(--color-accent-soft);
+}
+
+.phase-stepper__step--current .phase-stepper__label {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Versión compacta para tarjetas */
+.phase-stepper--compact .phase-stepper__circle {
+  width: 2.6rem;
+  height: 2.6rem;
+  font-size: 1.1rem;
+}
+
+.phase-stepper--compact .phase-stepper__step:not(:last-child)::after {
+  top: 1.3rem;
+  left: calc(50% + 1.8rem);
+  width: calc(100% - 2.8rem);
+}
+
+.phase-stepper--compact .phase-stepper__label {
+  font-size: 1.1rem;
+}
+
+.phase-stepper--compact .phase-stepper__step--current .phase-stepper__circle {
+  box-shadow: 0 0 0 0.3rem var(--color-accent-soft);
+}

@@ -1,0 +1,213 @@
+/* ==========================================================================
+   PANEL ADMIN: INFORMACIÓN DE "SOBRE NOSOTROS"
+   --------------------------------------------------------------------------
+   Editable solo por el administrador:
+     - Descripción de marca e Indicadores.
+     - Quién está detrás de la marca (nombre, cargo, biografía, foto).
+     - Explicación de cada fase: Reunión, Bocetos/prototipos,
+       Desarrollo y Despliegue.
+   ========================================================================== */
+
+import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useToast } from '../../context/ToastContext.jsx';
+import { getAboutInfo, saveAboutInfo, validateAboutInfo } from '../../services/siteInfoService.js';
+import { PROJECT_PHASES } from '../../services/projectService.js';
+import { processImageFile } from '../../utils/mediaFiles.js';
+import { getInitials } from '../../utils/format.js';
+import IndicatorsEditor from '../../components/admin/IndicatorsEditor.jsx';
+import Icon from '../../components/ui/Icon.jsx';
+import './AdminAboutPage.css';
+
+function AdminAboutPage() {
+  const { showToast } = useToast();
+  const [form, setForm] = useState(getAboutInfo);
+  const [errors, setErrors] = useState({});
+  const photoInputRef = useRef(null);
+
+  /** Descripción de marca */
+  function handleBrandChange(event) {
+    setForm((current) => ({ ...current, brandDescription: event.target.value }));
+    setErrors((current) => ({ ...current, brandDescription: '' }));
+  }
+
+  /** Campos de "Quién está detrás" (name, role, bio) */
+  function handleOwnerChange(event) {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, owner: { ...current.owner, [name]: value } }));
+    // Los errores del dueño se llaman ownerName, ownerRole, ownerBio
+    const errorKey = `owner${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+    setErrors((current) => ({ ...current, [errorKey]: '' }));
+  }
+
+  /** Texto de una fase */
+  function handlePhaseChange(event) {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, phases: { ...current.phases, [name]: value } }));
+    setErrors((current) => ({ ...current, [`phase_${name}`]: '' }));
+  }
+
+  function handleIndicatorsChange(indicators) {
+    setForm((current) => ({ ...current, indicators }));
+    setErrors((current) => ({ ...current, indicators: '' }));
+  }
+
+  /** Abre el selector de imagen para la foto */
+  function handleChoosePhoto(event) {
+    event.preventDefault();
+    photoInputRef.current?.click();
+  }
+
+  /** Comprime la foto elegida y la guarda en el formulario */
+  async function handlePhotoSelected(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    try {
+      const photo = await processImageFile(file);
+      setForm((current) => ({ ...current, owner: { ...current.owner, photo } }));
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  }
+
+  function handleRemovePhoto(event) {
+    event.preventDefault();
+    setForm((current) => ({ ...current, owner: { ...current.owner, photo: '' } }));
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault();
+
+    const formErrors = validateAboutInfo(form);
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      showToast('Revisa los campos marcados en rojo.', 'error');
+      return;
+    }
+
+    try {
+      setForm(saveAboutInfo(form));
+      showToast('Información de Sobre nosotros guardada.');
+    } catch (error) {
+      setErrors(error.fieldErrors || {});
+      showToast(error.message, 'error');
+    }
+  }
+
+  /** Pinta el error de un campo */
+  function renderError(key) {
+    return errors[key] ? <p className="field__error">{errors[key]}</p> : null;
+  }
+
+  return (
+    <>
+      <header className="admin-header">
+        <div>
+          <h1 className="admin-header__title">Sobre nosotros</h1>
+          <p className="admin-header__text">Marca, indicadores, quién está detrás y forma de trabajo.</p>
+        </div>
+        <Link to="/sobre-nosotros" className="btn btn--outline">
+          Ver página
+        </Link>
+      </header>
+
+      <form className="form" onSubmit={handleSubmit} noValidate>
+        {/* ---------- Marca e indicadores ---------- */}
+        <section className="card admin-form-section">
+          <h2 className="admin-form-section__title">Marca</h2>
+          <div className={`field ${errors.brandDescription ? 'field--error' : ''}`}>
+            <label className="field__label" htmlFor="about-brand">
+              Descripción de marca <span className="field__hint">(deja una línea en blanco para separar párrafos)</span>
+            </label>
+            <textarea id="about-brand" className="field__input about-admin__brand" value={form.brandDescription} onChange={handleBrandChange} />
+            {renderError('brandDescription')}
+          </div>
+          <IndicatorsEditor indicators={form.indicators} onChange={handleIndicatorsChange} error={errors.indicators} />
+        </section>
+
+        {/* ---------- Quién está detrás ---------- */}
+        <section className="card admin-form-section">
+          <h2 className="admin-form-section__title">Quién está detrás de la marca</h2>
+
+          <div className="about-admin__photo-row">
+            {form.owner.photo ? (
+              <img className="about-admin__photo" src={form.owner.photo} alt={`Foto de ${form.owner.name}`} />
+            ) : (
+              <span className="about-admin__photo about-admin__photo--initials" aria-hidden="true">
+                {getInitials(form.owner.name || 'G')}
+              </span>
+            )}
+            <div className="about-admin__photo-actions">
+              <input ref={photoInputRef} type="file" accept="image/*" className="sr-only" tabIndex={-1} onChange={handlePhotoSelected} />
+              <button type="button" className="btn btn--outline btn--sm" onClick={handleChoosePhoto}>
+                <Icon name="image" className="about-admin__btn-icon" />
+                {form.owner.photo ? 'Cambiar foto' : 'Subir foto'}
+              </button>
+              {form.owner.photo && (
+                <button type="button" className="btn btn--outline btn--sm" onClick={handleRemovePhoto}>
+                  Quitar foto
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="form__row">
+            <div className={`field ${errors.ownerName ? 'field--error' : ''}`}>
+              <label className="field__label" htmlFor="about-owner-name">
+                Nombre
+              </label>
+              <input id="about-owner-name" name="name" className="field__input" value={form.owner.name} onChange={handleOwnerChange} />
+              {renderError('ownerName')}
+            </div>
+            <div className={`field ${errors.ownerRole ? 'field--error' : ''}`}>
+              <label className="field__label" htmlFor="about-owner-role">
+                Cargo
+              </label>
+              <input id="about-owner-role" name="role" className="field__input" value={form.owner.role} onChange={handleOwnerChange} />
+              {renderError('ownerRole')}
+            </div>
+          </div>
+          <div className={`field ${errors.ownerBio ? 'field--error' : ''}`}>
+            <label className="field__label" htmlFor="about-owner-bio">
+              Biografía
+            </label>
+            <textarea id="about-owner-bio" name="bio" className="field__input" value={form.owner.bio} onChange={handleOwnerChange} />
+            {renderError('ownerBio')}
+          </div>
+        </section>
+
+        {/* ---------- Proceso de trabajo ---------- */}
+        <section className="card admin-form-section">
+          <h2 className="admin-form-section__title">Proceso de contrato / forma de trabajo</h2>
+          <div className="form__row">
+            {PROJECT_PHASES.map((phase, index) => (
+              <div key={phase.value} className={`field ${errors[`phase_${phase.value}`] ? 'field--error' : ''}`}>
+                <label className="field__label" htmlFor={`about-phase-${phase.value}`}>
+                  {index + 1}. {phase.label}
+                </label>
+                <textarea
+                  id={`about-phase-${phase.value}`}
+                  name={phase.value}
+                  className="field__input"
+                  value={form.phases[phase.value]}
+                  onChange={handlePhaseChange}
+                />
+                {renderError(`phase_${phase.value}`)}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="admin-form-actions">
+          <button type="submit" className="btn btn--primary">
+            Guardar cambios
+          </button>
+        </div>
+      </form>
+    </>
+  );
+}
+
+export default AdminAboutPage;

@@ -1,0 +1,117 @@
+/* ==========================================================================
+   PÁGINA CONTACTO
+   ========================================================================== */
+
+/* Dos columnas: información y formulario */
+.contact-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  align-items: start;
+  gap: 5rem;
+}
+
+.contact-info {
+  display: grid;
+  gap: 2.4rem;
+}
+
+/* En el diseño este texto es magenta */
+.contact-info__eyebrow {
+  color: var(--color-accent-3);
+}
+
+.contact-info__title {
+  font-size: clamp(3.4rem, 5vw, 5.4rem);
+  letter-spacing: -0.02em;
+}
+
+.contact-info__accent {
+  display: block;
+  color: var(--color-accent);
+}
+
+.contact-info__text {
+  font-size: 1.7rem;
+  color: var(--color-text-muted);
+}
+
+/* Tarjetas de contacto apiladas */
+.contact-cards {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  padding: 1.6rem 2rem;
+  border-radius: var(--radius-lg);
+  border: 0.1rem solid var(--color-border);
+  background-color: var(--color-surface);
+  transition: border-color var(--transition-fast);
+}
+
+.contact-card:hover {
+  border-color: var(--color-accent-border);
+}
+
+.contact-card__icon {
+  width: 4.4rem;
+  height: 4.4rem;
+}
+
+.contact-card__label {
+  display: block;
+  font-size: 1.2rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.contact-card__value {
+  display: block;
+  font-size: 1.7rem;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+/* Formulario */
+.contact-form-card {
+  padding: 3.2rem;
+  border-radius: var(--radius-xl);
+}
+
+.contact-needs {
+  border: none;
+}
+
+.contact-needs__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.contact-needs .chip {
+  cursor: pointer;
+  border-radius: var(--radius-full);
+}
+
+/* Foco visible del chip cuando se navega con teclado */
+.contact-needs .chip:focus-within {
+  outline: 0.2rem solid var(--color-accent);
+  outline-offset: 0.2rem;
+}
+
+@media (max-width: 900px) {
+  .contact-layout {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-form-card {
+    padding: 2.4rem 2rem;
+  }
+}

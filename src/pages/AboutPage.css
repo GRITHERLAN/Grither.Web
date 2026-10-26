@@ -1,0 +1,198 @@
+/* ==========================================================================
+   PÁGINA SOBRE NOSOTROS
+   ========================================================================== */
+
+/* ---------- Héroe: texto a la izquierda, emblema a la derecha ---------- */
+.about-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 5rem;
+  padding-top: 2rem;
+}
+
+.about-hero__content {
+  display: grid;
+  gap: 2rem;
+}
+
+.about-hero__title {
+  font-size: clamp(3.4rem, 5vw, 5.6rem);
+  letter-spacing: -0.02em;
+}
+
+.about-hero__text {
+  font-size: 1.7rem;
+  color: var(--color-text-muted);
+}
+
+/* Caja oscura con brillo azul alrededor del emblema */
+.about-hero__emblem {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 6 / 5;
+  padding: 5rem;
+  border-radius: var(--radius-xl);
+  border: 0.1rem solid var(--color-border-strong);
+  background-image: radial-gradient(circle, var(--color-accent-soft) 0%, transparent 70%);
+  background-color: var(--color-surface);
+  box-shadow: var(--logo-glow);
+}
+
+/* ---------- Proceso: 4 tarjetas en fila ---------- */
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.6rem;
+}
+
+.process-card {
+  display: grid;
+  align-content: start;
+  gap: 1.2rem;
+  padding: 2.4rem;
+}
+
+/* Círculo con el número de la fase; cada fase toma un color del logo */
+.process-card__number {
+  display: grid;
+  place-items: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #05070f;
+  background-color: var(--phase-color, var(--color-accent));
+}
+
+/* Colores del degradado del logo: cian → azul → morado → magenta */
+:root[data-theme="dark"] .process-card--1 { --phase-color: #2ee6e6; }
+:root[data-theme="dark"] .process-card--2 { --phase-color: #4f8cff; }
+:root[data-theme="dark"] .process-card--3 { --phase-color: #a855f7; }
+:root[data-theme="dark"] .process-card--4 { --phase-color: #e040fb; }
+
+:root[data-theme="light"] .process-card__number {
+  color: #ffffff;
+}
+
+.process-card__title {
+  font-size: 1.9rem;
+}
+
+.process-card__text {
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
+}
+
+/* ---------- Quién está detrás + tecnologías ---------- */
+.about-team {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 2rem;
+}
+
+.owner-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 2.4rem;
+}
+
+.owner-card__photo {
+  flex-shrink: 0;
+  width: 10rem;
+  height: 10rem;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+}
+
+.owner-card__photo--initials {
+  display: grid;
+  place-items: center;
+  font-size: 3.2rem;
+  font-weight: 800;
+  color: var(--btn-primary-text);
+  background: var(--btn-primary-bg);
+}
+
+.owner-card__info {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.owner-card__name {
+  font-size: 2.4rem;
+}
+
+.owner-card__role {
+  font-size: 1.3rem;
+  color: var(--color-accent);
+}
+
+.owner-card__bio {
+  color: var(--color-text-muted);
+}
+
+.owner-card__tech-title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* ---------- Llamado a la acción ---------- */
+.about-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 4rem;
+  border-radius: var(--radius-xl);
+  border: 0.1rem solid var(--color-accent-border);
+  background-image: linear-gradient(110deg, var(--color-surface) 50%, var(--color-accent-soft));
+}
+
+.about-cta__title {
+  font-size: clamp(2.4rem, 3vw, 3.2rem);
+  margin-bottom: 0.6rem;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1000px) {
+  .process-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-team {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .about-hero {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .about-hero__emblem {
+    padding: 3rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .process-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-card {
+    flex-direction: column;
+  }
+
+  .about-cta {
+    padding: 2.8rem 2.4rem;
+  }
+
+  .about-cta .btn {
+    width: 100%;
+  }
+}
