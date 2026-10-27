@@ -1,0 +1,10 @@
+# Grither - https://www.gritherweb.com
+User-agent: *
+Allow: /
+
+# Zonas privadas (login y paneles): no deben aparecer en Google
+Disallow: /ingresar
+Disallow: /proyecto
+Disallow: /administrador
+
+Sitemap: https://www.gritherweb.com/sitemap.xml

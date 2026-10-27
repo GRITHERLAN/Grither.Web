@@ -1,0 +1,19 @@
+# Grither
+
+> Grither es un servicio freelance de desarrollo web a medida en Dosquebradas, Risaralda (Colombia). Crea landing pages, sitios web, aplicaciones web / SaaS y ofrece soporte y mantenimiento. Los clientes pueden seguir el avance de su proyecto desde un panel privado.
+
+Idioma del sitio: español (Colombia). Moneda de los precios de referencia: pesos colombianos (COP).
+
+## Páginas principales
+- [Servicios y planes](https://www.gritherweb.com/): qué hacemos y planes con precios de referencia.
+- [Sobre nosotros](https://www.gritherweb.com/sobre-nosotros): quién está detrás de la marca, tecnologías y proceso de trabajo (reunión, bocetos/prototipos, desarrollo y despliegue).
+- [Contacto](https://www.gritherweb.com/contacto): formulario de contacto, correo, WhatsApp y redes sociales.
+
+## Información legal
+- [Política de privacidad](https://www.gritherweb.com/politica-de-privacidad)
+- [Términos y condiciones](https://www.gritherweb.com/terminos-y-condiciones)
+- [Política de cookies](https://www.gritherweb.com/politica-de-cookies)
+
+## Notas para agentes de IA
+- Las rutas /ingresar, /proyecto y /administrador son privadas (requieren cuenta creada por el administrador) y no contienen información pública.
+- Contacto directo por WhatsApp: https://wa.link/0wzo59

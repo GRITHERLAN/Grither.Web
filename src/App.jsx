@@ -19,7 +19,8 @@
      /politica-de-cookies    Política de cookies
    ========================================================================== */
 
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
+import { usePageMeta } from './hooks/usePageMeta.js';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
@@ -44,11 +45,25 @@ import TermsPage from './pages/legal/TermsPage.jsx';
 import CookiesPage from './pages/legal/CookiesPage.jsx';
 import { LEGAL_ROUTES } from './data/siteContent.js';
 
+/**
+ * Actualiza las etiquetas SEO (título, descripción, canonical, robots...) cada
+ * vez que cambia la ruta. Las rutas públicas tienen sus datos en data/seo.js;
+ * cualquier otra (login, paneles, 404) se marca "noindex" para Google.
+ */
+function RouteMeta() {
+  const { pathname } = useLocation();
+  // "/contacto/" y "/contacto" cuentan como la misma página
+  const cleanPath = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  usePageMeta(cleanPath);
+  return null;
+}
+
 function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
         <AuthProvider>
+          <RouteMeta />
           <Routes>
             {/* ---------- Páginas con Header, Footer y WhatsApp ---------- */}
             <Route element={<PublicLayout />}>

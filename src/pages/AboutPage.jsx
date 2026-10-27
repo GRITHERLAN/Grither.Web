@@ -27,6 +27,15 @@ function AboutPage() {
   if (!about) {
     return (
       <div className="container">
+        {/* El título aparece desde el inicio; la descripción llega con los datos */}
+        <section className="about-hero">
+          <div className="about-hero__content">
+            <span className="eyebrow">Sobre nosotros</span>
+            <h1 className="about-hero__title">
+              Le damos alas <span className="text-gradient">a las ideas digitales.</span>
+            </h1>
+          </div>
+        </section>
         <LoadingState label="Cargando información..." error={error} onRetry={reload} />
       </div>
     );
@@ -93,7 +102,7 @@ function AboutPage() {
       <section className="section about-team" aria-labelledby="about-owner">
         <article className="card owner-card">
           {about.owner.photo ? (
-            <img className="owner-card__photo" src={about.owner.photo} alt={`Foto de ${about.owner.name}`} />
+            <img className="owner-card__photo" src={about.owner.photo} alt={`Foto de ${about.owner.name}`} width="100" height="100" loading="lazy" decoding="async" />
           ) : (
             <span className="owner-card__photo owner-card__photo--initials" aria-hidden="true">
               {getInitials(about.owner.name)}
@@ -125,7 +134,9 @@ function AboutPage() {
       <section className="section about-cta">
         <div>
           <h2 className="about-cta__title">¿Tienes un proyecto en mente?</h2>
-          <p className="text-muted">Agenda una llamada gratuita de 20 minutos.</p>
+          <p className="text-muted">
+            Agenda una llamada gratuita de 20 minutos o revisa primero nuestros <Link to="/">servicios y planes</Link>.
+          </p>
         </div>
         <Link to="/contacto" className="btn btn--primary">
           Hablemos

@@ -32,6 +32,18 @@
   margin-top: 0.8rem;
 }
 
+/* Enlace interno hacia "Sobre nosotros" bajo los botones */
+.services-hero__more {
+  margin-top: 1.6rem;
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+}
+
+.services-hero__more a {
+  text-decoration: underline;
+  text-underline-offset: 0.3rem;
+}
+
 /* ---------- Tarjetas de servicios: 3 columnas que bajan a 1 ---------- */
 .services-grid {
   display: grid;

@@ -75,6 +75,8 @@ function ContactPage() {
   if (!contact) {
     return (
       <div className="container">
+        {/* El h1 existe desde el inicio (también para quien lee la página sin esperar a los datos) */}
+        <h1 className="sr-only">Contacto</h1>
         <LoadingState label="Cargando contacto..." error={error} onRetry={reload} />
       </div>
     );
@@ -185,7 +187,11 @@ function ContactContent({ contact }) {
       </section>
 
       {/* ---------- Columna derecha: formulario ---------- */}
-      <section className="card contact-form-card" aria-label="Formulario de contacto">
+      <section className="card contact-form-card" aria-labelledby="contact-form-title">
+        {/* Subtítulo oculto a la vista: da la jerarquía h1 > h2 correcta al formulario */}
+        <h2 id="contact-form-title" className="sr-only">
+          Escríbenos tu mensaje
+        </h2>
         <form className="form" onSubmit={handleSubmit} noValidate>
           <div className="form__row">
             <div className={`field ${errors.name ? 'field--error' : ''}`}>

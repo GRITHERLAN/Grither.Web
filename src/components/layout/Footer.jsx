@@ -11,6 +11,13 @@ import { Link } from 'react-router-dom';
 import { LEGAL_ROUTES } from '../../data/siteContent.js';
 import './Footer.css';
 
+/* Páginas principales del sitio */
+const MAIN_LINKS = [
+  { to: '/', label: 'Servicios' },
+  { to: '/sobre-nosotros', label: 'Sobre nosotros' },
+  { to: '/contacto', label: 'Contacto' },
+];
+
 /* Enlaces legales en el orden en que se muestran */
 const LEGAL_LINKS = [
   { to: LEGAL_ROUTES.PRIVACY, label: 'Política de privacidad' },
@@ -26,6 +33,19 @@ function Footer() {
     <footer className="footer">
       <div className="container footer__inner">
         <p>© {currentYear} Grither · Desarrollo web</p>
+
+        {/* Enlaces internos a las páginas principales (ayudan a Google a descubrirlas) */}
+        <nav aria-label="Páginas principales">
+          <ul className="footer__links">
+            {MAIN_LINKS.map((link) => (
+              <li key={link.to}>
+                <Link to={link.to} className="footer__link">
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
         <nav aria-label="Información legal">
           <ul className="footer__links">

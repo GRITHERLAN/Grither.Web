@@ -52,10 +52,15 @@ function ServicesPage() {
           <Link to="/contacto" className="btn btn--primary">
             Cotizar mi proyecto
           </Link>
-          <button type="button" className="btn btn--outline" onClick={handleScrollToPlans}>
+          {/* Enlace real a #planes (rastreable); el clic hace el desplazamiento suave */}
+          <a href="#planes" className="btn btn--outline" onClick={handleScrollToPlans}>
             Ver planes
-          </button>
+          </a>
         </div>
+        <p className="services-hero__more">
+          ¿Quieres saber cómo trabajamos? Conoce <Link to="/sobre-nosotros">quién está detrás de Grither</Link> y nuestro
+          proceso.
+        </p>
       </section>
 
       {/* Mientras llegan las cards (o si falló la carga) */}

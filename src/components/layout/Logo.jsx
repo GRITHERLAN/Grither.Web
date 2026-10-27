@@ -11,8 +11,9 @@
 
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext.jsx';
-import logoDark from '../../assets/logos/logo-oscuro.png';
-import logoLight from '../../assets/logos/logo-claro.png';
+// Versiones de 400 px de ancho (las originales de 960 px pesaban ~208 KB)
+import logoDark from '../../assets/logos/logo-oscuro-400.png';
+import logoLight from '../../assets/logos/logo-claro-400.png';
 import './Logo.css';
 
 /**
@@ -26,13 +27,15 @@ function Logo({ variant = 'brand', subtitle = '', to = '/' }) {
 
   // Solo el emblema grande
   if (variant === 'emblem') {
-    return <img className="logo-emblem" src={logoSrc} alt="Emblema de Grither" />;
+    // width/height reservan el espacio antes de cargar (evita saltos de diseño);
+    // el tamaño real lo controla el CSS
+    return <img className="logo-emblem" src={logoSrc} alt="Emblema de Grither" width="400" height="273" decoding="async" />;
   }
 
   // Icono + nombre (enlace a la página de inicio)
   return (
     <Link to={to} className="logo" aria-label="Grither, ir al inicio">
-      <img className="logo__image" src={logoSrc} alt="" />
+      <img className="logo__image" src={logoSrc} alt="" width="400" height="273" decoding="async" />
       <span className="logo__text">
         <span className="logo__name">Grither</span>
         {subtitle && <span className="logo__subtitle">{subtitle}</span>}
