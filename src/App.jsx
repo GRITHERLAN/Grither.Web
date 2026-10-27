@@ -19,6 +19,7 @@
      /politica-de-cookies    Política de cookies
    ========================================================================== */
 
+import { lazy, Suspense } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { usePageMeta } from './hooks/usePageMeta.js';
 import { ThemeProvider } from './context/ThemeContext.jsx';
@@ -30,20 +31,25 @@ import PublicLayout from './components/layout/PublicLayout.jsx';
 import ServicesPage from './pages/ServicesPage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
-import AuthPage from './pages/AuthPage.jsx';
-import UserProjectsPage from './pages/UserProjectsPage.jsx';
-import ProjectProgressPage from './pages/ProjectProgressPage.jsx';
+import LoadingState from './components/ui/LoadingState.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
-import AdminLayout from './pages/admin/AdminLayout.jsx';
-import AdminProjectsPage from './pages/admin/AdminProjectsPage.jsx';
-import AdminOffersPage from './pages/admin/AdminOffersPage.jsx';
-import AdminContactPage from './pages/admin/AdminContactPage.jsx';
-import AdminAboutPage from './pages/admin/AdminAboutPage.jsx';
-import AdminUsersPage from './pages/admin/AdminUsersPage.jsx';
 import PrivacyPage from './pages/legal/PrivacyPage.jsx';
 import TermsPage from './pages/legal/TermsPage.jsx';
 import CookiesPage from './pages/legal/CookiesPage.jsx';
 import { LEGAL_ROUTES } from './data/siteContent.js';
+
+/* Carga bajo demanda (lazy): el login y los paneles de cliente y administrador
+   se descargan solo cuando alguien entra a ellos. Así los visitantes de las
+   páginas públicas (y Google) no descargan ese código que no usan. */
+const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
+const UserProjectsPage = lazy(() => import('./pages/UserProjectsPage.jsx'));
+const ProjectProgressPage = lazy(() => import('./pages/ProjectProgressPage.jsx'));
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout.jsx'));
+const AdminProjectsPage = lazy(() => import('./pages/admin/AdminProjectsPage.jsx'));
+const AdminOffersPage = lazy(() => import('./pages/admin/AdminOffersPage.jsx'));
+const AdminContactPage = lazy(() => import('./pages/admin/AdminContactPage.jsx'));
+const AdminAboutPage = lazy(() => import('./pages/admin/AdminAboutPage.jsx'));
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage.jsx'));
 
 /**
  * Actualiza las etiquetas SEO (título, descripción, canonical, robots...) cada
@@ -64,6 +70,8 @@ function App() {
       <ToastProvider>
         <AuthProvider>
           <RouteMeta />
+          {/* Mientras se descarga una pantalla lazy se muestra el indicador de carga */}
+          <Suspense fallback={<LoadingState label="Cargando..." />}>
           <Routes>
             {/* ---------- Páginas con Header, Footer y WhatsApp ---------- */}
             <Route element={<PublicLayout />}>
@@ -120,6 +128,7 @@ function App() {
               <Route path="usuarios" element={<AdminUsersPage />} />
             </Route>
           </Routes>
+          </Suspense>
         </AuthProvider>
       </ToastProvider>
     </ThemeProvider>

@@ -7,7 +7,7 @@
       "permanent": true
     }
   ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "rewrites": [{ "source": "/((?!\\.well-known/).*)", "destination": "/index.html" }],
   "headers": [
     {
       "source": "/(.*)",
