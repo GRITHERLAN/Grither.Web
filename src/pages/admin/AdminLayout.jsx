@@ -6,10 +6,10 @@
      - Menú: Proyectos (desplegable: Pendientes / Terminados), Servicios y planes, Contacto, Sobre nosotros, Usuarios.
      - Abajo: volver al sitio, cambio de tema y tarjeta del admin con Salir.
    El contenido de cada sección se pinta en <Outlet />.
-   En celulares la barra lateral pasa a ser una barra superior.
+   En celulares la barra lateral pasa a ser una barra superior con un menú hamburguesa.
    ========================================================================== */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
@@ -50,6 +50,38 @@ function AdminLayout() {
     if (isInProjects) setIsProjectsOpen(true);
   }, [pathname, isInProjects]);
 
+  // Menú hamburguesa (solo se usa en celular/tablet)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Botón hamburguesa: al cerrar con Escape el foco vuelve aquí
+  const menuButtonRef = useRef(null);
+
+  // Al cambiar de sección se cierra el menú móvil
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  // Accesibilidad: con el menú abierto, Escape lo cierra y devuelve el foco al botón
+  useEffect(() => {
+    if (!isMenuOpen) return undefined;
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMenuOpen]);
+
+  function handleToggleMenu(event) {
+    event.preventDefault();
+    setIsMenuOpen((open) => !open);
+  }
+
   function handleToggleProjects(event) {
     event.preventDefault();
     setIsProjectsOpen((current) => !current);
@@ -65,8 +97,24 @@ function AdminLayout() {
   return (
     <div className="admin">
       <aside className="admin__sidebar">
-        <Logo subtitle="Panel admin" to="/administrador" />
+        {/* Barra superior: logo + botón hamburguesa (el botón solo se ve en celular) */}
+        <div className="admin__topbar">
+          <Logo subtitle="Panel admin" to="/administrador" />
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className="admin__menu-btn icon-btn"
+            aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={isMenuOpen}
+            aria-controls="admin-menu"
+            onClick={handleToggleMenu}
+          >
+            <Icon name={isMenuOpen ? 'close' : 'menu'} />
+          </button>
+        </div>
 
+        {/* Menú: en escritorio siempre visible; en celular se despliega con la hamburguesa */}
+        <div id="admin-menu" className={`admin__menu ${isMenuOpen ? 'admin__menu--open' : ''}`}>
         <nav className="admin__nav" aria-label="Menú del administrador">
           <p className="admin__nav-title text-mono">Gestión</p>
           <ul className="admin__nav-list">
@@ -134,6 +182,7 @@ function AdminLayout() {
               <Icon name="logout" />
             </button>
           </div>
+        </div>
         </div>
       </aside>
 

@@ -31,6 +31,17 @@
   overflow-y: auto;
 }
 
+/* En escritorio el contenedor del menú no genera caja: sus hijos (menú y parte
+   inferior) se acomodan directamente en la columna de la barra lateral */
+.admin__menu {
+  display: contents;
+}
+
+/* La hamburguesa solo existe en celular/tablet */
+.admin__menu-btn {
+  display: none;
+}
+
 .admin__nav-title {
   margin: 0 1.2rem 1rem;
   font-size: 1.2rem;
@@ -271,53 +282,27 @@
     background-color: var(--color-bg-soft);
   }
 
-  .admin__nav-title {
+  /* Barra superior: logo a la izquierda y hamburguesa a la derecha */
+  .admin__topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.6rem;
+  }
+
+  .admin__menu-btn {
+    display: inline-grid;
+  }
+
+  /* El menú queda oculto hasta pulsar la hamburguesa y se muestra en columna */
+  .admin__menu {
     display: none;
+    flex-direction: column;
+    gap: 2.4rem;
   }
 
-  /* Menú en una fila con scroll horizontal */
-  .admin__nav-list {
+  .admin__menu--open {
     display: flex;
-    gap: 0.6rem;
-    overflow-x: auto;
-    padding-bottom: 0.4rem;
-  }
-
-  .admin__link {
-    white-space: nowrap;
-    min-height: 4.2rem;
-  }
-
-  /* Proyectos desplegable: en celular el botón y sus opciones van en la misma fila */
-  .admin__nav-list > li:first-child {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .admin__link--group {
-    width: auto;
-  }
-
-  .admin__chevron {
-    margin-left: 0;
-  }
-
-  .admin__sublist {
-    display: flex;
-    margin: 0;
-    padding-left: 0;
-    border-left: 0;
-  }
-
-  .admin__sublink {
-    white-space: nowrap;
-    min-height: 4.2rem;
-  }
-
-  .admin__sidebar-bottom {
-    grid-template-columns: 1fr auto;
-    align-items: center;
   }
 
   .admin__content {
@@ -326,10 +311,6 @@
 }
 
 @media (max-width: 520px) {
-  .admin__sidebar-bottom {
-    grid-template-columns: 1fr;
-  }
-
   .admin-form-actions .btn {
     flex: 1;
   }
