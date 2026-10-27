@@ -48,6 +48,12 @@
   gap: 0.8rem;
 }
 
+/* Cada campo (etiqueta + select) puede encogerse hasta el ancho de su columna */
+.project-filters__selects > .field {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .project-filters__selects {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) auto;

@@ -9,6 +9,10 @@
 
 .select {
   position: relative;
+  /* min-width: 0 + ancho completo: el campo nunca crece por el texto de la
+     opción elegida (se corta con "…" dentro de .select__value) */
+  min-width: 0;
+  width: 100%;
 }
 
 /* ---------- Botón (campo) ---------- */
@@ -17,6 +21,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.2rem;
+  min-width: 0;
+  max-width: 100%;
   text-align: left;
   cursor: pointer;
   color: var(--color-text);
