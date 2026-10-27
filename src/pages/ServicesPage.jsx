@@ -151,12 +151,15 @@ function OfferSections({ services, plans, plansRef }) {
                   ))}
                 </ul>
 
-                <Link
-                  to="/contacto"
+                {/* El administrador define el enlace de cada botón (ej. WhatsApp) */}
+                <a
+                  href={plan.cta_url}
                   className={`btn btn--block ${plan.featured ? 'btn--primary' : 'btn--outline'}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   {plan.cta}
-                </Link>
+                </a>
               </article>
             </li>
           ))}

@@ -94,6 +94,7 @@ function PlansForm({ initialPlans }) {
         description: '',
         features: [''],
         cta: 'Elegir plan',
+        cta_url: '',
         featured: false,
       },
     ]);
@@ -258,6 +259,23 @@ function PlansForm({ initialPlans }) {
                   {renderError(index, 'cta')}
                 </div>
 
+                <div className={`field ${errors[`${index}.cta_url`] ? 'field--error' : ''}`}>
+                  <label className="field__label" htmlFor={`${plan.id}-cta-url`}>
+                    Enlace del botón
+                  </label>
+                  <input
+                    id={`${plan.id}-cta-url`}
+                    type="url"
+                    className="field__input"
+                    placeholder="https://wa.link/..."
+                    value={plan.cta_url}
+                    onChange={(event) => updatePlan(index, { cta_url: event.target.value })}
+                  />
+                  {renderError(index, 'cta_url')}
+                </div>
+              </div>
+
+              <div className="form__row">
                 <div className="field offer-card__featured">
                   <label className="checkbox">
                     <input

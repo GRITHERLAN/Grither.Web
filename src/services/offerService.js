@@ -17,7 +17,7 @@
 import { supabase } from '../lib/supabaseClient.js';
 import { ValidationError } from './errors.js';
 import { toAppError } from './supabaseErrors.js';
-import { normalizeText } from '../utils/validators.js';
+import { isValidUrl, normalizeText } from '../utils/validators.js';
 
 /* Límites de cards por bloque */
 export const MIN_CARDS = 1;
@@ -150,7 +150,7 @@ export async function saveServices(services) {
 export async function getPlans() {
   const { data, error } = await supabase
     .from('plans')
-    .select('id, name, price, description, features, cta, featured')
+    .select('id, name, price, description, features, cta, cta_url, featured')
     .order('position');
   if (error) throw toAppError(error, 'No se pudieron cargar los planes.');
 
@@ -187,6 +187,11 @@ export function validatePlans(plans) {
       errors[`${index}.cta`] = 'Escribe el texto del botón (mínimo 3 caracteres).';
     }
 
+    // Enlace al que lleva el botón (ej. un link de WhatsApp distinto por plan)
+    if (!isValidUrl(plan.cta_url || '')) {
+      errors[`${index}.cta_url`] = 'Escribe un enlace válido (https://..., mailto:... o tel:...).';
+    }
+
     const featuresError = validateStringList(plan.features, 'una característica');
     if (featuresError) errors[`${index}.features`] = featuresError;
   });
@@ -206,6 +211,7 @@ export async function savePlans(plans) {
     description: plan.description.trim(),
     features: cleanStringList(plan.features),
     cta: plan.cta.trim(),
+    cta_url: plan.cta_url.trim(),
     featured: Boolean(plan.featured),
   }));
 
