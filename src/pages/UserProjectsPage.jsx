@@ -8,11 +8,16 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { getActiveProjectsByClient } from '../services/projectService.js';
 import ProjectCard from '../components/projects/ProjectCard.jsx';
+import LoadingState from '../components/ui/LoadingState.jsx';
+import { useAsyncData } from '../hooks/useAsyncData.js';
 import './UserProjectsPage.css';
 
 function UserProjectsPage() {
   const { user } = useAuth();
-  const projects = getActiveProjectsByClient(user.id);
+  const { data: projects, error, reload } = useAsyncData(
+    () => getActiveProjectsByClient(user.id),
+    [user.id]
+  );
 
   return (
     <div className="container">
@@ -27,12 +32,16 @@ function UserProjectsPage() {
           <h2 id="my-projects-title" className="section__title">
             Mis proyectos
           </h2>
-          <p className="section__meta">
-            {projects.length} {projects.length === 1 ? 'proyecto activo' : 'proyectos activos'}
-          </p>
+          {projects && (
+            <p className="section__meta">
+              {projects.length} {projects.length === 1 ? 'proyecto activo' : 'proyectos activos'}
+            </p>
+          )}
         </header>
 
-        {projects.length === 0 ? (
+        {!projects ? (
+          <LoadingState label="Cargando tus proyectos..." error={error} onRetry={reload} />
+        ) : projects.length === 0 ? (
           <div className="empty-state">
             <p className="empty-state__title">Aún no tienes proyectos activos</p>
             <p>Cuando el equipo de Grither active tu proyecto lo verás aquí.</p>

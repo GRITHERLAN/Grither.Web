@@ -21,12 +21,33 @@ import ConfirmDialog from '../ui/ConfirmDialog.jsx';
 import Icon from '../ui/Icon.jsx';
 import Select from '../ui/Select.jsx';
 import StringListEditor from './StringListEditor.jsx';
+import LoadingState from '../ui/LoadingState.jsx';
+import { useAsyncData } from '../../hooks/useAsyncData.js';
 import './OfferEditor.css';
 
 function ServicesEditor() {
+  // Primero se piden las cards guardadas; el editor se monta cuando llegan
+  const { data, error, reload } = useAsyncData(getServices, []);
+
+  if (!data) {
+    return (
+      <section className="card offer-editor">
+        <LoadingState label="Cargando servicios..." error={error} onRetry={reload} />
+      </section>
+    );
+  }
+  return <ServicesForm initialServices={data} />;
+}
+
+/**
+ * Editor de las cards (se monta con los datos ya cargados).
+ * @param {Array} initialServices - Cards de servicios guardadas.
+ */
+function ServicesForm({ initialServices }) {
   const { showToast } = useToast();
-  const [services, setServices] = useState(getServices);
+  const [services, setServices] = useState(initialServices);
   const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
   // Card que se quiere quitar (null = ventana cerrada)
   const [serviceToRemove, setServiceToRemove] = useState(null);
 
@@ -58,8 +79,9 @@ function ServicesEditor() {
     setErrors({});
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    if (isSaving) return; // evita guardar dos veces con doble clic
 
     // Validación FrontEnd
     const formErrors = validateServices(services);
@@ -70,14 +92,16 @@ function ServicesEditor() {
     }
 
     // El servicio vuelve a validar ("BackEnd") y guarda
+    setIsSaving(true);
     try {
-      setServices(saveServices(services));
+      setServices(await saveServices(services));
       setErrors({});
       showToast('Servicios guardados. Ya se ven en la página.');
     } catch (error) {
       setErrors(error.fieldErrors || {});
       showToast(error.message, 'error');
     }
+    setIsSaving(false);
   }
 
   /** Pinta el error de un campo de una card */
@@ -189,8 +213,8 @@ function ServicesEditor() {
         </ul>
 
         <div className="offer-editor__actions">
-          <button type="submit" className="btn btn--primary">
-            Guardar servicios
+          <button type="submit" className="btn btn--primary" disabled={isSaving}>
+            {isSaving ? 'Guardando...' : 'Guardar servicios'}
           </button>
         </div>
       </form>

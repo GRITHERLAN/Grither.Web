@@ -12,6 +12,8 @@ import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext.jsx';
 import { getContactInfo, saveContactInfo, validateContactInfo } from '../../services/siteInfoService.js';
 import IndicatorsEditor from '../../components/admin/IndicatorsEditor.jsx';
+import LoadingState from '../../components/ui/LoadingState.jsx';
+import { useAsyncData } from '../../hooks/useAsyncData.js';
 
 /* Campos de texto simples del formulario (se pintan con un map) */
 const TEXT_FIELDS = [
@@ -23,9 +25,24 @@ const TEXT_FIELDS = [
 ];
 
 function AdminContactPage() {
+  // Primero se pide la información guardada; el formulario se monta cuando llega
+  const { data, error, reload } = useAsyncData(getContactInfo, []);
+
+  if (!data) {
+    return <LoadingState label="Cargando información de contacto..." error={error} onRetry={reload} />;
+  }
+  return <ContactInfoForm initialData={data} />;
+}
+
+/**
+ * Formulario de edición (se monta con los datos ya cargados).
+ * @param {object} initialData - Información de contacto guardada.
+ */
+function ContactInfoForm({ initialData }) {
   const { showToast } = useToast();
-  const [form, setForm] = useState(getContactInfo);
+  const [form, setForm] = useState(initialData);
   const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -38,8 +55,9 @@ function AdminContactPage() {
     setErrors((current) => ({ ...current, indicators: '' }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    if (isSaving) return; // evita guardar dos veces con doble clic
 
     // Validación FrontEnd
     const formErrors = validateContactInfo(form);
@@ -50,13 +68,15 @@ function AdminContactPage() {
     }
 
     // El servicio vuelve a validar y guarda
+    setIsSaving(true);
     try {
-      setForm(saveContactInfo(form));
+      setForm(await saveContactInfo(form));
       showToast('Información de contacto guardada.');
     } catch (error) {
       setErrors(error.fieldErrors || {});
       showToast(error.message, 'error');
     }
+    setIsSaving(false);
   }
 
   return (
@@ -109,8 +129,8 @@ function AdminContactPage() {
         </section>
 
         <div className="admin-form-actions">
-          <button type="submit" className="btn btn--primary">
-            Guardar cambios
+          <button type="submit" className="btn btn--primary" disabled={isSaving}>
+            {isSaving ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </div>
       </form>

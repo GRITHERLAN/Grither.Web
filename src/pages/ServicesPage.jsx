@@ -10,14 +10,21 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../components/ui/Icon.jsx';
+import LoadingState from '../components/ui/LoadingState.jsx';
+import { useAsyncData } from '../hooks/useAsyncData.js';
 import { getServices, getPlans } from '../services/offerService.js';
 import { formatCOP } from '../utils/format.js';
 import './ServicesPage.css';
 
 function ServicesPage() {
-  // Cards editables por el administrador (guardadas en LocalStorage)
-  const services = getServices();
-  const plans = getPlans();
+  // Cards editables por el administrador (se piden las dos listas a la vez)
+  const { data, error, reload } = useAsyncData(
+    async () => {
+      const [services, plans] = await Promise.all([getServices(), getPlans()]);
+      return { services, plans };
+    },
+    []
+  );
 
   // Referencia a la sección de planes para el botón "Ver planes"
   const plansRef = useRef(null);
@@ -50,6 +57,23 @@ function ServicesPage() {
         </div>
       </section>
 
+      {/* Mientras llegan las cards (o si falló la carga) */}
+      {!data && <LoadingState label="Cargando servicios..." error={error} onRetry={reload} />}
+
+      {data && <OfferSections services={data.services} plans={data.plans} plansRef={plansRef} />}
+    </div>
+  );
+}
+
+/**
+ * Secciones "Qué hacemos" y "Planes" (se pintan cuando ya llegaron los datos).
+ * @param {Array} services - Cards de servicios.
+ * @param {Array} plans - Cards de planes.
+ * @param {object} plansRef - Referencia para el botón "Ver planes".
+ */
+function OfferSections({ services, plans, plansRef }) {
+  return (
+    <>
       {/* ---------- 2. Qué hacemos ---------- */}
       <section className="section" aria-labelledby="services-title">
         <header className="section__header">
@@ -138,7 +162,7 @@ function ServicesPage() {
           ))}
         </ul>
       </section>
-    </div>
+    </>
   );
 }
 

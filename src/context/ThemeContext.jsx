@@ -8,7 +8,7 @@
    ========================================================================== */
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { readStorage, writeStorage, STORAGE_KEYS } from '../services/storage.js';
+import { readTheme, saveTheme } from '../utils/themeStorage.js';
 
 /* Valores posibles del tema */
 export const THEMES = {
@@ -20,7 +20,7 @@ const ThemeContext = createContext(null);
 
 /** Decide el tema inicial: el guardado o el del sistema */
 function getInitialTheme() {
-  const savedTheme = readStorage(STORAGE_KEYS.THEME);
+  const savedTheme = readTheme();
   if (savedTheme === THEMES.DARK || savedTheme === THEMES.LIGHT) {
     return savedTheme;
   }
@@ -34,11 +34,7 @@ export function ThemeProvider({ children }) {
   // Cada vez que cambia el tema lo aplicamos al <html> y lo guardamos
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    try {
-      writeStorage(STORAGE_KEYS.THEME, theme);
-    } catch {
-      // Si no se puede guardar, el tema igual funciona durante esta visita
-    }
+    saveTheme(theme);
   }, [theme]);
 
   // Alterna entre oscuro y claro

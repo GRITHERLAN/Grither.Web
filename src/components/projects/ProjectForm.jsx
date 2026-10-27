@@ -11,7 +11,7 @@
      - Al editar, el ID no se puede cambiar y la fecha se conserva.
    ========================================================================== */
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Icon from '../ui/Icon.jsx';
 import Select from '../ui/Select.jsx';
 import {
@@ -22,7 +22,7 @@ import {
   validateProject,
   getTakenProjectKeys,
 } from '../../services/projectService.js';
-import { ACCEPTED_MEDIA, MAX_FILES_PER_PROJECT, processMediaFile } from '../../utils/mediaFiles.js';
+import { ACCEPTED_MEDIA, MAX_FILES_PER_PROJECT, MAX_VIDEO_LABEL, processMediaFile } from '../../utils/mediaFiles.js';
 import { formatCOP, formatDate } from '../../utils/format.js';
 import { normalizeText } from '../../utils/validators.js';
 import './ProjectForm.css';
@@ -76,11 +76,26 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
   const [generalError, setGeneralError] = useState('');
   const [mediaError, setMediaError] = useState('');
   const [isProcessingMedia, setIsProcessingMedia] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef(null);
 
-  // IDs y nombres ya usados: se leen UNA sola vez al abrir el formulario
-  // (RENDIMIENTO: evita leer todo LocalStorage en cada tecla)
-  const takenKeys = useMemo(() => getTakenProjectKeys(editingId), [editingId]);
+  // IDs y nombres ya usados: se piden UNA sola vez al abrir el formulario
+  // (RENDIMIENTO: luego se revisan en memoria en cada tecla, sin ir a internet).
+  // Mientras llegan, son dos listas vacías: el servicio igual revisa al guardar.
+  const [takenKeys, setTakenKeys] = useState(() => ({ ids: new Set(), names: new Set() }));
+  useEffect(() => {
+    let isCurrent = true;
+    getTakenProjectKeys(editingId)
+      .then((keys) => {
+        if (isCurrent) setTakenKeys(keys);
+      })
+      .catch(() => {
+        // Si falla, no bloqueamos el formulario: la base de datos revisa al guardar
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [editingId]);
 
   // Opciones del desplegable de clientes (la primera, vacía, sirve de aviso)
   const clientOptions = useMemo(
@@ -158,11 +173,12 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
   }
 
   /** Guarda el proyecto */
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    if (isSaving) return; // evita guardar dos veces con doble clic
 
-    // 1) Validación FrontEnd completa
-    const formErrors = validateProject(form, editingId);
+    // 1) Validación FrontEnd completa (en memoria, sin esperar a internet)
+    const formErrors = validateProject(form, { takenKeys, clients });
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       setGeneralError('Revisa los campos marcados en rojo.');
@@ -170,12 +186,16 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
     }
 
     // 2) El servicio vuelve a validar ("BackEnd") y guarda
+    setIsSaving(true);
     try {
-      const savedProject = isEditing ? updateProject(editingId, form) : createProject(form);
+      const savedProject = isEditing
+        ? await updateProject(editingId, form)
+        : await createProject(form);
       onSaved(savedProject);
     } catch (error) {
       setErrors(error.fieldErrors || {});
       setGeneralError(error.message);
+      setIsSaving(false);
     }
   }
 
@@ -282,7 +302,7 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
       {/* ---------- Imágenes y videos ---------- */}
       <fieldset className="field project-form__media">
         <legend className="field__label">
-          Imágenes y videos <span className="field__hint">({form.media.length}/{MAX_FILES_PER_PROJECT} · videos de máx. 2 MB)</span>
+          Imágenes y videos <span className="field__hint">({form.media.length}/{MAX_FILES_PER_PROJECT} · videos de máx. {MAX_VIDEO_LABEL})</span>
         </legend>
 
         <input
@@ -309,7 +329,7 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
         {form.media.length > 0 && (
           <ul className="project-form__previews">
             {form.media.map((item, index) => (
-              <li key={`${item.name || 'archivo'}-${index}`} className="project-form__preview">
+              <li key={item.id || item.src} className="project-form__preview">
                 {item.type === 'video' ? (
                   <video src={item.src} muted />
                 ) : (
@@ -347,8 +367,8 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
         >
           Cancelar
         </button>
-        <button type="submit" className="btn btn--primary" disabled={isProcessingMedia}>
-          {isEditing ? 'Guardar cambios' : 'Crear proyecto'}
+        <button type="submit" className="btn btn--primary" disabled={isProcessingMedia || isSaving}>
+          {isSaving ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear proyecto'}
         </button>
       </div>
     </form>

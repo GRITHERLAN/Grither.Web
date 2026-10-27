@@ -73,7 +73,7 @@ function NewUserForm({ onCreated, onCancel }) {
     <form className="form" onSubmit={handleSubmit} noValidate>
       {renderField({ name: 'name', label: 'Nombre o empresa', placeholder: 'Ej. Café Andino SAS', autoComplete: 'off' })}
       {renderField({ name: 'email', label: 'Correo', type: 'email', placeholder: 'cliente@correo.com', autoComplete: 'off' })}
-      {renderField({ name: 'password', label: 'Contraseña', type: 'password', placeholder: 'Mínimo 6 caracteres', autoComplete: 'new-password' })}
+      {renderField({ name: 'password', label: 'Contraseña', type: 'password', placeholder: 'Mínimo 8, con letras y números', autoComplete: 'new-password' })}
 
       <p className="field__hint">El usuario se crea como Cliente y activo. Podrás cambiar su rol con "Editar".</p>
 

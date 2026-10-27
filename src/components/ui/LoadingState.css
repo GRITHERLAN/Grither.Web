@@ -1,0 +1,48 @@
+/* ==========================================================================
+   ESTADO DE CARGA / ERROR
+   Reutiliza los colores y radios de variables.css para verse igual en
+   modo oscuro y claro.
+   ========================================================================== */
+
+.loading-state {
+  display: grid;
+  justify-items: center;
+  gap: 1.2rem;
+  padding: 6rem 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+/* Error: marco punteado como el "empty-state" */
+.loading-state--error {
+  border: 0.1rem dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.loading-state__title {
+  font-size: 2rem;
+  color: var(--color-text);
+}
+
+/* Círculo que gira: borde completo tenue + un lado con el color de acento */
+.loading-state__spinner {
+  width: 3.6rem;
+  height: 3.6rem;
+  border: 0.3rem solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: var(--radius-full);
+  animation: loading-spin 0.8s linear infinite;
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Quien prefiere menos movimiento ve el círculo quieto */
+@media (prefers-reduced-motion: reduce) {
+  .loading-state__spinner {
+    animation: none;
+  }
+}

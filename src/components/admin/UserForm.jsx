@@ -46,7 +46,7 @@ function UserForm({ user, actorId, onSaved, onCancel }) {
     event.preventDefault();
 
     // Validación FrontEnd
-    const formErrors = validateUserUpdate(form, user.id);
+    const formErrors = validateUserUpdate(form);
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;

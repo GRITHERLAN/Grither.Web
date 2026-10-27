@@ -5,15 +5,19 @@
    Solo las edita el Administrador. Igual que projectService, toda escritura
    se VUELVE a validar aquí ("BackEnd") aunque el formulario ya lo haya hecho.
 
+   Fuente de datos: Supabase (tablas services y plans). Para guardar se usan
+   las funciones SQL save_services y save_plans, que reemplazan la lista
+   completa en una sola transacción (solo el Administrador, por la RLS).
+
    Los errores se devuelven en un objeto plano con estas llaves:
      "list"          -> error general de la lista (ej. "máximo 6 cards")
      "<indice>.campo" -> error de un campo de una card (ej. "0.title")
    ========================================================================== */
 
-import { readStorage, writeStorage, STORAGE_KEYS } from './storage.js';
+import { supabase } from '../lib/supabaseClient.js';
 import { ValidationError } from './errors.js';
+import { toAppError } from './supabaseErrors.js';
 import { normalizeText } from '../utils/validators.js';
-import { DEFAULT_SERVICES, DEFAULT_PLANS } from '../data/seed.js';
 
 /* Límites de cards por bloque */
 export const MIN_CARDS = 1;
@@ -88,8 +92,14 @@ function validateListShape(list, getName, errors, itemsName) {
    Servicios ("Qué hacemos")
    -------------------------------------------------------------------------- */
 
-export function getServices() {
-  return readStorage(STORAGE_KEYS.SERVICES, DEFAULT_SERVICES);
+export async function getServices() {
+  const { data, error } = await supabase
+    .from('services')
+    .select('id, icon, title, description, tags')
+    .order('position');
+  if (error) throw toAppError(error, 'No se pudieron cargar los servicios.');
+
+  return data;
 }
 
 /** Valida la lista de servicios. Devuelve errores (vacío = todo bien) */
@@ -116,7 +126,7 @@ export function validateServices(services) {
 }
 
 /** Valida y guarda los servicios */
-export function saveServices(services) {
+export async function saveServices(services) {
   const errors = validateServices(services);
   if (Object.keys(errors).length > 0) throw new ValidationError(errors);
 
@@ -127,7 +137,9 @@ export function saveServices(services) {
     description: service.description.trim(),
     tags: cleanStringList(service.tags),
   }));
-  writeStorage(STORAGE_KEYS.SERVICES, cleanServices);
+
+  const { error } = await supabase.rpc('save_services', { items: cleanServices });
+  if (error) throw toAppError(error, 'No se pudieron guardar los servicios.');
   return cleanServices;
 }
 
@@ -135,8 +147,15 @@ export function saveServices(services) {
    Planes
    -------------------------------------------------------------------------- */
 
-export function getPlans() {
-  return readStorage(STORAGE_KEYS.PLANS, DEFAULT_PLANS);
+export async function getPlans() {
+  const { data, error } = await supabase
+    .from('plans')
+    .select('id, name, price, description, features, cta, featured')
+    .order('position');
+  if (error) throw toAppError(error, 'No se pudieron cargar los planes.');
+
+  // price null significa "Cotización"
+  return data;
 }
 
 /** Valida la lista de planes. Devuelve errores (vacío = todo bien) */
@@ -176,7 +195,7 @@ export function validatePlans(plans) {
 }
 
 /** Valida y guarda los planes */
-export function savePlans(plans) {
+export async function savePlans(plans) {
   const errors = validatePlans(plans);
   if (Object.keys(errors).length > 0) throw new ValidationError(errors);
 
@@ -189,6 +208,8 @@ export function savePlans(plans) {
     cta: plan.cta.trim(),
     featured: Boolean(plan.featured),
   }));
-  writeStorage(STORAGE_KEYS.PLANS, cleanPlans);
+
+  const { error } = await supabase.rpc('save_plans', { items: cleanPlans });
+  if (error) throw toAppError(error, 'No se pudieron guardar los planes.');
   return cleanPlans;
 }

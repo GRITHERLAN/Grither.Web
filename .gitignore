@@ -2,3 +2,8 @@ node_modules
 dist
 *.log
 .playwright-mcp
+
+# Variables de entorno (credenciales locales, nunca se suben a git)
+.env
+.env.*
+!.env.example

@@ -2,8 +2,8 @@
    CONTENIDO FIJO DE LA WEB
    --------------------------------------------------------------------------
    Textos que no se editan desde el panel admin.
-   (Las cards de "Qué hacemos" y "Planes" ahora son editables: sus datos por
-   defecto están en seed.js y se gestionan en services/offerService.js)
+   (Las cards de "Qué hacemos" y "Planes" son editables: viven en Supabase
+   y se gestionan en services/offerService.js)
    ========================================================================== */
 
 /* Tecnologías que se muestran en Sobre nosotros */

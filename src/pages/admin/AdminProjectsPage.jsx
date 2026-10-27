@@ -9,7 +9,7 @@
    La misma página sirve para dos secciones del menú "Proyectos":
      - Pendientes (isCompletedList = false): todo lo que no está terminado.
      - Terminados (isCompletedList = true): los marcados como "Completado".
-   Después de cada cambio se vuelven a leer los proyectos de LocalStorage.
+   Después de cada cambio se vuelven a pedir los proyectos y usuarios.
    ========================================================================== */
 
 import { useCallback, useMemo, useState } from 'react';
@@ -21,7 +21,7 @@ import {
   completeProject,
   PROJECT_STATUS,
 } from '../../services/projectService.js';
-import { getClients, getUsers } from '../../services/authService.js';
+import { getUsers, ROLES } from '../../services/authService.js';
 import { filterProjects, countByStatus, DEFAULT_FILTERS } from '../../utils/filterProjects.js';
 import SummaryCards from '../../components/projects/SummaryCards.jsx';
 import ProjectFilters from '../../components/projects/ProjectFilters.jsx';
@@ -31,6 +31,11 @@ import CancelProjectDialog from '../../components/projects/CancelProjectDialog.j
 import Modal from '../../components/ui/Modal.jsx';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
 import Icon from '../../components/ui/Icon.jsx';
+import LoadingState from '../../components/ui/LoadingState.jsx';
+import { useAsyncData } from '../../hooks/useAsyncData.js';
+
+/* Lista vacía estable: se usa mientras llegan los datos */
+const NO_ITEMS = [];
 
 /**
  * @param {boolean} isCompletedList - true muestra la sección "Terminados".
@@ -39,7 +44,16 @@ function AdminProjectsPage({ isCompletedList = false }) {
   const { showToast } = useToast();
 
   // ---------- Datos ----------
-  const [allProjects, setAllProjects] = useState(getProjects);
+  // Proyectos y usuarios se piden juntos; "reload" los vuelve a pedir tras cada cambio
+  const { data, error, reload: reloadProjects } = useAsyncData(
+    async () => {
+      const [projects, users] = await Promise.all([getProjects(), getUsers()]);
+      return { projects, users };
+    },
+    []
+  );
+  const allProjects = data ? data.projects : NO_ITEMS;
+  const users = data ? data.users : NO_ITEMS;
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
   // ---------- Ventanas abiertas ----------
@@ -58,11 +72,11 @@ function AdminProjectsPage({ isCompletedList = false }) {
   */
 
   // Clientes para el formulario y mapa id -> usuario para la tabla.
-  // Se vuelven a leer solo cuando cambian los proyectos (al guardar algo).
-  const clients = useMemo(() => getClients(), [allProjects]);
+  // Se recalculan solo cuando llegan usuarios nuevos (al recargar).
+  const clients = useMemo(() => users.filter((user) => user.role === ROLES.USER), [users]);
   const clientsById = useMemo(
-    () => Object.fromEntries(getUsers().map((user) => [user.id, user])),
-    [allProjects]
+    () => Object.fromEntries(users.map((user) => [user.id, user])),
+    [users]
   );
 
   // Proyectos de ESTA sección: Terminados o Pendientes (todo lo demás)
@@ -77,11 +91,6 @@ function AdminProjectsPage({ isCompletedList = false }) {
   // Lista filtrada y ordenada (solo se recalcula si cambian datos o filtros)
   const visibleProjects = useMemo(() => filterProjects(projects, filters), [projects, filters]);
   const counts = useMemo(() => countByStatus(projects), [projects]);
-
-  /** Vuelve a leer los proyectos guardados */
-  const reloadProjects = useCallback(() => {
-    setAllProjects(getProjects());
-  }, []);
 
   // ---------- Filtros ----------
   const handleFiltersChange = useCallback((changes) => {
@@ -113,13 +122,13 @@ function AdminProjectsPage({ isCompletedList = false }) {
   }
 
   // ---------- Activar / Inactivar ----------
-  const handleToggleStatus = useCallback((project) => {
+  const handleToggleStatus = useCallback(async (project) => {
     // Inactivo o Cancelado -> Activo. Activo -> Inactivo.
     const nextStatus =
       project.status === PROJECT_STATUS.ACTIVE ? PROJECT_STATUS.INACTIVE : PROJECT_STATUS.ACTIVE;
 
     try {
-      setProjectStatus(project.id, nextStatus);
+      await setProjectStatus(project.id, nextStatus);
       reloadProjects();
       showToast(
         nextStatus === PROJECT_STATUS.ACTIVE
@@ -127,29 +136,29 @@ function AdminProjectsPage({ isCompletedList = false }) {
           : `Proyecto ${project.id} pasó a Inactivo.`,
         nextStatus === PROJECT_STATUS.ACTIVE ? 'success' : 'info'
       );
-    } catch (error) {
-      showToast(error.message, 'error');
+    } catch (actionError) {
+      showToast(actionError.message, 'error');
     }
   }, [reloadProjects, showToast]);
 
   // ---------- Completado / Reabrir ----------
-  const handleComplete = useCallback((project) => {
+  const handleComplete = useCallback(async (project) => {
     try {
-      completeProject(project.id);
+      await completeProject(project.id);
       reloadProjects();
       showToast(`Proyecto ${project.id} completado. Lo encuentras en "Terminados".`);
-    } catch (error) {
-      showToast(error.message, 'error');
+    } catch (actionError) {
+      showToast(actionError.message, 'error');
     }
   }, [reloadProjects, showToast]);
 
-  const handleReopen = useCallback((project) => {
+  const handleReopen = useCallback(async (project) => {
     try {
-      setProjectStatus(project.id, PROJECT_STATUS.ACTIVE);
+      await setProjectStatus(project.id, PROJECT_STATUS.ACTIVE);
       reloadProjects();
       showToast(`Proyecto ${project.id} reabierto. Volvió a "Pendientes".`, 'info');
-    } catch (error) {
-      showToast(error.message, 'error');
+    } catch (actionError) {
+      showToast(actionError.message, 'error');
     }
   }, [reloadProjects, showToast]);
 
@@ -161,14 +170,15 @@ function AdminProjectsPage({ isCompletedList = false }) {
   }
 
   // ---------- Borrar ----------
-  function handleConfirmDelete() {
-    try {
-      deleteProject(projectToDelete.id);
-      showToast(`Proyecto ${projectToDelete.id} borrado.`, 'info');
-    } catch (error) {
-      showToast(error.message, 'error');
-    }
+  async function handleConfirmDelete() {
+    const target = projectToDelete;
     setProjectToDelete(null);
+    try {
+      await deleteProject(target.id);
+      showToast(`Proyecto ${target.id} borrado.`, 'info');
+    } catch (deleteError) {
+      showToast(deleteError.message, 'error');
+    }
     reloadProjects();
   }
 
@@ -185,35 +195,42 @@ function AdminProjectsPage({ isCompletedList = false }) {
         </div>
         {/* Los proyectos nuevos nacen activos, así que solo se crean desde Pendientes */}
         {!isCompletedList && (
-          <button type="button" className="btn btn--primary" onClick={handleOpenCreate}>
+          <button type="button" className="btn btn--primary" onClick={handleOpenCreate} disabled={!data}>
             <Icon name="plus" className="admin-header__btn-icon" />
             Nuevo proyecto
           </button>
         )}
       </header>
 
-      {!isCompletedList && <SummaryCards projects={projects} />}
+      {/* Mientras llegan los datos por primera vez (o si falló la carga) */}
+      {!data && <LoadingState label="Cargando proyectos..." error={error} onRetry={reloadProjects} />}
 
-      <ProjectFilters
-        filters={filters}
-        onChange={handleFiltersChange}
-        onReset={handleFiltersReset}
-        counts={counts}
-        hideStatus={isCompletedList}
-      />
+      {data && !isCompletedList && <SummaryCards projects={projects} />}
 
-      <ProjectTable
-        projects={visibleProjects}
-        totalCount={projects.length}
-        clientsById={clientsById}
-        isCompletedList={isCompletedList}
-        onEdit={handleEdit}
-        onToggleStatus={handleToggleStatus}
-        onComplete={handleComplete}
-        onReopen={handleReopen}
-        onCancel={setProjectToCancel}
-        onDelete={setProjectToDelete}
-      />
+      {data && (
+        <ProjectFilters
+          filters={filters}
+          onChange={handleFiltersChange}
+          onReset={handleFiltersReset}
+          counts={counts}
+          hideStatus={isCompletedList}
+        />
+      )}
+
+      {data && (
+        <ProjectTable
+          projects={visibleProjects}
+          totalCount={projects.length}
+          clientsById={clientsById}
+          isCompletedList={isCompletedList}
+          onEdit={handleEdit}
+          onToggleStatus={handleToggleStatus}
+          onComplete={handleComplete}
+          onReopen={handleReopen}
+          onCancel={setProjectToCancel}
+          onDelete={setProjectToDelete}
+        />
+      )}
 
       {/* ---------- Ventana crear / editar ---------- */}
       <Modal

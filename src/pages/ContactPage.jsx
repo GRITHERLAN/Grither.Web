@@ -11,6 +11,8 @@
 import { useState } from 'react';
 import Icon from '../components/ui/Icon.jsx';
 import IndicatorGrid from '../components/ui/IndicatorGrid.jsx';
+import LoadingState from '../components/ui/LoadingState.jsx';
+import { useAsyncData } from '../hooks/useAsyncData.js';
 import { getContactInfo } from '../services/siteInfoService.js';
 import { CONTACT_NEEDS, BUDGET_OPTIONS } from '../data/siteContent.js';
 import { isValidEmail } from '../utils/validators.js';
@@ -42,7 +44,27 @@ function validateContactForm(form) {
 }
 
 function ContactPage() {
-  const contact = getContactInfo();
+  const { data: contact, error, reload } = useAsyncData(getContactInfo, []);
+
+  // Mientras llega la información de contacto (o si falló)
+  if (!contact) {
+    return (
+      <div className="container">
+        <LoadingState label="Cargando contacto..." error={error} onRetry={reload} />
+      </div>
+    );
+  }
+
+  return <ContactContent contact={contact} />;
+}
+
+/**
+ * Contenido de la página cuando ya llegó la información.
+ * Va en un componente aparte para que sus useState no queden detrás
+ * de un "return" anticipado (regla de los hooks de React).
+ * @param {object} contact - Información de contacto editable por el admin.
+ */
+function ContactContent({ contact }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [isSent, setIsSent] = useState(false);

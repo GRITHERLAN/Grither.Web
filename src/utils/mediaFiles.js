@@ -1,12 +1,15 @@
 /* ==========================================================================
    PROCESAMIENTO DE IMÁGENES Y VIDEOS SUBIDOS
    --------------------------------------------------------------------------
-   LocalStorage solo guarda texto y tiene un límite de ~5 MB por web.
-   Por eso:
+   Los archivos se guardan en Supabase Storage (ya no en LocalStorage), así
+   que no hay límite de 5 MB del navegador. Aun así:
      - Las IMÁGENES se reducen (máx. 1280 px) y se comprimen a JPEG con un
-       <canvas> antes de convertirlas a texto base64.
-     - Los VIDEOS no se pueden comprimir en el navegador, así que solo se
-       aceptan si pesan 2 MB o menos.
+       <canvas>: cargan más rápido para el cliente y ocupan menos espacio.
+     - Los VIDEOS se suben tal cual, si pesan 50 MB o menos (el límite del
+       bucket "project-media").
+   Cada archivo procesado trae:
+     - file: el archivo listo para subir (Blob).
+     - src:  una vista previa local (URL "blob:") para mostrarlo antes de guardar.
    ========================================================================== */
 
 import { AppError } from '../services/errors.js';
@@ -15,39 +18,39 @@ import { AppError } from '../services/errors.js';
 export const MAX_FILES_PER_PROJECT = 8;
 const MAX_IMAGE_SIDE = 1280; // píxeles del lado más largo
 const IMAGE_QUALITY = 0.75; // calidad JPEG (0 a 1)
-const MAX_VIDEO_BYTES = 2 * 1024 * 1024; // 2 MB
+const MAX_VIDEO_MB = 50; // igual al límite del bucket en Supabase
+const MAX_VIDEO_BYTES = MAX_VIDEO_MB * 1024 * 1024;
 const MAX_IMAGE_INPUT_BYTES = 15 * 1024 * 1024; // 15 MB antes de comprimir
+
+/* Texto para mostrar el límite de video en el formulario */
+export const MAX_VIDEO_LABEL = `${MAX_VIDEO_MB} MB`;
 
 /* Tipos aceptados por el input de archivos */
 export const ACCEPTED_MEDIA = 'image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm';
 
-/** Lee un archivo y lo devuelve como texto base64 (data URL) */
-function readAsDataUrl(file) {
+/** Carga un archivo de imagen en un objeto Image para poder dibujarlo */
+function loadImage(file) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new AppError(`No se pudo leer el archivo "${file.name}".`));
-    reader.readAsDataURL(file);
-  });
-}
-
-/** Carga un data URL en un objeto Image para poder dibujarlo */
-function loadImage(dataUrl) {
-  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
     const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new AppError('La imagen está dañada o no es compatible.'));
-    image.src = dataUrl;
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl); // ya no se necesita la URL temporal
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new AppError('La imagen está dañada o no es compatible.'));
+    };
+    image.src = objectUrl;
   });
 }
 
 /**
  * Reduce y comprime una imagen usando un canvas.
- * @returns {Promise<string>} data URL en JPEG
+ * @returns {Promise<Blob>} imagen en JPEG
  */
 async function compressImage(file) {
-  const originalDataUrl = await readAsDataUrl(file);
-  const image = await loadImage(originalDataUrl);
+  const image = await loadImage(file);
 
   // Calculamos el nuevo tamaño manteniendo la proporción
   const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(image.width, image.height));
@@ -65,11 +68,19 @@ async function compressImage(file) {
   context.fillRect(0, 0, width, height);
   context.drawImage(image, 0, 0, width, height);
 
-  return canvas.toDataURL('image/jpeg', IMAGE_QUALITY);
+  // toBlob es asíncrono: lo envolvemos en una promesa
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new AppError('No se pudo procesar la imagen.'))),
+      'image/jpeg',
+      IMAGE_QUALITY
+    );
+  });
 }
 
 /**
- * Convierte un archivo subido en un objeto { type, src, name } listo para guardar.
+ * Convierte un archivo subido en un objeto { type, src, name, file } listo
+ * para mostrarse como vista previa y subirse al guardar.
  * Lanza AppError con un mensaje claro si el archivo no es válido.
  */
 export async function processMediaFile(file) {
@@ -77,23 +88,28 @@ export async function processMediaFile(file) {
     if (file.size > MAX_IMAGE_INPUT_BYTES) {
       throw new AppError(`La imagen "${file.name}" pesa más de 15 MB.`);
     }
-    return { type: 'image', src: await compressImage(file), name: file.name };
+    const compressed = await compressImage(file);
+    return { type: 'image', src: URL.createObjectURL(compressed), name: file.name, file: compressed };
   }
 
   if (file.type.startsWith('video/')) {
     if (file.size > MAX_VIDEO_BYTES) {
-      throw new AppError(`El video "${file.name}" pesa más de 2 MB. Súbelo más corto o comprimido.`);
+      throw new AppError(`El video "${file.name}" pesa más de ${MAX_VIDEO_LABEL}. Súbelo más corto o comprimido.`);
     }
-    return { type: 'video', src: await readAsDataUrl(file), name: file.name };
+    return { type: 'video', src: URL.createObjectURL(file), name: file.name, file };
   }
 
   throw new AppError(`"${file.name}" no es una imagen ni un video compatible.`);
 }
 
-/** Convierte solo una imagen (por ejemplo la foto de "Quién está detrás") */
+/**
+ * Procesa solo una imagen (por ejemplo la foto de "Quién está detrás").
+ * @returns {Promise<{file: Blob, previewUrl: string}>}
+ */
 export async function processImageFile(file) {
   if (!file.type.startsWith('image/')) {
     throw new AppError('Selecciona un archivo de imagen.');
   }
-  return compressImage(file);
+  const compressed = await compressImage(file);
+  return { file: compressed, previewUrl: URL.createObjectURL(compressed) };
 }

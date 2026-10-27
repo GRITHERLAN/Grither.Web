@@ -19,13 +19,33 @@ import Carousel from '../components/ui/Carousel.jsx';
 import PhaseStepper from '../components/ui/PhaseStepper.jsx';
 import StatusBadge from '../components/ui/StatusBadge.jsx';
 import Icon from '../components/ui/Icon.jsx';
+import LoadingState from '../components/ui/LoadingState.jsx';
+import { useAsyncData } from '../hooks/useAsyncData.js';
 import { formatCOP, formatDate } from '../utils/format.js';
 import './ProjectProgressPage.css';
 
 function ProjectProgressPage() {
   const { projectId } = useParams();
   const { user, isAdmin } = useAuth();
-  const project = getProjectById(projectId);
+
+  // Pedimos a la vez el proyecto y los textos de las fases (de Sobre nosotros)
+  const { data, loading, error, reload } = useAsyncData(
+    async () => {
+      const [project, about] = await Promise.all([getProjectById(projectId), getAboutInfo()]);
+      return { project, about };
+    },
+    [projectId]
+  );
+
+  if (!data) {
+    return (
+      <div className="container">
+        <LoadingState label="Cargando proyecto..." error={loading ? null : error} onRetry={reload} />
+      </div>
+    );
+  }
+
+  const { project, about } = data;
 
   // ¿Puede ver este proyecto quien tiene la sesión?
   const canView =
@@ -50,7 +70,7 @@ function ProjectProgressPage() {
   }
 
   // Explicación de la fase actual (la misma que se ve en Sobre nosotros)
-  const phaseText = getAboutInfo().phases[project.phase];
+  const phaseText = about.phases[project.phase];
 
   return (
     <div className="container">

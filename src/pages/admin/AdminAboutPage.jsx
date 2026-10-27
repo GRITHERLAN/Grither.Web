@@ -17,12 +17,29 @@ import { processImageFile } from '../../utils/mediaFiles.js';
 import { getInitials } from '../../utils/format.js';
 import IndicatorsEditor from '../../components/admin/IndicatorsEditor.jsx';
 import Icon from '../../components/ui/Icon.jsx';
+import LoadingState from '../../components/ui/LoadingState.jsx';
+import { useAsyncData } from '../../hooks/useAsyncData.js';
 import './AdminAboutPage.css';
 
 function AdminAboutPage() {
+  // Primero se pide la información guardada; el formulario se monta cuando llega
+  const { data, error, reload } = useAsyncData(getAboutInfo, []);
+
+  if (!data) {
+    return <LoadingState label="Cargando información de Sobre nosotros..." error={error} onRetry={reload} />;
+  }
+  return <AboutInfoForm initialData={data} />;
+}
+
+/**
+ * Formulario de edición (se monta con los datos ya cargados).
+ * @param {object} initialData - Información de Sobre nosotros guardada.
+ */
+function AboutInfoForm({ initialData }) {
   const { showToast } = useToast();
-  const [form, setForm] = useState(getAboutInfo);
+  const [form, setForm] = useState(initialData);
   const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
   const photoInputRef = useRef(null);
 
   /** Descripción de marca */
@@ -58,15 +75,19 @@ function AdminAboutPage() {
     photoInputRef.current?.click();
   }
 
-  /** Comprime la foto elegida y la guarda en el formulario */
+  /**
+   * Comprime la foto elegida y la deja en el formulario:
+   *   - photo:     vista previa local para mostrarla ya.
+   *   - photoFile: archivo que se sube a Supabase Storage al guardar.
+   */
   async function handlePhotoSelected(event) {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
 
     try {
-      const photo = await processImageFile(file);
-      setForm((current) => ({ ...current, owner: { ...current.owner, photo } }));
+      const { file: photoFile, previewUrl } = await processImageFile(file);
+      setForm((current) => ({ ...current, owner: { ...current.owner, photo: previewUrl, photoFile } }));
     } catch (error) {
       showToast(error.message, 'error');
     }
@@ -74,11 +95,12 @@ function AdminAboutPage() {
 
   function handleRemovePhoto(event) {
     event.preventDefault();
-    setForm((current) => ({ ...current, owner: { ...current.owner, photo: '' } }));
+    setForm((current) => ({ ...current, owner: { ...current.owner, photo: '', photoFile: null } }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    if (isSaving) return; // evita guardar dos veces con doble clic
 
     const formErrors = validateAboutInfo(form);
     if (Object.keys(formErrors).length > 0) {
@@ -87,13 +109,15 @@ function AdminAboutPage() {
       return;
     }
 
+    setIsSaving(true);
     try {
-      setForm(saveAboutInfo(form));
+      setForm(await saveAboutInfo(form));
       showToast('Información de Sobre nosotros guardada.');
     } catch (error) {
       setErrors(error.fieldErrors || {});
       showToast(error.message, 'error');
     }
+    setIsSaving(false);
   }
 
   /** Pinta el error de un campo */
@@ -201,8 +225,8 @@ function AdminAboutPage() {
         </section>
 
         <div className="admin-form-actions">
-          <button type="submit" className="btn btn--primary">
-            Guardar cambios
+          <button type="submit" className="btn btn--primary" disabled={isSaving}>
+            {isSaving ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </div>
       </form>

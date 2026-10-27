@@ -29,6 +29,8 @@ import Modal from '../../components/ui/Modal.jsx';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
 import Icon from '../../components/ui/Icon.jsx';
 import UserForm from '../../components/admin/UserForm.jsx';
+import LoadingState from '../../components/ui/LoadingState.jsx';
+import { useAsyncData } from '../../hooks/useAsyncData.js';
 import NewUserForm from '../../components/admin/NewUserForm.jsx';
 import './AdminUsersPage.css';
 
@@ -36,22 +38,31 @@ function AdminUsersPage() {
   const { user: currentUser, refreshUser } = useAuth();
   const { showToast } = useToast();
 
-  const [users, setUsers] = useState(getUsers);
+  // Usuarios y proyectos se piden juntos (los proyectos sirven para contar cuántos tiene cada uno)
+  const { data, error, reload: reloadUsers } = useAsyncData(
+    async () => {
+      const [users, projects] = await Promise.all([getUsers(), getProjects()]);
+      return { users, projects };
+    },
+    []
+  );
   const [isCreating, setIsCreating] = useState(false);
+  // Usuario al que se le está cambiando el estado (desactiva su botón mientras tanto)
+  const [busyUserId, setBusyUserId] = useState(null);
   // Usuario que se está editando o que se quiere borrar (null = ventana cerrada)
   const [userToEdit, setUserToEdit] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  const projects = getProjects();
+  // Mientras llegan los datos por primera vez (o si falló la carga)
+  if (!data) {
+    return <LoadingState label="Cargando usuarios..." error={error} onRetry={reloadUsers} />;
+  }
+
+  const { users, projects } = data;
 
   /** Cuántos proyectos tiene asignados un usuario */
   function countProjects(userId) {
     return projects.filter((project) => project.clientId === userId).length;
-  }
-
-  /** Vuelve a leer los usuarios guardados */
-  function reloadUsers() {
-    setUsers(getUsers());
   }
 
   // ---------- Crear ----------
@@ -71,32 +82,36 @@ function AdminUsersPage() {
   }
 
   // ---------- Activar / Inactivar ----------
-  function handleToggleActive(event, targetUser) {
+  async function handleToggleActive(event, targetUser) {
     event.preventDefault();
+    if (busyUserId) return; // ya hay un cambio en curso
     const nextActive = !isUserActive(targetUser);
 
+    setBusyUserId(targetUser.id);
     try {
-      setUserActive(targetUser.id, nextActive, currentUser.id);
+      await setUserActive(targetUser.id, nextActive, currentUser.id);
       reloadUsers();
       showToast(
         nextActive ? `${targetUser.name} fue activado.` : `${targetUser.name} fue inactivado y ya no puede iniciar sesión.`,
         nextActive ? 'success' : 'info'
       );
-    } catch (error) {
-      showToast(error.message, 'error');
+    } catch (actionError) {
+      showToast(actionError.message, 'error');
     }
+    setBusyUserId(null);
   }
 
   // ---------- Borrar ----------
-  function handleConfirmDelete() {
-    try {
-      deleteUser(userToDelete.id, currentUser.id);
-      showToast(`Usuario ${userToDelete.name} borrado.`, 'info');
-      reloadUsers();
-    } catch (error) {
-      showToast(error.message, 'error');
-    }
+  async function handleConfirmDelete() {
+    const target = userToDelete;
     setUserToDelete(null);
+    try {
+      await deleteUser(target.id, currentUser.id);
+      showToast(`Usuario ${target.name} borrado.`, 'info');
+      reloadUsers();
+    } catch (actionError) {
+      showToast(actionError.message, 'error');
+    }
   }
 
   return (
@@ -183,6 +198,7 @@ function AdminUsersPage() {
                   <button
                     type="button"
                     className={`btn btn--sm ${active ? 'btn--outline' : 'btn--soft'}`}
+                    disabled={busyUserId === user.id}
                     onClick={(event) => handleToggleActive(event, user)}
                   >
                     <Icon name={active ? 'pause' : 'play'} className="user-card__btn-icon" />

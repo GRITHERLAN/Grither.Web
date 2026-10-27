@@ -1,16 +1,21 @@
 /* ==========================================================================
-   SERVICIO DE AUTENTICACIÓN (Login y usuarios con LocalStorage)
+   SERVICIO DE AUTENTICACIÓN Y USUARIOS (Supabase Auth)
    --------------------------------------------------------------------------
-   Simula un backend de usuarios:
-     - Los usuarios se guardan en LocalStorage (clave "grither_users").
-     - Las contraseñas NUNCA se guardan en texto plano: se guarda su hash.
-     - La sesión activa se guarda en LocalStorage si el usuario marcó
-       "Recordarme", o en sessionStorage (se borra al cerrar el navegador).
+   - Login: lo hace Supabase Auth. La contraseña NUNCA se compara ni se
+     guarda en el navegador; Supabase la guarda cifrada en su servidor.
+   - Roles y estado: tabla "profiles" (role = 'admin' | 'usuario', active).
+   - Sesión: la guarda supabase-js en localStorage ("Recordarme") o en
+     sessionStorage (se borra al cerrar el navegador). Ver lib/supabaseClient.js.
+   - Gestión de usuarios (crear, editar correo/contraseña/rol, activar,
+     borrar): necesita la llave secreta de Supabase, que NO puede estar en el
+     navegador. Por eso se hace en la Edge Function "admin-users", que corre
+     en el servidor y vuelve a revisar todas las reglas ("BackEnd").
    ========================================================================== */
 
-import { readStorage, writeStorage, removeStorage, STORAGE_KEYS } from './storage.js';
+import { supabase, setRememberSession } from '../lib/supabaseClient.js';
 import { AppError, ValidationError } from './errors.js';
-import { isValidEmail, normalizeText } from '../utils/validators.js';
+import { toAppError } from './supabaseErrors.js';
+import { isValidEmail } from '../utils/validators.js';
 
 /* Roles posibles de un usuario */
 export const ROLES = {
@@ -25,117 +30,134 @@ export const ROLE_LABELS = {
 };
 
 /* Longitud mínima de la contraseña */
-const MIN_PASSWORD_LENGTH = 6;
+const MIN_PASSWORD_LENGTH = 8;
+
+/**
+ * Revisa que una contraseña sea suficientemente fuerte:
+ * mínimo 8 caracteres, con al menos una letra y un número.
+ * (El servidor la vuelve a revisar con las mismas reglas.)
+ * @returns {string} mensaje de error o cadena vacía si está bien
+ */
+export function getPasswordError(password) {
+  if (String(password).length < MIN_PASSWORD_LENGTH) {
+    return `La contraseña debe tener mínimo ${MIN_PASSWORD_LENGTH} caracteres.`;
+  }
+  if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+    return 'La contraseña debe incluir al menos una letra y un número.';
+  }
+  return '';
+}
+
+/* Columnas de profiles que usa la app */
+const PROFILE_COLUMNS = 'id, name, email, role, active, created_at';
+
+/* Mensaje para cuentas inactivas */
+const INACTIVE_MESSAGE = 'Tu cuenta está inactiva. Contacta al administrador.';
 
 /* --------------------------------------------------------------------------
    Utilidades internas
    -------------------------------------------------------------------------- */
 
-/**
- * Convierte una contraseña en un hash SHA-256 (texto hexadecimal).
- * Usa la API nativa del navegador "crypto.subtle".
- * Si no está disponible (por ejemplo al abrir la web por http en otra IP),
- * usa un hash simple de respaldo para que la app siga funcionando.
- */
-export async function hashPassword(password) {
-  if (window.crypto && window.crypto.subtle) {
-    const bytes = new TextEncoder().encode(password);
-    const hashBuffer = await window.crypto.subtle.digest('SHA-256', bytes);
-    // Pasamos cada byte a hexadecimal de 2 dígitos y los unimos
-    return Array.from(new Uint8Array(hashBuffer))
-      .map((byte) => byte.toString(16).padStart(2, '0'))
-      .join('');
-  }
-
-  // Respaldo: hash FNV-1a (no es criptográfico, solo evita guardar texto plano)
-  let hash = 0x811c9dc5;
-  for (let index = 0; index < password.length; index += 1) {
-    hash ^= password.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  return `fnv-${(hash >>> 0).toString(16)}`;
-}
-
-/** Genera un id único para un usuario nuevo */
-function createUserId() {
-  return `USR-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
-}
-
-/**
- * ¿El usuario está activo? Los usuarios creados antes de existir el estado
- * no tienen el campo "active", así que solo es inactivo si vale false.
- */
+/** ¿El usuario está activo? */
 export function isUserActive(user) {
   return user.active !== false;
 }
 
-/** Devuelve una copia del usuario SIN el hash de la contraseña */
-function toPublicUser(user) {
-  if (!user) return null;
-  const { passwordHash, ...publicData } = user;
-  return publicData;
+/** Convierte una fila de "profiles" en el objeto de usuario que usa la app */
+function toUser(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    role: row.role,
+    active: row.active,
+    createdAt: row.created_at,
+  };
+}
+
+/** Lee el perfil de un usuario (nombre, rol y estado) */
+async function getProfile(userId) {
+  const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', userId).maybeSingle();
+  if (error) throw toAppError(error, 'No se pudo leer tu perfil.');
+  return toUser(data);
+}
+
+/**
+ * Llama a la Edge Function "admin-users" (solo el Administrador).
+ * La función responde { user } si todo salió bien, o
+ * { message, fieldErrors } con el error en español.
+ * @param {string} action - 'create' | 'update' | 'setActive' | 'delete'
+ * @param {object} payload - Datos de la acción.
+ */
+async function callAdminUsers(action, payload) {
+  const { data, error } = await supabase.functions.invoke('admin-users', {
+    body: { action, ...payload },
+  });
+
+  if (error) {
+    // Si el servidor respondió con un error nuestro, leemos su mensaje
+    let body = null;
+    try {
+      body = await error.context?.json();
+    } catch {
+      body = null;
+    }
+    if (body?.fieldErrors) throw new ValidationError(body.fieldErrors, body.message);
+    if (body?.message) throw new AppError(body.message);
+    throw new AppError('No se pudo completar la acción en el servidor. Inténtalo de nuevo.');
+  }
+
+  return data;
 }
 
 /* --------------------------------------------------------------------------
    Lectura de usuarios
+   (La RLS hace que el admin vea todos y un cliente solo a sí mismo.)
    -------------------------------------------------------------------------- */
 
-/** Lista completa de usuarios (sin contraseñas) */
-export function getUsers() {
-  return readStorage(STORAGE_KEYS.USERS, []).map(toPublicUser);
+/** Lista completa de usuarios */
+export async function getUsers() {
+  const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).order('created_at');
+  if (error) throw toAppError(error, 'No se pudieron cargar los usuarios.');
+  return data.map(toUser);
 }
 
 /** Lista solo de clientes (rol usuario), usada en el select de proyectos */
-export function getClients() {
-  return getUsers().filter((user) => user.role === ROLES.USER);
+export async function getClients() {
+  return (await getUsers()).filter((user) => user.role === ROLES.USER);
 }
 
-/** Busca un usuario por id (sin contraseña) */
-export function getUserById(userId) {
-  return toPublicUser(readStorage(STORAGE_KEYS.USERS, []).find((user) => user.id === userId));
-}
-
-/** Busca un usuario por correo (incluye el hash, solo para uso interno) */
-function findUserByEmail(email) {
-  const wanted = normalizeText(email);
-  return readStorage(STORAGE_KEYS.USERS, []).find((user) => normalizeText(user.email) === wanted);
+/** Busca un usuario por id */
+export async function getUserById(userId) {
+  return getProfile(userId);
 }
 
 /* --------------------------------------------------------------------------
    Sesión
    -------------------------------------------------------------------------- */
 
-/** Guarda la sesión en el almacenamiento adecuado según "Recordarme" */
-function saveSession(userId, remember) {
-  // Limpiamos ambos lugares para no dejar sesiones viejas
-  removeStorage(STORAGE_KEYS.SESSION, window.localStorage);
-  removeStorage(STORAGE_KEYS.SESSION, window.sessionStorage);
-
-  const store = remember ? window.localStorage : window.sessionStorage;
-  writeStorage(STORAGE_KEYS.SESSION, { userId, startedAt: new Date().toISOString() }, store);
-}
-
-/** Devuelve el usuario con sesión iniciada o null */
-export function getCurrentUser() {
-  const session =
-    readStorage(STORAGE_KEYS.SESSION, null, window.localStorage) ||
-    readStorage(STORAGE_KEYS.SESSION, null, window.sessionStorage);
-
+/**
+ * Devuelve el usuario con sesión iniciada o null.
+ * Si el usuario fue inactivado o borrado, su sesión deja de valer.
+ */
+export async function getCurrentUser() {
+  const { data } = await supabase.auth.getSession();
+  const session = data.session;
   if (!session) return null;
 
-  const user = getUserById(session.userId);
-  // Si el usuario fue inactivado o borrado, su sesión deja de valer
+  const user = await getProfile(session.user.id);
   if (!user || !isUserActive(user)) {
-    logout();
+    await logout();
     return null;
   }
   return user;
 }
 
-/** Cierra la sesión borrándola de ambos almacenamientos */
-export function logout() {
-  removeStorage(STORAGE_KEYS.SESSION, window.localStorage);
-  removeStorage(STORAGE_KEYS.SESSION, window.sessionStorage);
+/** Cierra la sesión en este navegador */
+export async function logout() {
+  // scope 'local': cierra solo esta sesión (no las de otros dispositivos)
+  await supabase.auth.signOut({ scope: 'local' });
 }
 
 /* --------------------------------------------------------------------------
@@ -143,8 +165,8 @@ export function logout() {
    -------------------------------------------------------------------------- */
 
 /**
- * Inicia sesión comparando el hash de la contraseña escrita con el guardado.
- * @returns {object} usuario sin contraseña
+ * Inicia sesión con correo y contraseña (Supabase Auth).
+ * @returns {object} usuario (id, name, email, role, active, createdAt)
  */
 export async function loginUser({ email, password, remember }) {
   const errors = {};
@@ -154,54 +176,52 @@ export async function loginUser({ email, password, remember }) {
     throw new ValidationError(errors);
   }
 
-  const user = findUserByEmail(email);
-  const passwordHash = await hashPassword(password);
+  // Se decide ANTES de entrar dónde se guardará la sesión
+  setRememberSession(Boolean(remember));
 
-  // Mismo mensaje para "no existe" y "clave errada": no damos pistas a terceros
-  if (!user || user.passwordHash !== passwordHash) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email.trim().toLowerCase(),
+    password,
+  });
+
+  if (error) {
+    // Un usuario inactivo queda bloqueado ("banned") en Supabase Auth
+    if (error.code === 'user_banned') throw new AppError(INACTIVE_MESSAGE);
+    // Sin internet: mensaje distinto para no confundir con clave errada
+    if (error.name === 'AuthRetryableFetchError') {
+      throw new AppError('No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.');
+    }
+    // Mismo mensaje para "no existe" y "clave errada": no damos pistas a terceros
     throw new AppError('Correo o contraseña incorrectos.');
   }
 
-  // Un usuario inactivo no puede entrar hasta que el administrador lo active
-  if (!isUserActive(user)) {
-    throw new AppError('Tu cuenta está inactiva. Contacta al administrador.');
+  // Revisamos rol y estado en la tabla profiles
+  const user = await getProfile(data.user.id);
+  if (!user || !isUserActive(user)) {
+    await logout();
+    throw new AppError(INACTIVE_MESSAGE);
   }
-
-  saveSession(user.id, Boolean(remember));
-  return toPublicUser(user);
+  return user;
 }
 
 /* --------------------------------------------------------------------------
    Gestión de usuarios (solo el Administrador)
    --------------------------------------------------------------------------
-   Reglas que se controlan aquí ("BackEnd"), no solo en la pantalla:
+   Reglas que se controlan en el servidor (Edge Function + base de datos),
+   no solo en la pantalla:
      - Un administrador no puede inactivarse, borrarse ni cambiar su propio rol.
      - Siempre debe quedar al menos un administrador activo.
      - No se puede borrar un usuario que tenga proyectos asignados.
+     - El correo no se puede repetir.
    -------------------------------------------------------------------------- */
 
-/** ¿Queda otro administrador activo además del indicado? */
-function hasAnotherActiveAdmin(users, userId) {
-  return users.some(
-    (user) => user.id !== userId && user.role === ROLES.ADMIN && isUserActive(user)
-  );
-}
-
-/** Busca la posición de un usuario o lanza error si no existe */
-function findUserIndex(users, userId) {
-  const index = users.findIndex((user) => user.id === userId);
-  if (index === -1) {
-    throw new AppError('El usuario ya no existe. Recarga la página.');
-  }
-  return index;
-}
-
 /**
- * Valida los datos de edición de un usuario.
+ * Valida los datos de edición de un usuario (formato de cada campo).
  * La contraseña es opcional: si se deja vacía, no se cambia.
+ * Que el correo no esté repetido lo revisa el servidor al guardar.
  * @returns {object} errores por campo (vacío = todo bien)
  */
-export function validateUserUpdate({ name, email, role, password }, userId) {
+export function validateUserUpdate({ name, email, role, password }) {
   const errors = {};
 
   if (!name || name.trim().length < 3) {
@@ -210,20 +230,14 @@ export function validateUserUpdate({ name, email, role, password }, userId) {
 
   if (!isValidEmail(email || '')) {
     errors.email = 'Escribe un correo válido, por ejemplo tu@correo.com.';
-  } else {
-    // El correo no puede ser de OTRO usuario (el propio sí se permite)
-    const owner = findUserByEmail(email);
-    if (owner && owner.id !== userId) {
-      errors.email = 'Ya existe una cuenta con este correo.';
-    }
   }
 
   if (![ROLES.ADMIN, ROLES.USER].includes(role)) {
     errors.role = 'Selecciona un rol.';
   }
 
-  if (password && password.length < MIN_PASSWORD_LENGTH) {
-    errors.password = `La contraseña debe tener mínimo ${MIN_PASSWORD_LENGTH} caracteres.`;
+  if (password && getPasswordError(password)) {
+    errors.password = getPasswordError(password);
   }
 
   return errors;
@@ -231,91 +245,36 @@ export function validateUserUpdate({ name, email, role, password }, userId) {
 
 /**
  * Edita nombre, correo, rol y (opcionalmente) contraseña de un usuario.
+ * El servidor sabe quién es el administrador por su sesión, así que no hace
+ * falta enviarlo (y no se podría falsificar).
  * @param {string} userId - Usuario a editar.
  * @param {object} data - { name, email, role, password }
- * @param {string} actorId - Administrador que hace el cambio.
  */
-export async function updateUser(userId, data, actorId) {
-  const users = readStorage(STORAGE_KEYS.USERS, []);
-  const index = findUserIndex(users, userId);
-  const target = users[index];
-
-  const errors = validateUserUpdate(data, userId);
+export async function updateUser(userId, data) {
+  const errors = validateUserUpdate(data);
   if (Object.keys(errors).length > 0) {
     throw new ValidationError(errors);
   }
 
-  // Reglas sobre el cambio de rol
-  if (data.role !== target.role) {
-    if (userId === actorId) {
-      throw new ValidationError({ role: 'No puedes cambiar tu propio rol.' });
-    }
-    if (target.role === ROLES.ADMIN && !hasAnotherActiveAdmin(users, userId)) {
-      throw new ValidationError({ role: 'Debe quedar al menos un administrador activo.' });
-    }
-  }
-
-  const updatedUser = {
-    ...target,
+  const result = await callAdminUsers('update', {
+    userId,
     name: data.name.trim(),
     email: data.email.trim().toLowerCase(),
     role: data.role,
-  };
-
-  // Solo se cambia la contraseña si se escribió una nueva
-  if (data.password) {
-    updatedUser.passwordHash = await hashPassword(data.password);
-  }
-
-  const nextUsers = [...users];
-  nextUsers[index] = updatedUser;
-  writeStorage(STORAGE_KEYS.USERS, nextUsers);
-  return toPublicUser(updatedUser);
+    password: data.password || '',
+  });
+  return result.user;
 }
 
 /** Activa o inactiva un usuario. Un usuario inactivo no puede iniciar sesión. */
-export function setUserActive(userId, active, actorId) {
-  const users = readStorage(STORAGE_KEYS.USERS, []);
-  const index = findUserIndex(users, userId);
-  const target = users[index];
-
-  if (!active) {
-    if (userId === actorId) {
-      throw new AppError('No puedes inactivar tu propia cuenta.');
-    }
-    if (target.role === ROLES.ADMIN && !hasAnotherActiveAdmin(users, userId)) {
-      throw new AppError('Debe quedar al menos un administrador activo.');
-    }
-  }
-
-  const nextUsers = [...users];
-  nextUsers[index] = { ...target, active };
-  writeStorage(STORAGE_KEYS.USERS, nextUsers);
-  return toPublicUser(nextUsers[index]);
+export async function setUserActive(userId, active) {
+  const result = await callAdminUsers('setActive', { userId, active: Boolean(active) });
+  return result.user;
 }
 
-/** Borra un usuario definitivamente */
-export function deleteUser(userId, actorId) {
-  const users = readStorage(STORAGE_KEYS.USERS, []);
-  const target = users[findUserIndex(users, userId)];
-
-  if (userId === actorId) {
-    throw new AppError('No puedes borrar tu propia cuenta.');
-  }
-  if (target.role === ROLES.ADMIN && !hasAnotherActiveAdmin(users, userId)) {
-    throw new AppError('Debe quedar al menos un administrador activo.');
-  }
-
-  // No dejamos proyectos "huérfanos": primero hay que borrarlos o reasignarlos
-  const projects = readStorage(STORAGE_KEYS.PROJECTS, []);
-  const assigned = projects.filter((project) => project.clientId === userId).length;
-  if (assigned > 0) {
-    throw new AppError(
-      `Este usuario tiene ${assigned} ${assigned === 1 ? 'proyecto asignado' : 'proyectos asignados'}. Bórralos o reasígnalos antes de borrar al usuario.`
-    );
-  }
-
-  writeStorage(STORAGE_KEYS.USERS, users.filter((user) => user.id !== userId));
+/** Borra un usuario definitivamente (su cuenta de acceso y su perfil) */
+export async function deleteUser(userId) {
+  await callAdminUsers('delete', { userId });
 }
 
 /* --------------------------------------------------------------------------
@@ -323,9 +282,9 @@ export function deleteUser(userId, actorId) {
    -------------------------------------------------------------------------- */
 
 /**
- * Valida los datos para crear un usuario desde el panel.
- * Valida los datos de un usuario nuevo, sin "confirmar contraseña"
- * (el administrador la escribe una sola vez).
+ * Valida los datos para crear un usuario desde el panel
+ * (sin "confirmar contraseña": el administrador la escribe una sola vez).
+ * Que el correo no esté repetido lo revisa el servidor al guardar.
  * @returns {object} errores por campo (vacío = todo bien)
  */
 export function validateNewUser({ name, email, password }) {
@@ -337,12 +296,10 @@ export function validateNewUser({ name, email, password }) {
 
   if (!isValidEmail(email || '')) {
     errors.email = 'Escribe un correo válido, por ejemplo cliente@correo.com.';
-  } else if (findUserByEmail(email)) {
-    errors.email = 'Ya existe una cuenta con este correo.';
   }
 
-  if (!password || password.length < MIN_PASSWORD_LENGTH) {
-    errors.password = `La contraseña debe tener mínimo ${MIN_PASSWORD_LENGTH} caracteres.`;
+  if (!password || getPasswordError(password)) {
+    errors.password = getPasswordError(password || '');
   }
 
   return errors;
@@ -350,8 +307,8 @@ export function validateNewUser({ name, email, password }) {
 
 /**
  * Crea un usuario nuevo con rol "usuario" (cliente) y estado activo.
- * NO inicia sesión con la cuenta creada:
- * el administrador sigue con su propia sesión.
+ * NO inicia sesión con la cuenta creada: el administrador sigue con la suya
+ * (la cuenta la crea el servidor, no el navegador).
  */
 export async function createUser(formData) {
   const errors = validateNewUser(formData);
@@ -359,17 +316,10 @@ export async function createUser(formData) {
     throw new ValidationError(errors);
   }
 
-  const newUser = {
-    id: createUserId(),
+  const result = await callAdminUsers('create', {
     name: formData.name.trim(),
     email: formData.email.trim().toLowerCase(),
-    passwordHash: await hashPassword(formData.password),
-    role: ROLES.USER,
-    active: true,
-    createdAt: new Date().toISOString(),
-  };
-
-  const users = readStorage(STORAGE_KEYS.USERS, []);
-  writeStorage(STORAGE_KEYS.USERS, [...users, newUser]);
-  return toPublicUser(newUser);
+    password: formData.password,
+  });
+  return result.user;
 }

@@ -12,6 +12,8 @@
 import { Link } from 'react-router-dom';
 import Logo from '../components/layout/Logo.jsx';
 import IndicatorGrid from '../components/ui/IndicatorGrid.jsx';
+import LoadingState from '../components/ui/LoadingState.jsx';
+import { useAsyncData } from '../hooks/useAsyncData.js';
 import { getAboutInfo } from '../services/siteInfoService.js';
 import { PROJECT_PHASES } from '../services/projectService.js';
 import { TECHNOLOGIES } from '../data/siteContent.js';
@@ -20,7 +22,15 @@ import './AboutPage.css';
 
 function AboutPage() {
   // Leemos la información guardada por el admin
-  const about = getAboutInfo();
+  const { data: about, error, reload } = useAsyncData(getAboutInfo, []);
+
+  if (!about) {
+    return (
+      <div className="container">
+        <LoadingState label="Cargando información..." error={error} onRetry={reload} />
+      </div>
+    );
+  }
 
   // La descripción puede tener varios párrafos separados por línea en blanco
   const paragraphs = about.brandDescription.split(/\n\s*\n/).filter(Boolean);

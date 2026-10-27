@@ -22,6 +22,8 @@ import { formatCOP } from '../../utils/format.js';
 import ConfirmDialog from '../ui/ConfirmDialog.jsx';
 import Icon from '../ui/Icon.jsx';
 import StringListEditor from './StringListEditor.jsx';
+import LoadingState from '../ui/LoadingState.jsx';
+import { useAsyncData } from '../../hooks/useAsyncData.js';
 import './OfferEditor.css';
 
 /** El input de precio trabaja con texto: null se muestra como cadena vacía */
@@ -30,9 +32,28 @@ function toFormPlans(plans) {
 }
 
 function PlansEditor() {
+  // Primero se piden los planes guardados; el editor se monta cuando llegan
+  const { data, error, reload } = useAsyncData(getPlans, []);
+
+  if (!data) {
+    return (
+      <section className="card offer-editor">
+        <LoadingState label="Cargando planes..." error={error} onRetry={reload} />
+      </section>
+    );
+  }
+  return <PlansForm initialPlans={data} />;
+}
+
+/**
+ * Editor de las cards (se monta con los datos ya cargados).
+ * @param {Array} initialPlans - Cards de planes guardadas.
+ */
+function PlansForm({ initialPlans }) {
   const { showToast } = useToast();
-  const [plans, setPlans] = useState(() => toFormPlans(getPlans()));
+  const [plans, setPlans] = useState(() => toFormPlans(initialPlans));
   const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
   // Card que se quiere quitar (null = ventana cerrada)
   const [planToRemove, setPlanToRemove] = useState(null);
 
@@ -85,8 +106,9 @@ function PlansEditor() {
     setErrors({});
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    if (isSaving) return; // evita guardar dos veces con doble clic
 
     // Validación FrontEnd
     const formErrors = validatePlans(plans);
@@ -97,14 +119,16 @@ function PlansEditor() {
     }
 
     // El servicio vuelve a validar ("BackEnd") y guarda
+    setIsSaving(true);
     try {
-      setPlans(toFormPlans(savePlans(plans)));
+      setPlans(toFormPlans(await savePlans(plans)));
       setErrors({});
       showToast('Planes guardados. Ya se ven en la página.');
     } catch (error) {
       setErrors(error.fieldErrors || {});
       showToast(error.message, 'error');
     }
+    setIsSaving(false);
   }
 
   /** Pinta el error de un campo de una card */
@@ -250,8 +274,8 @@ function PlansEditor() {
         </ul>
 
         <div className="offer-editor__actions">
-          <button type="submit" className="btn btn--primary">
-            Guardar planes
+          <button type="submit" className="btn btn--primary" disabled={isSaving}>
+            {isSaving ? 'Guardando...' : 'Guardar planes'}
           </button>
         </div>
       </form>

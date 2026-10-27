@@ -1,14 +1,25 @@
 /* ==========================================================================
-   SERVICIO DE PROYECTOS (CRUD con LocalStorage)
+   SERVICIO DE PROYECTOS (CRUD con Supabase)
    --------------------------------------------------------------------------
-   Hace el papel de "BackEnd": toda escritura de proyectos pasa por aquí y
-   se VUELVE a validar (ID y nombre únicos, precio, enlace, etc.) aunque el
-   formulario ya lo haya validado. Así se controla en FrontEnd y BackEnd.
+   Toda escritura de proyectos pasa por aquí y se VUELVE a validar (ID y
+   nombre únicos, precio, enlace, etc.) aunque el formulario ya lo haya
+   validado. Además, la base de datos tiene sus propias reglas:
+     - ID: llave primaria (UNIQUE) y siempre en mayúsculas.
+     - Nombre: índice UNIQUE (sin importar mayúsculas).
+     - Fechas de creación/edición automáticas (trigger).
+     - RLS: solo el Administrador crea, edita o borra; el cliente solo lee
+       sus proyectos activos o terminados.
+   Así la regla se controla en FrontEnd y en BackEnd.
+
+   Las imágenes y videos se suben a Supabase Storage (bucket "project-media")
+   y en la tabla project_media se guarda solo su URL.
    ========================================================================== */
 
-import { readStorage, writeStorage, STORAGE_KEYS } from './storage.js';
+import { supabase } from '../lib/supabaseClient.js';
 import { AppError, ValidationError } from './errors.js';
-import { getUserById, ROLES } from './authService.js';
+import { toAppError } from './supabaseErrors.js';
+import { BUCKETS, removePublicFiles, uploadPublicFile } from './storageFiles.js';
+import { getClients } from './authService.js';
 import { isValidUrl, normalizeText } from '../utils/validators.js';
 
 /* --------------------------------------------------------------------------
@@ -39,7 +50,8 @@ export const PROJECT_PHASES = [
   { value: 'despliegue', label: 'Despliegue' },
 ];
 
-/* Categorías disponibles al crear un proyecto */
+/* Categorías disponibles al crear un proyecto
+   (si se agrega una, también hay que agregarla en el CHECK de la tabla projects) */
 export const PROJECT_CATEGORIES = [
   'Landing page',
   'Sitio corporativo',
@@ -51,31 +63,82 @@ export const PROJECT_CATEGORIES = [
 /* Límites de texto */
 const MIN_CANCEL_REASON = 10;
 
+/* Columnas que se piden de cada proyecto (incluye su multimedia) */
+const PROJECT_COLUMNS = '*, project_media(id, type, url, name, position)';
+
+/* Mensaje cuando el proyecto no existe o no se puede ver */
+const NOT_FOUND_MESSAGE = 'El proyecto ya no existe. Recarga la página.';
+
 /* --------------------------------------------------------------------------
-   Lectura
+   Traducción entre la base de datos (snake_case) y la app (camelCase)
    -------------------------------------------------------------------------- */
 
-/** Devuelve todos los proyectos guardados */
-export function getProjects() {
-  return readStorage(STORAGE_KEYS.PROJECTS, []);
+/** Convierte una fila de la tabla en el objeto de proyecto que usa la app */
+function toProject(row) {
+  // La multimedia llega sin orden: se ordena por "position"
+  const media = [...(row.project_media || [])]
+    .sort((a, b) => a.position - b.position)
+    .map((item) => ({ id: item.id, type: item.type, src: item.url, name: item.name }));
+
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    price: Number(row.price),
+    category: row.category,
+    phase: row.phase,
+    status: row.status,
+    cancelReason: row.cancel_reason,
+    clientId: row.client_id,
+    contactLink: row.contact_link,
+    media,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    completedAt: row.completed_at,
+  };
 }
 
-/** Busca un proyecto por su ID (sin importar mayúsculas) */
-export function getProjectById(projectId) {
-  const wanted = normalizeText(projectId);
-  return getProjects().find((project) => normalizeText(project.id) === wanted) || null;
+/** Normaliza el ID como lo guarda la base de datos (sin espacios, en mayúsculas) */
+function toDbId(projectId) {
+  return String(projectId || '').trim().toUpperCase();
+}
+
+/* --------------------------------------------------------------------------
+   Lectura
+   (La RLS decide qué filas llegan: el admin ve todo, el cliente solo lo suyo.)
+   -------------------------------------------------------------------------- */
+
+/** Devuelve todos los proyectos que puede ver quien tiene la sesión */
+export async function getProjects() {
+  const { data, error } = await supabase.from('projects').select(PROJECT_COLUMNS).order('created_at');
+  if (error) throw toAppError(error, 'No se pudieron cargar los proyectos.');
+  return data.map(toProject);
+}
+
+/** Busca un proyecto por su ID (sin importar mayúsculas). null si no existe o no se puede ver. */
+export async function getProjectById(projectId) {
+  const { data, error } = await supabase
+    .from('projects')
+    .select(PROJECT_COLUMNS)
+    .eq('id', toDbId(projectId))
+    .maybeSingle();
+  if (error) throw toAppError(error, 'No se pudo cargar el proyecto.');
+  return data ? toProject(data) : null;
 }
 
 /**
  * Proyectos de un cliente que puede ver en su panel (Panel Usuario):
  * los ACTIVOS y los TERMINADOS (estos últimos se muestran con su etiqueta).
  */
-export function getActiveProjectsByClient(clientId) {
-  return getProjects().filter(
-    (project) =>
-      project.clientId === clientId &&
-      [PROJECT_STATUS.ACTIVE, PROJECT_STATUS.COMPLETED].includes(project.status)
-  );
+export async function getActiveProjectsByClient(clientId) {
+  const { data, error } = await supabase
+    .from('projects')
+    .select(PROJECT_COLUMNS)
+    .eq('client_id', clientId)
+    .in('status', [PROJECT_STATUS.ACTIVE, PROJECT_STATUS.COMPLETED])
+    .order('created_at');
+  if (error) throw toAppError(error, 'No se pudieron cargar tus proyectos.');
+  return data.map(toProject);
 }
 
 /**
@@ -89,43 +152,22 @@ export function getPhaseLabel(phaseValue, status) {
 }
 
 /* --------------------------------------------------------------------------
-   Comprobaciones de duplicados (las usa el formulario en vivo y el servicio)
+   Comprobaciones de duplicados
    -------------------------------------------------------------------------- */
-
-/**
- * ¿Ya existe otro proyecto con ese ID?
- * @param {string} id - ID a revisar.
- * @param {string|null} ignoreId - ID del proyecto en edición (no cuenta como duplicado).
- */
-export function isProjectIdTaken(id, ignoreId = null) {
-  const wanted = normalizeText(id);
-  return getProjects().some(
-    (project) =>
-      normalizeText(project.id) === wanted &&
-      (ignoreId === null || normalizeText(project.id) !== normalizeText(ignoreId))
-  );
-}
-
-/** ¿Ya existe otro proyecto con ese nombre? (misma lógica que el ID) */
-export function isProjectNameTaken(name, ignoreId = null) {
-  const wanted = normalizeText(name);
-  return getProjects().some(
-    (project) =>
-      normalizeText(project.name) === wanted &&
-      (ignoreId === null || normalizeText(project.id) !== normalizeText(ignoreId))
-  );
-}
 
 /**
  * Devuelve los IDs y nombres ya usados (normalizados) en dos Set.
  * RENDIMIENTO: el formulario lo llama UNA vez al abrirse y luego revisa
- * duplicados en memoria mientras se escribe, en vez de leer y convertir
- * todo LocalStorage (que incluye las imágenes) en cada tecla.
+ * duplicados en memoria mientras se escribe, sin ir a internet en cada tecla.
+ * Solo pide las columnas id y name (nada de imágenes).
  * @param {string|null} ignoreId - Proyecto en edición (no cuenta como duplicado).
  */
-export function getTakenProjectKeys(ignoreId = null) {
+export async function getTakenProjectKeys(ignoreId = null) {
+  const { data, error } = await supabase.from('projects').select('id, name');
+  if (error) throw toAppError(error, 'No se pudieron revisar los proyectos existentes.');
+
   const ignored = ignoreId === null ? null : normalizeText(ignoreId);
-  const others = getProjects().filter((project) => normalizeText(project.id) !== ignored);
+  const others = data.filter((project) => normalizeText(project.id) !== ignored);
   return {
     ids: new Set(others.map((project) => normalizeText(project.id))),
     names: new Set(others.map((project) => normalizeText(project.name))),
@@ -138,11 +180,16 @@ export function getTakenProjectKeys(ignoreId = null) {
 
 /**
  * Valida todos los campos de un proyecto.
+ * Es una función PURA (no lee nada guardado): recibe como datos lo que
+ * necesita para revisar duplicados y el cliente. Así el formulario la puede
+ * usar en cada tecla sin esperar a internet.
  * @param {object} data - Datos del formulario.
- * @param {string|null} editingId - ID del proyecto si se está editando.
+ * @param {object} context
+ * @param {{ids:Set,names:Set}} context.takenKeys - IDs y nombres ya usados (de getTakenProjectKeys).
+ * @param {Array} context.clients - Usuarios con rol cliente (de getClients).
  * @returns {object} errores por campo (vacío = todo bien)
  */
-export function validateProject(data, editingId = null) {
+export function validateProject(data, { takenKeys, clients } = {}) {
   const errors = {};
 
   // ID: obligatorio, solo letras, números y guiones, y único
@@ -151,7 +198,7 @@ export function validateProject(data, editingId = null) {
     errors.id = 'El ID es obligatorio.';
   } else if (!/^[A-Za-z0-9-]{3,20}$/.test(id)) {
     errors.id = 'Usa de 3 a 20 caracteres: letras, números o guiones (ej. GTH-8050).';
-  } else if (isProjectIdTaken(id, editingId)) {
+  } else if (takenKeys && takenKeys.ids.has(normalizeText(id))) {
     errors.id = 'Ya existe un proyecto con este ID.';
   }
 
@@ -161,7 +208,7 @@ export function validateProject(data, editingId = null) {
     errors.name = 'El nombre debe tener mínimo 3 caracteres.';
   } else if (name.length > 80) {
     errors.name = 'El nombre no puede superar 80 caracteres.';
-  } else if (isProjectNameTaken(name, editingId)) {
+  } else if (takenKeys && takenKeys.names.has(normalizeText(name))) {
     errors.name = 'Ya existe un proyecto con este nombre.';
   }
 
@@ -186,9 +233,11 @@ export function validateProject(data, editingId = null) {
     errors.phase = 'Selecciona la fase del proyecto.';
   }
 
-  // Cliente: debe existir y tener rol de usuario
-  const client = getUserById(data.clientId);
-  if (!client || client.role !== ROLES.USER) {
+  // Cliente: debe estar en la lista de clientes (usuarios con rol cliente)
+  const clientExists = Array.isArray(clients)
+    ? clients.some((client) => client.id === data.clientId)
+    : Boolean(data.clientId);
+  if (!clientExists) {
     errors.clientId = 'Selecciona el usuario que contrató el proyecto.';
   }
 
@@ -201,13 +250,64 @@ export function validateProject(data, editingId = null) {
 }
 
 /* --------------------------------------------------------------------------
+   Multimedia (Storage + tabla project_media)
+   --------------------------------------------------------------------------
+   En el formulario cada archivo es un objeto:
+     - Ya guardado: { id, type, src (URL pública), name }
+     - Nuevo:       { type, src (vista previa local), name, file (Blob) }
+   -------------------------------------------------------------------------- */
+
+/**
+ * Sube a Storage los archivos NUEVOS de la lista y devuelve la lista final
+ * (en el mismo orden) con la URL pública de cada uno.
+ * Si una subida falla, borra lo que alcanzó a subir y lanza el error.
+ * @returns {Promise<{items: Array, uploadedUrls: string[]}>}
+ */
+async function uploadNewMedia(projectId, media) {
+  const uploadedUrls = [];
+  const items = [];
+  try {
+    for (const item of media) {
+      if (item.file) {
+        const url = await uploadPublicFile(BUCKETS.PROJECT_MEDIA, projectId, item.file);
+        uploadedUrls.push(url);
+        items.push({ type: item.type, url, name: item.name || '' });
+      } else {
+        items.push({ type: item.type, url: item.src, name: item.name || '' });
+      }
+    }
+  } catch (error) {
+    await removePublicFiles(BUCKETS.PROJECT_MEDIA, uploadedUrls);
+    throw error;
+  }
+  return { items, uploadedUrls };
+}
+
+/** Reemplaza las filas de multimedia de un proyecto por la lista dada (en orden) */
+async function replaceMediaRows(projectId, items) {
+  const { error: deleteError } = await supabase.from('project_media').delete().eq('project_id', projectId);
+  if (deleteError) throw toAppError(deleteError, 'No se pudieron actualizar las imágenes y videos.');
+
+  if (items.length === 0) return;
+  const rows = items.map((item, index) => ({
+    project_id: projectId,
+    type: item.type,
+    url: item.url,
+    name: item.name,
+    position: index,
+  }));
+  const { error: insertError } = await supabase.from('project_media').insert(rows);
+  if (insertError) throw toAppError(insertError, 'No se pudieron guardar las imágenes y videos.');
+}
+
+/* --------------------------------------------------------------------------
    Escritura (Crear / Editar / Borrar / Cambiar estado)
    -------------------------------------------------------------------------- */
 
 /** Limpia y da formato a los datos que vienen del formulario */
 function cleanProjectData(data) {
   return {
-    id: String(data.id).trim().toUpperCase(),
+    id: toDbId(data.id),
     name: String(data.name).trim(),
     description: String(data.description).trim(),
     price: Number(data.price),
@@ -219,77 +319,131 @@ function cleanProjectData(data) {
   };
 }
 
-/** Busca la posición de un proyecto en la lista o lanza error si no existe */
-function findProjectIndex(projects, projectId) {
-  const index = projects.findIndex(
-    (project) => normalizeText(project.id) === normalizeText(projectId)
-  );
-  if (index === -1) {
-    throw new AppError('El proyecto ya no existe. Recarga la página.');
-  }
-  return index;
+/** Convierte los datos limpios en una fila de la tabla projects */
+function toProjectRow(clean) {
+  return {
+    name: clean.name,
+    description: clean.description,
+    price: clean.price,
+    category: clean.category,
+    phase: clean.phase,
+    client_id: clean.clientId,
+    contact_link: clean.contactLink,
+  };
+}
+
+/**
+ * Actualiza columnas de un proyecto y devuelve el proyecto ya guardado.
+ * Si no se actualizó ninguna fila (no existe o sin permiso) lanza un error claro.
+ */
+async function patchProject(projectId, patch, fallbackMessage) {
+  const { data, error } = await supabase
+    .from('projects')
+    .update(patch)
+    .eq('id', toDbId(projectId))
+    .select(PROJECT_COLUMNS)
+    .maybeSingle();
+  if (error) throw toAppError(error, fallbackMessage);
+  if (!data) throw new AppError(NOT_FOUND_MESSAGE);
+  return toProject(data);
 }
 
 /**
  * Crea un proyecto nuevo.
  * - Estado inicial: ACTIVO (modo estándar).
- * - Fecha de creación: automática.
+ * - Fecha de creación: automática (la pone la base de datos).
  */
-export function createProject(data) {
-  const errors = validateProject(data);
+export async function createProject(data) {
+  // "BackEnd": se vuelven a pedir los datos actuales para validar duplicados
+  const [takenKeys, clients] = await Promise.all([getTakenProjectKeys(), getClients()]);
+  const errors = validateProject(data, { takenKeys, clients });
   if (Object.keys(errors).length > 0) {
     throw new ValidationError(errors);
   }
 
-  const newProject = {
-    ...cleanProjectData(data),
-    status: PROJECT_STATUS.ACTIVE,
-    cancelReason: '',
-    createdAt: new Date().toISOString(),
-    updatedAt: null,
-  };
+  const clean = cleanProjectData(data);
 
-  writeStorage(STORAGE_KEYS.PROJECTS, [...getProjects(), newProject]);
-  return newProject;
+  // 1) Se crea la fila (si el ID o el nombre ya existen, la BD lo rechaza)
+  const { error: insertError } = await supabase.from('projects').insert({
+    id: clean.id,
+    ...toProjectRow(clean),
+    status: PROJECT_STATUS.ACTIVE,
+    cancel_reason: '',
+  });
+  if (insertError) throw toAppError(insertError, 'No se pudo crear el proyecto.');
+
+  // 2) Se suben los archivos y se guardan sus URLs.
+  //    Si algo falla, se deshace todo para no dejar un proyecto a medias.
+  if (clean.media.length > 0) {
+    // URLs ya subidas (si falla un paso posterior, también se borran)
+    let uploadedUrls = [];
+    try {
+      const upload = await uploadNewMedia(clean.id, clean.media);
+      uploadedUrls = upload.uploadedUrls;
+      await replaceMediaRows(clean.id, upload.items);
+    } catch (error) {
+      await removePublicFiles(BUCKETS.PROJECT_MEDIA, uploadedUrls);
+      await supabase.from('projects').delete().eq('id', clean.id);
+      throw error instanceof AppError
+        ? new AppError(`No se creó el proyecto: ${error.message}`)
+        : toAppError(error, 'No se pudo crear el proyecto.');
+    }
+  }
+
+  return getProjectById(clean.id);
 }
 
 /**
  * Edita un proyecto existente.
  * - El ID no cambia (es la llave del proyecto).
- * - La fecha de creación se conserva y la de edición se guarda sola.
+ * - La fecha de creación se conserva y la de edición se guarda sola (trigger).
  */
-export function updateProject(projectId, data) {
-  const projects = getProjects();
-  const index = findProjectIndex(projects, projectId);
-  const current = projects[index];
+export async function updateProject(projectId, data) {
+  const current = await getProjectById(projectId);
+  if (!current) throw new AppError(NOT_FOUND_MESSAGE);
 
   // Forzamos el ID original para que nunca se cambie al editar
   const dataWithId = { ...data, id: current.id };
-  const errors = validateProject(dataWithId, current.id);
+  const [takenKeys, clients] = await Promise.all([getTakenProjectKeys(current.id), getClients()]);
+  const errors = validateProject(dataWithId, { takenKeys, clients });
   if (Object.keys(errors).length > 0) {
     throw new ValidationError(errors);
   }
 
-  const updatedProject = {
-    ...current,
-    ...cleanProjectData(dataWithId),
-    createdAt: current.createdAt, // se conserva siempre
-    updatedAt: new Date().toISOString(), // automática
-  };
+  const clean = cleanProjectData(dataWithId);
 
-  const nextProjects = [...projects];
-  nextProjects[index] = updatedProject;
-  writeStorage(STORAGE_KEYS.PROJECTS, nextProjects);
-  return updatedProject;
+  // 1) Se suben primero los archivos nuevos (si falla, no se cambió nada)
+  const { items, uploadedUrls } = await uploadNewMedia(current.id, clean.media);
+
+  // 2) Se guardan los datos del proyecto y su lista de multimedia
+  try {
+    await patchProject(current.id, toProjectRow(clean), 'No se pudo guardar el proyecto.');
+    await replaceMediaRows(current.id, items);
+  } catch (error) {
+    await removePublicFiles(BUCKETS.PROJECT_MEDIA, uploadedUrls);
+    throw error;
+  }
+
+  // 3) Los archivos que se quitaron del proyecto se borran de Storage
+  const keptUrls = new Set(items.map((item) => item.url));
+  const removedUrls = current.media.map((item) => item.src).filter((url) => !keptUrls.has(url));
+  await removePublicFiles(BUCKETS.PROJECT_MEDIA, removedUrls);
+
+  return getProjectById(current.id);
 }
 
-/** Borra un proyecto definitivamente */
-export function deleteProject(projectId) {
-  const projects = getProjects();
-  findProjectIndex(projects, projectId); // valida que exista
-  writeStorage(
-    STORAGE_KEYS.PROJECTS,
-    projects.filter((project) => normalizeText(project.id) !== normalizeText(projectId))
+/** Borra un proyecto definitivamente (y sus imágenes y videos) */
+export async function deleteProject(projectId) {
+  const current = await getProjectById(projectId);
+  if (!current) throw new AppError(NOT_FOUND_MESSAGE);
+
+  // Las filas de project_media se borran solas (ON DELETE CASCADE)
+  const { error } = await supabase.from('projects').delete().eq('id', current.id);
+  if (error) throw toAppError(error, 'No se pudo borrar el proyecto.');
+
+  await removePublicFiles(
+    BUCKETS.PROJECT_MEDIA,
+    current.media.map((item) => item.src)
   );
 }
 
@@ -298,24 +452,19 @@ export function deleteProject(projectId) {
  * Al activar se borra la observación de cancelación (si la había).
  * También sirve para REABRIR un proyecto terminado (vuelve a Pendientes).
  */
-export function setProjectStatus(projectId, status) {
+export async function setProjectStatus(projectId, status) {
   if (![PROJECT_STATUS.ACTIVE, PROJECT_STATUS.INACTIVE].includes(status)) {
     throw new AppError('Estado no permitido.');
   }
 
-  const projects = getProjects();
-  const index = findProjectIndex(projects, projectId);
-  const nextProjects = [...projects];
-  nextProjects[index] = {
-    ...projects[index],
+  const patch = {
     status,
-    cancelReason: status === PROJECT_STATUS.ACTIVE ? '' : projects[index].cancelReason,
     // Si el proyecto deja de estar terminado (reabrir), se borra su fecha de finalización
-    completedAt: '',
-    updatedAt: new Date().toISOString(),
+    completed_at: null,
   };
-  writeStorage(STORAGE_KEYS.PROJECTS, nextProjects);
-  return nextProjects[index];
+  if (status === PROJECT_STATUS.ACTIVE) patch.cancel_reason = '';
+
+  return patchProject(projectId, patch, 'No se pudo cambiar el estado del proyecto.');
 }
 
 /**
@@ -325,30 +474,25 @@ export function setProjectStatus(projectId, status) {
  * Un proyecto cancelado no se puede completar. Para devolverlo a
  * "Pendientes" se usa setProjectStatus(id, ACTIVO).
  */
-export function completeProject(projectId) {
-  const projects = getProjects();
-  const index = findProjectIndex(projects, projectId);
+export async function completeProject(projectId) {
+  const current = await getProjectById(projectId);
+  if (!current) throw new AppError(NOT_FOUND_MESSAGE);
 
-  if (projects[index].status === PROJECT_STATUS.CANCELLED) {
+  if (current.status === PROJECT_STATUS.CANCELLED) {
     throw new AppError('Un proyecto cancelado no se puede completar. Actívalo primero.');
   }
 
-  const nextProjects = [...projects];
-  nextProjects[index] = {
-    ...projects[index],
-    status: PROJECT_STATUS.COMPLETED,
-    phase: 'despliegue',
-    completedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  writeStorage(STORAGE_KEYS.PROJECTS, nextProjects);
-  return nextProjects[index];
+  return patchProject(
+    current.id,
+    { status: PROJECT_STATUS.COMPLETED, phase: 'despliegue', completed_at: new Date().toISOString() },
+    'No se pudo completar el proyecto.'
+  );
 }
 
 /**
  * Cancela un proyecto. La observación es OBLIGATORIA.
  */
-export function cancelProject(projectId, reason) {
+export async function cancelProject(projectId, reason) {
   const cleanReason = String(reason || '').trim();
   if (cleanReason.length < MIN_CANCEL_REASON) {
     throw new ValidationError({
@@ -356,15 +500,9 @@ export function cancelProject(projectId, reason) {
     });
   }
 
-  const projects = getProjects();
-  const index = findProjectIndex(projects, projectId);
-  const nextProjects = [...projects];
-  nextProjects[index] = {
-    ...projects[index],
-    status: PROJECT_STATUS.CANCELLED,
-    cancelReason: cleanReason,
-    updatedAt: new Date().toISOString(),
-  };
-  writeStorage(STORAGE_KEYS.PROJECTS, nextProjects);
-  return nextProjects[index];
+  return patchProject(
+    projectId,
+    { status: PROJECT_STATUS.CANCELLED, cancel_reason: cleanReason },
+    'No se pudo cancelar el proyecto.'
+  );
 }

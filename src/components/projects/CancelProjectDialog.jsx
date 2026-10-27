@@ -34,15 +34,20 @@ function CancelProjectDialog({ project, onClose, onCancelled }) {
 function CancelForm({ project, onClose, onCancelled }) {
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    if (isSaving) return; // evita cancelar dos veces con doble clic
+
+    setIsSaving(true);
     try {
       // El servicio valida que la observación tenga el largo mínimo
-      const cancelledProject = cancelProject(project.id, reason);
+      const cancelledProject = await cancelProject(project.id, reason);
       onCancelled(cancelledProject);
     } catch (serviceError) {
       setError(serviceError.fieldErrors?.reason || serviceError.message);
+      setIsSaving(false);
     }
   }
 
@@ -76,8 +81,8 @@ function CancelForm({ project, onClose, onCancelled }) {
         >
           Volver
         </button>
-        <button type="submit" className="btn btn--danger">
-          Cancelar proyecto
+        <button type="submit" className="btn btn--danger" disabled={isSaving}>
+          {isSaving ? 'Cancelando...' : 'Cancelar proyecto'}
         </button>
       </div>
     </form>

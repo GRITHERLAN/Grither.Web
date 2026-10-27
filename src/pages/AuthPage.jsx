@@ -166,7 +166,7 @@ function AuthPage() {
             </button>
           </form>
 
-          <p className="auth-card__note text-mono">Sesión guardada localmente en este navegador</p>
+          <p className="auth-card__note text-mono">Conexión segura · tu sesión se guarda en este navegador</p>
         </section>
       </main>
     </div>
