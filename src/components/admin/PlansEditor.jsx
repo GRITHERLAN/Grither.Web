@@ -22,6 +22,7 @@ import { formatCOP } from '../../utils/format.js';
 import ConfirmDialog from '../ui/ConfirmDialog.jsx';
 import Icon from '../ui/Icon.jsx';
 import StringListEditor from './StringListEditor.jsx';
+import { MAX_LENGTH } from '../../utils/validators.js';
 import LoadingState from '../ui/LoadingState.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import './OfferEditor.css';
@@ -196,6 +197,7 @@ function PlansForm({ initialPlans }) {
                     placeholder="Ej. Esencial"
                     value={plan.name}
                     onChange={(event) => updatePlan(index, { name: event.target.value })}
+                    maxLength={MAX_LENGTH.CARD_TITLE}
                   />
                   {renderError(index, 'name')}
                 </div>
@@ -231,6 +233,7 @@ function PlansForm({ initialPlans }) {
                   className="field__input offer-card__textarea"
                   value={plan.description}
                   onChange={(event) => updatePlan(index, { description: event.target.value })}
+                  maxLength={MAX_LENGTH.CARD_DESCRIPTION}
                 />
                 {renderError(index, 'description')}
               </div>
@@ -255,6 +258,7 @@ function PlansForm({ initialPlans }) {
                     placeholder="Ej. Elegir Esencial"
                     value={plan.cta}
                     onChange={(event) => updatePlan(index, { cta: event.target.value })}
+                    maxLength={MAX_LENGTH.CTA_TEXT}
                   />
                   {renderError(index, 'cta')}
                 </div>
@@ -270,6 +274,7 @@ function PlansForm({ initialPlans }) {
                     placeholder="https://wa.link/..."
                     value={plan.cta_url}
                     onChange={(event) => updatePlan(index, { cta_url: event.target.value })}
+                    maxLength={MAX_LENGTH.URL}
                   />
                   {renderError(index, 'cta_url')}
                 </div>

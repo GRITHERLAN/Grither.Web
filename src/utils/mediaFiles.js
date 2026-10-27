@@ -25,8 +25,16 @@ const MAX_IMAGE_INPUT_BYTES = 15 * 1024 * 1024; // 15 MB antes de comprimir
 /* Texto para mostrar el límite de video en el formulario */
 export const MAX_VIDEO_LABEL = `${MAX_VIDEO_MB} MB`;
 
-/* Tipos aceptados por el input de archivos */
-export const ACCEPTED_MEDIA = 'image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm';
+/* Tipos permitidos (los mismos que acepta el bucket en Supabase).
+   Se revisa el tipo EXACTO: "image/*" dejaría pasar SVG, que puede llevar
+   código JavaScript escondido. */
+const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+const VIDEO_TYPES = ['video/mp4', 'video/webm'];
+const PHOTO_TYPES = ['image/png', 'image/jpeg', 'image/webp']; // foto de "Quién está detrás"
+
+/* Tipos aceptados por los inputs de archivos */
+export const ACCEPTED_MEDIA = [...IMAGE_TYPES, ...VIDEO_TYPES].join(',');
+export const ACCEPTED_PHOTO = PHOTO_TYPES.join(',');
 
 /** Carga un archivo de imagen en un objeto Image para poder dibujarlo */
 function loadImage(file) {
@@ -84,7 +92,7 @@ async function compressImage(file) {
  * Lanza AppError con un mensaje claro si el archivo no es válido.
  */
 export async function processMediaFile(file) {
-  if (file.type.startsWith('image/')) {
+  if (IMAGE_TYPES.includes(file.type)) {
     if (file.size > MAX_IMAGE_INPUT_BYTES) {
       throw new AppError(`La imagen "${file.name}" pesa más de 15 MB.`);
     }
@@ -92,14 +100,14 @@ export async function processMediaFile(file) {
     return { type: 'image', src: URL.createObjectURL(compressed), name: file.name, file: compressed };
   }
 
-  if (file.type.startsWith('video/')) {
+  if (VIDEO_TYPES.includes(file.type)) {
     if (file.size > MAX_VIDEO_BYTES) {
       throw new AppError(`El video "${file.name}" pesa más de ${MAX_VIDEO_LABEL}. Súbelo más corto o comprimido.`);
     }
     return { type: 'video', src: URL.createObjectURL(file), name: file.name, file };
   }
 
-  throw new AppError(`"${file.name}" no es una imagen ni un video compatible.`);
+  throw new AppError(`"${file.name}" no es compatible. Usa PNG, JPG, WEBP, GIF, MP4 o WEBM.`);
 }
 
 /**
@@ -107,8 +115,11 @@ export async function processMediaFile(file) {
  * @returns {Promise<{file: Blob, previewUrl: string}>}
  */
 export async function processImageFile(file) {
-  if (!file.type.startsWith('image/')) {
-    throw new AppError('Selecciona un archivo de imagen.');
+  if (!PHOTO_TYPES.includes(file.type)) {
+    throw new AppError('Selecciona una imagen PNG, JPG o WEBP.');
+  }
+  if (file.size > MAX_IMAGE_INPUT_BYTES) {
+    throw new AppError('La imagen pesa más de 15 MB.');
   }
   const compressed = await compressImage(file);
   return { file: compressed, previewUrl: URL.createObjectURL(compressed) };

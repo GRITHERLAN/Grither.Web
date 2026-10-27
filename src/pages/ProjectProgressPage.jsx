@@ -22,6 +22,7 @@ import Icon from '../components/ui/Icon.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import { useAsyncData } from '../hooks/useAsyncData.js';
 import { formatCOP, formatDate } from '../utils/format.js';
+import { toSafeHref } from '../utils/validators.js';
 import './ProjectProgressPage.css';
 
 function ProjectProgressPage() {
@@ -126,7 +127,7 @@ function ProjectProgressPage() {
           </dl>
 
           <a
-            href={project.contactLink}
+            href={toSafeHref(project.contactLink)}
             className="btn btn--primary btn--block"
             target="_blank"
             rel="noopener noreferrer"

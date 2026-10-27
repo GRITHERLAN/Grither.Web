@@ -15,7 +15,7 @@
 import { supabase, setRememberSession } from '../lib/supabaseClient.js';
 import { AppError, ValidationError } from './errors.js';
 import { toAppError } from './supabaseErrors.js';
-import { isValidEmail } from '../utils/validators.js';
+import { MAX_LENGTH, isTooLong, isValidEmail } from '../utils/validators.js';
 
 /* Roles posibles de un usuario */
 export const ROLES = {
@@ -41,6 +41,10 @@ const MIN_PASSWORD_LENGTH = 8;
 export function getPasswordError(password) {
   if (String(password).length < MIN_PASSWORD_LENGTH) {
     return `La contraseña debe tener mínimo ${MIN_PASSWORD_LENGTH} caracteres.`;
+  }
+  // Supabase Auth cifra con bcrypt, que solo usa los primeros 72 caracteres
+  if (String(password).length > MAX_LENGTH.PASSWORD) {
+    return `La contraseña puede tener máximo ${MAX_LENGTH.PASSWORD} caracteres.`;
   }
   if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
     return 'La contraseña debe incluir al menos una letra y un número.';
@@ -161,6 +165,45 @@ export async function logout() {
 }
 
 /* --------------------------------------------------------------------------
+   Protección contra fuerza bruta (sin CAPTCHA)
+   --------------------------------------------------------------------------
+   Supabase Auth ya limita los intentos en el servidor. Aquí agregamos una
+   espera visible en la pantalla: después de 5 intentos fallidos seguidos,
+   el formulario se bloquea 30 s; cada fallo extra duplica la espera
+   (60 s, 120 s...) hasta un máximo de 15 minutos.
+   El contador vive en memoria (no en LocalStorage, que solo se usa para el
+   tema): recargar la página lo reinicia, pero el límite real lo pone el
+   servidor de Supabase.
+   -------------------------------------------------------------------------- */
+
+const MAX_FREE_ATTEMPTS = 5; // intentos fallidos permitidos sin esperar
+const BASE_LOCK_SECONDS = 30; // primera espera
+const MAX_LOCK_SECONDS = 15 * 60; // espera máxima (15 minutos)
+
+let failedAttempts = 0; // fallos seguidos
+let lockedUntil = 0; // fecha (ms) hasta la que el login está bloqueado
+
+/** Segundos que faltan para poder volver a intentar (0 = puede intentar ya) */
+export function getLoginLockSeconds() {
+  return Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
+}
+
+/** Suma un intento fallido y, si ya pasó el límite, bloquea un tiempo */
+function registerFailedLogin() {
+  failedAttempts += 1;
+  if (failedAttempts >= MAX_FREE_ATTEMPTS) {
+    const extraFails = failedAttempts - MAX_FREE_ATTEMPTS; // 0, 1, 2...
+    const seconds = Math.min(BASE_LOCK_SECONDS * 2 ** extraFails, MAX_LOCK_SECONDS);
+    lockedUntil = Date.now() + seconds * 1000;
+  }
+}
+
+/** Mensaje que se muestra mientras el login está bloqueado */
+function lockMessage(seconds) {
+  return `Demasiados intentos fallidos. Espera ${seconds} segundos antes de volver a intentarlo.`;
+}
+
+/* --------------------------------------------------------------------------
    Login
    -------------------------------------------------------------------------- */
 
@@ -169,6 +212,10 @@ export async function logout() {
  * @returns {object} usuario (id, name, email, role, active, createdAt)
  */
 export async function loginUser({ email, password, remember }) {
+  // Si está bloqueado por intentos fallidos, ni siquiera se llama al servidor
+  const lockSeconds = getLoginLockSeconds();
+  if (lockSeconds > 0) throw new AppError(lockMessage(lockSeconds));
+
   const errors = {};
   if (!isValidEmail(email || '')) errors.email = 'Escribe un correo válido.';
   if (!password) errors.password = 'Escribe tu contraseña.';
@@ -191,9 +238,19 @@ export async function loginUser({ email, password, remember }) {
     if (error.name === 'AuthRetryableFetchError') {
       throw new AppError('No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.');
     }
+    // Límite de intentos del servidor de Supabase (protección contra bots)
+    if (error.status === 429) {
+      throw new AppError('Demasiados intentos. Espera unos minutos antes de volver a intentarlo.');
+    }
     // Mismo mensaje para "no existe" y "clave errada": no damos pistas a terceros
-    throw new AppError('Correo o contraseña incorrectos.');
+    registerFailedLogin();
+    const seconds = getLoginLockSeconds();
+    throw new AppError(seconds > 0 ? lockMessage(seconds) : 'Correo o contraseña incorrectos.');
   }
+
+  // Entró bien: se reinicia el contador de intentos fallidos
+  failedAttempts = 0;
+  lockedUntil = 0;
 
   // Revisamos rol y estado en la tabla profiles
   const user = await getProfile(data.user.id);
@@ -226,9 +283,11 @@ export function validateUserUpdate({ name, email, role, password }) {
 
   if (!name || name.trim().length < 3) {
     errors.name = 'Escribe el nombre de usuario (mínimo 3 letras).';
+  } else if (isTooLong(name, MAX_LENGTH.PERSON_NAME)) {
+    errors.name = `El nombre puede tener máximo ${MAX_LENGTH.PERSON_NAME} caracteres.`;
   }
 
-  if (!isValidEmail(email || '')) {
+  if (!isValidEmail(email || '') || isTooLong(email, MAX_LENGTH.EMAIL)) {
     errors.email = 'Escribe un correo válido, por ejemplo tu@correo.com.';
   }
 
@@ -285,21 +344,30 @@ export async function deleteUser(userId) {
  * Valida los datos para crear un usuario desde el panel
  * (sin "confirmar contraseña": el administrador la escribe una sola vez).
  * Que el correo no esté repetido lo revisa el servidor al guardar.
+ * consent: el admin confirma que el cliente autorizó POR ESCRITO el
+ * tratamiento de sus datos (art. 9 Ley 1581 de 2012). Sin eso, la ley no
+ * permite crear la cuenta.
  * @returns {object} errores por campo (vacío = todo bien)
  */
-export function validateNewUser({ name, email, password }) {
+export function validateNewUser({ name, email, password, consent }) {
   const errors = {};
 
   if (!name || name.trim().length < 3) {
     errors.name = 'Escribe el nombre o la empresa (mínimo 3 letras).';
+  } else if (isTooLong(name, MAX_LENGTH.PERSON_NAME)) {
+    errors.name = `El nombre puede tener máximo ${MAX_LENGTH.PERSON_NAME} caracteres.`;
   }
 
-  if (!isValidEmail(email || '')) {
+  if (!isValidEmail(email || '') || isTooLong(email, MAX_LENGTH.EMAIL)) {
     errors.email = 'Escribe un correo válido, por ejemplo cliente@correo.com.';
   }
 
   if (!password || getPasswordError(password)) {
     errors.password = getPasswordError(password || '');
+  }
+
+  if (!consent) {
+    errors.consent = 'Confirma que el cliente autorizó el tratamiento de sus datos antes de crear la cuenta.';
   }
 
   return errors;
@@ -320,6 +388,7 @@ export async function createUser(formData) {
     name: formData.name.trim(),
     email: formData.email.trim().toLowerCase(),
     password: formData.password,
+    consent: formData.consent === true, // el servidor guarda la fecha en profiles.consent_at
   });
   return result.user;
 }

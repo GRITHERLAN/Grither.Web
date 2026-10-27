@@ -17,7 +17,7 @@
 import { supabase } from '../lib/supabaseClient.js';
 import { ValidationError } from './errors.js';
 import { toAppError } from './supabaseErrors.js';
-import { isValidUrl, normalizeText } from '../utils/validators.js';
+import { MAX_LENGTH, isTooLong, isValidUrl, normalizeText, tooLongMessage } from '../utils/validators.js';
 
 /* Límites de cards por bloque */
 export const MIN_CARDS = 1;
@@ -58,6 +58,9 @@ function validateStringList(list, singularName) {
   }
   if (list.some((item) => String(item).trim().length === 0)) {
     return 'No dejes elementos vacíos.';
+  }
+  if (list.some((item) => isTooLong(item, MAX_LENGTH.CARD_ITEM))) {
+    return `Cada elemento puede tener máximo ${MAX_LENGTH.CARD_ITEM} caracteres.`;
   }
   return '';
 }
@@ -111,9 +114,13 @@ export function validateServices(services) {
   services.forEach((service, index) => {
     if (String(service.title).trim().length < 3) {
       errors[`${index}.title`] = errors[`${index}.title`] || 'El título debe tener mínimo 3 caracteres.';
+    } else if (isTooLong(service.title, MAX_LENGTH.CARD_TITLE)) {
+      errors[`${index}.title`] = tooLongMessage(MAX_LENGTH.CARD_TITLE);
     }
     if (String(service.description).trim().length < 10) {
       errors[`${index}.description`] = 'La descripción debe tener mínimo 10 caracteres.';
+    } else if (isTooLong(service.description, MAX_LENGTH.CARD_DESCRIPTION)) {
+      errors[`${index}.description`] = tooLongMessage(MAX_LENGTH.CARD_DESCRIPTION);
     }
     if (!SERVICE_ICON_OPTIONS.some((option) => option.value === service.icon)) {
       errors[`${index}.icon`] = 'Selecciona un icono.';
@@ -172,9 +179,13 @@ export function validatePlans(plans) {
   plans.forEach((plan, index) => {
     if (String(plan.name).trim().length < 3) {
       errors[`${index}.name`] = errors[`${index}.name`] || 'El nombre debe tener mínimo 3 caracteres.';
+    } else if (isTooLong(plan.name, MAX_LENGTH.CARD_TITLE)) {
+      errors[`${index}.name`] = tooLongMessage(MAX_LENGTH.CARD_TITLE);
     }
     if (String(plan.description).trim().length < 10) {
       errors[`${index}.description`] = 'La descripción debe tener mínimo 10 caracteres.';
+    } else if (isTooLong(plan.description, MAX_LENGTH.CARD_DESCRIPTION)) {
+      errors[`${index}.description`] = tooLongMessage(MAX_LENGTH.CARD_DESCRIPTION);
     }
 
     // Precio: vacío = "Cotización"; si se escribe debe ser entero mayor a 0
@@ -185,10 +196,12 @@ export function validatePlans(plans) {
 
     if (String(plan.cta).trim().length < 3) {
       errors[`${index}.cta`] = 'Escribe el texto del botón (mínimo 3 caracteres).';
+    } else if (isTooLong(plan.cta, MAX_LENGTH.CTA_TEXT)) {
+      errors[`${index}.cta`] = tooLongMessage(MAX_LENGTH.CTA_TEXT);
     }
 
     // Enlace al que lleva el botón (ej. un link de WhatsApp distinto por plan)
-    if (!isValidUrl(plan.cta_url || '')) {
+    if (!isValidUrl(plan.cta_url || '') || isTooLong(plan.cta_url, MAX_LENGTH.URL)) {
       errors[`${index}.cta_url`] = 'Escribe un enlace válido (https://..., mailto:... o tel:...).';
     }
 

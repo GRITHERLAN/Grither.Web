@@ -14,6 +14,7 @@ import LoadingState from '../components/ui/LoadingState.jsx';
 import { useAsyncData } from '../hooks/useAsyncData.js';
 import { getServices, getPlans } from '../services/offerService.js';
 import { formatCOP } from '../utils/format.js';
+import { toSafeHref } from '../utils/validators.js';
 import './ServicesPage.css';
 
 function ServicesPage() {
@@ -153,7 +154,7 @@ function OfferSections({ services, plans, plansRef }) {
 
                 {/* El administrador define el enlace de cada botón (ej. WhatsApp) */}
                 <a
-                  href={plan.cta_url}
+                  href={toSafeHref(plan.cta_url)}
                   className={`btn btn--block ${plan.featured ? 'btn--primary' : 'btn--outline'}`}
                   target="_blank"
                   rel="noopener noreferrer"

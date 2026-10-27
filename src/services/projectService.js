@@ -11,16 +11,20 @@
        sus proyectos activos o terminados.
    Así la regla se controla en FrontEnd y en BackEnd.
 
-   Las imágenes y videos se suben a Supabase Storage (bucket "project-media")
-   y en la tabla project_media se guarda solo su URL.
+   Las imágenes y videos se suben a Supabase Storage (bucket PRIVADO
+   "project-media") y en la tabla project_media se guarda solo su RUTA.
+   Al leer proyectos se piden URLs firmadas (vencen en 1 hora): Storage solo
+   las entrega al admin o al cliente dueño del proyecto.
+   Las fechas created_at, updated_at y completed_at las pone SIEMPRE la base
+   de datos (trigger), aunque la app mande otra cosa.
    ========================================================================== */
 
 import { supabase } from '../lib/supabaseClient.js';
 import { AppError, ValidationError } from './errors.js';
 import { toAppError } from './supabaseErrors.js';
-import { BUCKETS, removePublicFiles, uploadPublicFile } from './storageFiles.js';
+import { BUCKETS, getSignedUrls, removeFiles, uploadFile } from './storageFiles.js';
 import { getClients } from './authService.js';
-import { isValidUrl, normalizeText } from '../utils/validators.js';
+import { MAX_LENGTH, isTooLong, isValidUrl, normalizeText } from '../utils/validators.js';
 
 /* --------------------------------------------------------------------------
    Constantes del dominio
@@ -64,7 +68,7 @@ export const PROJECT_CATEGORIES = [
 const MIN_CANCEL_REASON = 10;
 
 /* Columnas que se piden de cada proyecto (incluye su multimedia) */
-const PROJECT_COLUMNS = '*, project_media(id, type, url, name, position)';
+const PROJECT_COLUMNS = '*, project_media(id, type, path, name, position)';
 
 /* Mensaje cuando el proyecto no existe o no se puede ver */
 const NOT_FOUND_MESSAGE = 'El proyecto ya no existe. Recarga la página.';
@@ -73,12 +77,23 @@ const NOT_FOUND_MESSAGE = 'El proyecto ya no existe. Recarga la página.';
    Traducción entre la base de datos (snake_case) y la app (camelCase)
    -------------------------------------------------------------------------- */
 
-/** Convierte una fila de la tabla en el objeto de proyecto que usa la app */
-function toProject(row) {
-  // La multimedia llega sin orden: se ordena por "position"
+/**
+ * Convierte una fila de la tabla en el objeto de proyecto que usa la app.
+ * @param {object} row - Fila de projects con su project_media.
+ * @param {Map<string, string>} signedUrls - ruta -> URL firmada (de getSignedUrls).
+ */
+function toProject(row, signedUrls) {
+  // La multimedia llega sin orden: se ordena por "position".
+  // "src" es la URL firmada para mostrarla; "path" es la ruta que se guarda.
   const media = [...(row.project_media || [])]
     .sort((a, b) => a.position - b.position)
-    .map((item) => ({ id: item.id, type: item.type, src: item.url, name: item.name }));
+    .map((item) => ({
+      id: item.id,
+      type: item.type,
+      path: item.path,
+      src: signedUrls.get(item.path) || '',
+      name: item.name,
+    }));
 
   return {
     id: row.id,
@@ -98,6 +113,16 @@ function toProject(row) {
   };
 }
 
+/**
+ * Convierte varias filas en proyectos, pidiendo en UNA sola petición las
+ * URLs firmadas de toda su multimedia.
+ */
+async function toProjects(rows) {
+  const paths = rows.flatMap((row) => (row.project_media || []).map((item) => item.path));
+  const signedUrls = await getSignedUrls(BUCKETS.PROJECT_MEDIA, paths);
+  return rows.map((row) => toProject(row, signedUrls));
+}
+
 /** Normaliza el ID como lo guarda la base de datos (sin espacios, en mayúsculas) */
 function toDbId(projectId) {
   return String(projectId || '').trim().toUpperCase();
@@ -112,7 +137,7 @@ function toDbId(projectId) {
 export async function getProjects() {
   const { data, error } = await supabase.from('projects').select(PROJECT_COLUMNS).order('created_at');
   if (error) throw toAppError(error, 'No se pudieron cargar los proyectos.');
-  return data.map(toProject);
+  return toProjects(data);
 }
 
 /** Busca un proyecto por su ID (sin importar mayúsculas). null si no existe o no se puede ver. */
@@ -123,7 +148,7 @@ export async function getProjectById(projectId) {
     .eq('id', toDbId(projectId))
     .maybeSingle();
   if (error) throw toAppError(error, 'No se pudo cargar el proyecto.');
-  return data ? toProject(data) : null;
+  return data ? (await toProjects([data]))[0] : null;
 }
 
 /**
@@ -138,7 +163,7 @@ export async function getActiveProjectsByClient(clientId) {
     .in('status', [PROJECT_STATUS.ACTIVE, PROJECT_STATUS.COMPLETED])
     .order('created_at');
   if (error) throw toAppError(error, 'No se pudieron cargar tus proyectos.');
-  return data.map(toProject);
+  return toProjects(data);
 }
 
 /**
@@ -206,8 +231,8 @@ export function validateProject(data, { takenKeys, clients } = {}) {
   const name = String(data.name || '').trim();
   if (name.length < 3) {
     errors.name = 'El nombre debe tener mínimo 3 caracteres.';
-  } else if (name.length > 80) {
-    errors.name = 'El nombre no puede superar 80 caracteres.';
+  } else if (name.length > MAX_LENGTH.PROJECT_NAME) {
+    errors.name = `El nombre no puede superar ${MAX_LENGTH.PROJECT_NAME} caracteres.`;
   } else if (takenKeys && takenKeys.names.has(normalizeText(name))) {
     errors.name = 'Ya existe un proyecto con este nombre.';
   }
@@ -215,6 +240,8 @@ export function validateProject(data, { takenKeys, clients } = {}) {
   // Descripción
   if (String(data.description || '').trim().length < 10) {
     errors.description = 'La descripción debe tener mínimo 10 caracteres.';
+  } else if (isTooLong(data.description, MAX_LENGTH.PROJECT_DESCRIPTION)) {
+    errors.description = `La descripción puede tener máximo ${MAX_LENGTH.PROJECT_DESCRIPTION} caracteres.`;
   }
 
   // Precio en pesos colombianos: número entero mayor a 0
@@ -242,7 +269,7 @@ export function validateProject(data, { takenKeys, clients } = {}) {
   }
 
   // Enlace del botón Contactar
-  if (!isValidUrl(data.contactLink || '')) {
+  if (!isValidUrl(data.contactLink || '') || isTooLong(data.contactLink, MAX_LENGTH.URL)) {
     errors.contactLink = 'Escribe un enlace válido (https://..., mailto:... o tel:...).';
   }
 
@@ -253,34 +280,34 @@ export function validateProject(data, { takenKeys, clients } = {}) {
    Multimedia (Storage + tabla project_media)
    --------------------------------------------------------------------------
    En el formulario cada archivo es un objeto:
-     - Ya guardado: { id, type, src (URL pública), name }
+     - Ya guardado: { id, type, path (ruta en Storage), src (URL firmada), name }
      - Nuevo:       { type, src (vista previa local), name, file (Blob) }
    -------------------------------------------------------------------------- */
 
 /**
  * Sube a Storage los archivos NUEVOS de la lista y devuelve la lista final
- * (en el mismo orden) con la URL pública de cada uno.
+ * (en el mismo orden) con la ruta de cada uno.
  * Si una subida falla, borra lo que alcanzó a subir y lanza el error.
- * @returns {Promise<{items: Array, uploadedUrls: string[]}>}
+ * @returns {Promise<{items: Array, uploadedPaths: string[]}>}
  */
 async function uploadNewMedia(projectId, media) {
-  const uploadedUrls = [];
+  const uploadedPaths = [];
   const items = [];
   try {
     for (const item of media) {
       if (item.file) {
-        const url = await uploadPublicFile(BUCKETS.PROJECT_MEDIA, projectId, item.file);
-        uploadedUrls.push(url);
-        items.push({ type: item.type, url, name: item.name || '' });
+        const path = await uploadFile(BUCKETS.PROJECT_MEDIA, projectId, item.file);
+        uploadedPaths.push(path);
+        items.push({ type: item.type, path, name: item.name || '' });
       } else {
-        items.push({ type: item.type, url: item.src, name: item.name || '' });
+        items.push({ type: item.type, path: item.path, name: item.name || '' });
       }
     }
   } catch (error) {
-    await removePublicFiles(BUCKETS.PROJECT_MEDIA, uploadedUrls);
+    await removeFiles(BUCKETS.PROJECT_MEDIA, uploadedPaths);
     throw error;
   }
-  return { items, uploadedUrls };
+  return { items, uploadedPaths };
 }
 
 /** Reemplaza las filas de multimedia de un proyecto por la lista dada (en orden) */
@@ -292,7 +319,7 @@ async function replaceMediaRows(projectId, items) {
   const rows = items.map((item, index) => ({
     project_id: projectId,
     type: item.type,
-    url: item.url,
+    path: item.path,
     name: item.name,
     position: index,
   }));
@@ -345,7 +372,7 @@ async function patchProject(projectId, patch, fallbackMessage) {
     .maybeSingle();
   if (error) throw toAppError(error, fallbackMessage);
   if (!data) throw new AppError(NOT_FOUND_MESSAGE);
-  return toProject(data);
+  return (await toProjects([data]))[0];
 }
 
 /**
@@ -372,17 +399,17 @@ export async function createProject(data) {
   });
   if (insertError) throw toAppError(insertError, 'No se pudo crear el proyecto.');
 
-  // 2) Se suben los archivos y se guardan sus URLs.
+  // 2) Se suben los archivos y se guardan sus rutas.
   //    Si algo falla, se deshace todo para no dejar un proyecto a medias.
   if (clean.media.length > 0) {
-    // URLs ya subidas (si falla un paso posterior, también se borran)
-    let uploadedUrls = [];
+    // Rutas ya subidas (si falla un paso posterior, también se borran)
+    let uploadedPaths = [];
     try {
       const upload = await uploadNewMedia(clean.id, clean.media);
-      uploadedUrls = upload.uploadedUrls;
+      uploadedPaths = upload.uploadedPaths;
       await replaceMediaRows(clean.id, upload.items);
     } catch (error) {
-      await removePublicFiles(BUCKETS.PROJECT_MEDIA, uploadedUrls);
+      await removeFiles(BUCKETS.PROJECT_MEDIA, uploadedPaths);
       await supabase.from('projects').delete().eq('id', clean.id);
       throw error instanceof AppError
         ? new AppError(`No se creó el proyecto: ${error.message}`)
@@ -413,21 +440,21 @@ export async function updateProject(projectId, data) {
   const clean = cleanProjectData(dataWithId);
 
   // 1) Se suben primero los archivos nuevos (si falla, no se cambió nada)
-  const { items, uploadedUrls } = await uploadNewMedia(current.id, clean.media);
+  const { items, uploadedPaths } = await uploadNewMedia(current.id, clean.media);
 
   // 2) Se guardan los datos del proyecto y su lista de multimedia
   try {
     await patchProject(current.id, toProjectRow(clean), 'No se pudo guardar el proyecto.');
     await replaceMediaRows(current.id, items);
   } catch (error) {
-    await removePublicFiles(BUCKETS.PROJECT_MEDIA, uploadedUrls);
+    await removeFiles(BUCKETS.PROJECT_MEDIA, uploadedPaths);
     throw error;
   }
 
   // 3) Los archivos que se quitaron del proyecto se borran de Storage
-  const keptUrls = new Set(items.map((item) => item.url));
-  const removedUrls = current.media.map((item) => item.src).filter((url) => !keptUrls.has(url));
-  await removePublicFiles(BUCKETS.PROJECT_MEDIA, removedUrls);
+  const keptPaths = new Set(items.map((item) => item.path));
+  const removedPaths = current.media.map((item) => item.path).filter((path) => !keptPaths.has(path));
+  await removeFiles(BUCKETS.PROJECT_MEDIA, removedPaths);
 
   return getProjectById(current.id);
 }
@@ -441,9 +468,9 @@ export async function deleteProject(projectId) {
   const { error } = await supabase.from('projects').delete().eq('id', current.id);
   if (error) throw toAppError(error, 'No se pudo borrar el proyecto.');
 
-  await removePublicFiles(
+  await removeFiles(
     BUCKETS.PROJECT_MEDIA,
-    current.media.map((item) => item.src)
+    current.media.map((item) => item.path)
   );
 }
 
@@ -457,11 +484,8 @@ export async function setProjectStatus(projectId, status) {
     throw new AppError('Estado no permitido.');
   }
 
-  const patch = {
-    status,
-    // Si el proyecto deja de estar terminado (reabrir), se borra su fecha de finalización
-    completed_at: null,
-  };
+  // La fecha de finalización la borra sola la base de datos (trigger) al reabrir
+  const patch = { status };
   if (status === PROJECT_STATUS.ACTIVE) patch.cancel_reason = '';
 
   return patchProject(projectId, patch, 'No se pudo cambiar el estado del proyecto.');
@@ -484,7 +508,8 @@ export async function completeProject(projectId) {
 
   return patchProject(
     current.id,
-    { status: PROJECT_STATUS.COMPLETED, phase: 'despliegue', completed_at: new Date().toISOString() },
+    // La fecha de finalización (completed_at) la marca sola la base de datos (trigger)
+    { status: PROJECT_STATUS.COMPLETED, phase: 'despliegue' },
     'No se pudo completar el proyecto.'
   );
 }
@@ -497,6 +522,11 @@ export async function cancelProject(projectId, reason) {
   if (cleanReason.length < MIN_CANCEL_REASON) {
     throw new ValidationError({
       reason: `Escribe la observación de cancelación (mínimo ${MIN_CANCEL_REASON} caracteres).`,
+    });
+  }
+  if (cleanReason.length > MAX_LENGTH.CANCEL_REASON) {
+    throw new ValidationError({
+      reason: `La observación puede tener máximo ${MAX_LENGTH.CANCEL_REASON} caracteres.`,
     });
   }
 

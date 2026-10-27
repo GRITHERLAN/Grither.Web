@@ -102,3 +102,28 @@ h4 {
     scroll-behavior: auto !important;
   }
 }
+
+/* Enlace "Saltar al contenido": escondido arriba hasta que recibe el foco
+   con Tab; entonces aparece para saltar directo al contenido principal */
+.skip-link {
+  position: fixed;
+  top: 1.2rem;
+  left: 1.2rem;
+  z-index: 1000;
+  padding: 1rem 1.6rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  border: 0.2rem solid var(--color-accent);
+  color: var(--color-text);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* El <main> recibe el foco del enlace anterior: sin contorno, ya se ve el salto */
+main:focus {
+  outline: none;
+}

@@ -24,7 +24,7 @@ import {
 } from '../../services/projectService.js';
 import { ACCEPTED_MEDIA, MAX_FILES_PER_PROJECT, MAX_VIDEO_LABEL, processMediaFile } from '../../utils/mediaFiles.js';
 import { formatCOP, formatDate } from '../../utils/format.js';
-import { normalizeText } from '../../utils/validators.js';
+import { MAX_LENGTH, normalizeText } from '../../utils/validators.js';
 import './ProjectForm.css';
 
 /* Opciones del desplegable Categoría (la primera, vacía, sirve de aviso) */
@@ -232,6 +232,7 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
             onChange={handleChange}
             disabled={isEditing}
             autoComplete="off"
+            maxLength={MAX_LENGTH.PROJECT_ID}
           />
           {isEditing && <p className="field__hint">El ID no se puede cambiar.</p>}
           {renderError('id')}
@@ -241,7 +242,7 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
           <label className="field__label" htmlFor="project-name">
             Nombre
           </label>
-          <input id="project-name" name="name" className="field__input" placeholder="Ej. Tienda online de café" value={form.name} onChange={handleChange} autoComplete="off" />
+          <input id="project-name" name="name" className="field__input" placeholder="Ej. Tienda online de café" value={form.name} onChange={handleChange} autoComplete="off" maxLength={MAX_LENGTH.PROJECT_NAME} />
           {renderError('name')}
         </div>
       </div>
@@ -250,7 +251,7 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
         <label className="field__label" htmlFor="project-description">
           Descripción
         </label>
-        <textarea id="project-description" name="description" className="field__input" placeholder="¿Qué incluye el proyecto?" value={form.description} onChange={handleChange} />
+        <textarea id="project-description" name="description" className="field__input" placeholder="¿Qué incluye el proyecto?" value={form.description} onChange={handleChange} maxLength={MAX_LENGTH.PROJECT_DESCRIPTION} />
         {renderError('description')}
       </div>
 
@@ -295,7 +296,7 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
         <label className="field__label" htmlFor="project-contact">
           Enlace del botón Contactar
         </label>
-        <input id="project-contact" name="contactLink" type="url" className="field__input" placeholder="https://wa.link/... o mailto:hola@grither.co" value={form.contactLink} onChange={handleChange} />
+        <input id="project-contact" name="contactLink" type="url" className="field__input" placeholder="https://wa.link/... o mailto:hola@grither.co" value={form.contactLink} onChange={handleChange} maxLength={MAX_LENGTH.URL} />
         {renderError('contactLink')}
       </div>
 

@@ -115,3 +115,21 @@
     padding: 2.4rem 2rem;
   }
 }
+
+/* ---------- Campo trampa para robots (honeypot) ----------
+   Se saca de la pantalla en vez de usar display:none, porque algunos
+   robots se saltan los campos con display:none. */
+.contact-form__trap {
+  position: absolute;
+  left: -999rem;
+  width: 0.1rem;
+  height: 0.1rem;
+  overflow: hidden;
+}
+
+/* Enlace a la política dentro de la casilla de autorización */
+.contact-form-card .checkbox a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.3rem;
+}

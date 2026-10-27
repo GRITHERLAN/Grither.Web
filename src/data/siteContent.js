@@ -20,3 +20,24 @@ export const BUDGET_OPTIONS = [
   '$ 5.000.000 a $ 10.000.000',
   'Más de $ 10.000.000',
 ];
+
+/* --------------------------------------------------------------------------
+   Datos legales (Política de privacidad, Términos y Política de cookies)
+   --------------------------------------------------------------------------
+   El nombre del Responsable se lee de "Sobre nosotros" (Quién está detrás) y
+   el correo, el teléfono y la ciudad de "Contacto", así se mantienen al día
+   desde el panel Administrador.
+   -------------------------------------------------------------------------- */
+
+/* Domicilio del Responsable: solo se usa si la ciudad de Contacto está vacía */
+export const LEGAL_CITY = 'Dosquebradas, Risaralda, Colombia';
+
+/* Fecha en que entran en vigencia las políticas (cambiarla si se modifican) */
+export const LEGAL_UPDATED_AT = '27 de octubre de 2026';
+
+/* Rutas de las páginas legales (se usan en el Footer, Contacto y las rutas) */
+export const LEGAL_ROUTES = {
+  PRIVACY: '/politica-de-privacidad',
+  TERMS: '/terminos-y-condiciones',
+  COOKIES: '/politica-de-cookies',
+};

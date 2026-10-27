@@ -6,16 +6,26 @@
    Derecha:   formulario. Al enviarlo se abre el programa de correo del
               visitante con el mensaje ya escrito (enlace mailto:).
    Toda la información de la izquierda la edita el administrador.
+
+   Seguridad y ley:
+     - Casilla de autorización obligatoria (Ley 1581 de 2012) con enlace a
+       la Política de privacidad.
+     - Campo trampa ("honeypot") invisible: una persona no lo ve ni lo llena,
+       pero los robots que llenan todos los campos sí. Si viene lleno, se
+       finge el envío y no se abre el correo.
+     - Largo máximo en cada campo y validación del WhatsApp.
+     - Los enlaces de las tarjetas pasan por toSafeHref (nunca javascript:).
    ========================================================================== */
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Icon from '../components/ui/Icon.jsx';
 import IndicatorGrid from '../components/ui/IndicatorGrid.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import { useAsyncData } from '../hooks/useAsyncData.js';
 import { getContactInfo } from '../services/siteInfoService.js';
-import { CONTACT_NEEDS, BUDGET_OPTIONS } from '../data/siteContent.js';
-import { isValidEmail } from '../utils/validators.js';
+import { CONTACT_NEEDS, BUDGET_OPTIONS, LEGAL_ROUTES } from '../data/siteContent.js';
+import { MAX_LENGTH, isTooLong, isValidEmail, isValidPhone, toSafeHref } from '../utils/validators.js';
 import { prettyUrl } from '../utils/format.js';
 import Select from '../components/ui/Select.jsx';
 import './ContactPage.css';
@@ -32,14 +42,29 @@ const EMPTY_FORM = {
   need: CONTACT_NEEDS[1],
   budget: BUDGET_OPTIONS[0],
   message: '',
+  consent: false, // autorización del tratamiento de datos (obligatoria)
+  website: '', // campo trampa para robots: una persona siempre lo deja vacío
 };
 
 /** Valida el formulario y devuelve los errores por campo */
 function validateContactForm(form) {
   const errors = {};
   if (form.name.trim().length < 3) errors.name = 'Escribe tu nombre.';
-  if (!isValidEmail(form.email)) errors.email = 'Escribe un correo válido.';
+  else if (isTooLong(form.name, MAX_LENGTH.PERSON_NAME)) errors.name = `Máximo ${MAX_LENGTH.PERSON_NAME} caracteres.`;
+
+  if (isTooLong(form.company, MAX_LENGTH.PERSON_NAME)) errors.company = `Máximo ${MAX_LENGTH.PERSON_NAME} caracteres.`;
+
+  if (!isValidEmail(form.email) || isTooLong(form.email, MAX_LENGTH.EMAIL)) errors.email = 'Escribe un correo válido.';
+
+  // WhatsApp es opcional, pero si se escribe debe tener forma de teléfono
+  if (form.whatsapp.trim() && !isValidPhone(form.whatsapp)) {
+    errors.whatsapp = 'Escribe un número válido (ej. +57 300 000 0000).';
+  }
+
   if (form.message.trim().length < 10) errors.message = 'Cuéntanos un poco más (mínimo 10 caracteres).';
+  else if (isTooLong(form.message, MAX_LENGTH.CONTACT_MESSAGE)) errors.message = `Máximo ${MAX_LENGTH.CONTACT_MESSAGE} caracteres.`;
+
+  if (!form.consent) errors.consent = 'Debes autorizar el tratamiento de tus datos para poder enviar el mensaje.';
   return errors;
 }
 
@@ -73,15 +98,16 @@ function ContactContent({ contact }) {
   const contactCards = [
     { icon: 'phone', label: 'Teléfono / WhatsApp', value: contact.phone, href: `tel:${contact.phone.replace(/\s/g, '')}` },
     { icon: 'mail', label: 'Correo', value: contact.email, href: `mailto:${contact.email}` },
-    { icon: 'instagram', label: 'Instagram', value: prettyUrl(contact.instagram), href: contact.instagram },
-    { icon: 'linkedin', label: 'LinkedIn', value: prettyUrl(contact.linkedin), href: contact.linkedin },
-    { icon: 'globe', label: 'Portafolio web', value: prettyUrl(contact.portfolio), href: contact.portfolio },
+    { icon: 'instagram', label: 'Instagram', value: prettyUrl(contact.instagram), href: toSafeHref(contact.instagram) },
+    { icon: 'linkedin', label: 'LinkedIn', value: prettyUrl(contact.linkedin), href: toSafeHref(contact.linkedin) },
+    { icon: 'globe', label: 'Portafolio web', value: prettyUrl(contact.portfolio), href: toSafeHref(contact.portfolio) },
   ];
 
   /** Actualiza un campo del formulario y borra su error */
   function handleChange(event) {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    // La casilla de autorización guarda true/false; los demás campos, el texto
+    setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }));
     setErrors((current) => ({ ...current, [name]: '' }));
     setIsSent(false);
   }
@@ -89,6 +115,14 @@ function ContactContent({ contact }) {
   /** Valida y abre el correo con el mensaje ya armado */
   function handleSubmit(event) {
     event.preventDefault(); // evita que el navegador recargue la página
+
+    // Campo trampa lleno = robot. Se finge el envío (para no darle pistas)
+    // y NO se abre el correo.
+    if (form.website) {
+      setIsSent(true);
+      setForm(EMPTY_FORM);
+      return;
+    }
 
     const formErrors = validateContactForm(form);
     if (Object.keys(formErrors).length > 0) {
@@ -158,14 +192,15 @@ function ContactContent({ contact }) {
               <label className="field__label" htmlFor="contact-name">
                 Nombre
               </label>
-              <input id="contact-name" name="name" className="field__input" placeholder="Tu nombre" value={form.name} onChange={handleChange} />
+              <input id="contact-name" name="name" className="field__input" placeholder="Tu nombre" value={form.name} onChange={handleChange} maxLength={MAX_LENGTH.PERSON_NAME} autoComplete="name" />
               {errors.name && <p className="field__error">{errors.name}</p>}
             </div>
-            <div className="field">
+            <div className={`field ${errors.company ? 'field--error' : ''}`}>
               <label className="field__label" htmlFor="contact-company">
                 Empresa <span className="field__hint">(opcional)</span>
               </label>
-              <input id="contact-company" name="company" className="field__input" placeholder="Nombre de la empresa" value={form.company} onChange={handleChange} />
+              <input id="contact-company" name="company" className="field__input" placeholder="Nombre de la empresa" value={form.company} onChange={handleChange} maxLength={MAX_LENGTH.PERSON_NAME} autoComplete="organization" />
+              {errors.company && <p className="field__error">{errors.company}</p>}
             </div>
           </div>
 
@@ -174,14 +209,15 @@ function ContactContent({ contact }) {
               <label className="field__label" htmlFor="contact-email">
                 Correo
               </label>
-              <input id="contact-email" name="email" type="email" className="field__input" placeholder="tu@correo.com" value={form.email} onChange={handleChange} />
+              <input id="contact-email" name="email" type="email" className="field__input" placeholder="tu@correo.com" value={form.email} onChange={handleChange} maxLength={MAX_LENGTH.EMAIL} autoComplete="email" />
               {errors.email && <p className="field__error">{errors.email}</p>}
             </div>
-            <div className="field">
+            <div className={`field ${errors.whatsapp ? 'field--error' : ''}`}>
               <label className="field__label" htmlFor="contact-whatsapp">
                 WhatsApp <span className="field__hint">(opcional)</span>
               </label>
-              <input id="contact-whatsapp" name="whatsapp" type="tel" className="field__input" placeholder="+57 300 000 0000" value={form.whatsapp} onChange={handleChange} />
+              <input id="contact-whatsapp" name="whatsapp" type="tel" className="field__input" placeholder="+57 300 000 0000" value={form.whatsapp} onChange={handleChange} maxLength={MAX_LENGTH.PHONE} autoComplete="tel" />
+              {errors.whatsapp && <p className="field__error">{errors.whatsapp}</p>}
             </div>
           </div>
 
@@ -216,8 +252,27 @@ function ContactContent({ contact }) {
             <label className="field__label" htmlFor="contact-message">
               Cuéntanos del proyecto
             </label>
-            <textarea id="contact-message" name="message" className="field__input" placeholder="Objetivo, fecha ideal, referencias que te gusten..." value={form.message} onChange={handleChange} />
+            <textarea id="contact-message" name="message" className="field__input" placeholder="Objetivo, fecha ideal, referencias que te gusten..." value={form.message} onChange={handleChange} maxLength={MAX_LENGTH.CONTACT_MESSAGE} />
             {errors.message && <p className="field__error">{errors.message}</p>}
+          </div>
+
+          {/* Campo trampa para robots: fuera de la pantalla, sin foco con Tab
+              y oculto para lectores de pantalla. Una persona nunca lo llena. */}
+          <div className="contact-form__trap" aria-hidden="true">
+            <label htmlFor="contact-website">No llenes este campo</label>
+            <input id="contact-website" name="website" type="text" tabIndex={-1} autoComplete="off" value={form.website} onChange={handleChange} />
+          </div>
+
+          {/* Autorización del tratamiento de datos (Ley 1581 de 2012) */}
+          <div className={`field ${errors.consent ? 'field--error' : ''}`}>
+            <label className="checkbox">
+              <input type="checkbox" name="consent" checked={form.consent} onChange={handleChange} />
+              <span>
+                Autorizo a Grither a usar mis datos para responder mi solicitud y enviarme una cotización, según la{' '}
+                <Link to={LEGAL_ROUTES.PRIVACY}>Política de privacidad</Link>.
+              </span>
+            </label>
+            {errors.consent && <p className="field__error">{errors.consent}</p>}
           </div>
 
           {isSent && (

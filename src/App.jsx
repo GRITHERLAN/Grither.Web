@@ -14,6 +14,9 @@
      /administrador/contacto Panel Admin: información de contacto
      /administrador/nosotros Panel Admin: información de Sobre nosotros
      /administrador/usuarios Panel Admin: usuarios registrados
+     /politica-de-privacidad Política de tratamiento de datos (Ley 1581)
+     /terminos-y-condiciones Términos y condiciones
+     /politica-de-cookies    Política de cookies
    ========================================================================== */
 
 import { Route, Routes } from 'react-router-dom';
@@ -36,6 +39,10 @@ import AdminOffersPage from './pages/admin/AdminOffersPage.jsx';
 import AdminContactPage from './pages/admin/AdminContactPage.jsx';
 import AdminAboutPage from './pages/admin/AdminAboutPage.jsx';
 import AdminUsersPage from './pages/admin/AdminUsersPage.jsx';
+import PrivacyPage from './pages/legal/PrivacyPage.jsx';
+import TermsPage from './pages/legal/TermsPage.jsx';
+import CookiesPage from './pages/legal/CookiesPage.jsx';
+import { LEGAL_ROUTES } from './data/siteContent.js';
 
 function App() {
   return (
@@ -48,6 +55,11 @@ function App() {
               <Route path="/" element={<ServicesPage />} />
               <Route path="/sobre-nosotros" element={<AboutPage />} />
               <Route path="/contacto" element={<ContactPage />} />
+
+              {/* Páginas legales (públicas) */}
+              <Route path={LEGAL_ROUTES.PRIVACY} element={<PrivacyPage />} />
+              <Route path={LEGAL_ROUTES.TERMS} element={<TermsPage />} />
+              <Route path={LEGAL_ROUTES.COOKIES} element={<CookiesPage />} />
 
               {/* Panel Usuario: solo clientes */}
               <Route

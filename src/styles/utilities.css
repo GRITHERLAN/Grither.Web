@@ -354,6 +354,7 @@ textarea.field__input {
 }
 
 .checkbox input {
+  flex-shrink: 0; /* la casilla no se encoge cuando el texto ocupa varias líneas */
   width: 1.8rem;
   height: 1.8rem;
   accent-color: var(--color-accent);

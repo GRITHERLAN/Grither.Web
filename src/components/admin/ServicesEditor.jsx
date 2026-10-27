@@ -21,6 +21,7 @@ import ConfirmDialog from '../ui/ConfirmDialog.jsx';
 import Icon from '../ui/Icon.jsx';
 import Select from '../ui/Select.jsx';
 import StringListEditor from './StringListEditor.jsx';
+import { MAX_LENGTH } from '../../utils/validators.js';
 import LoadingState from '../ui/LoadingState.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import './OfferEditor.css';
@@ -168,6 +169,7 @@ function ServicesForm({ initialServices }) {
                     placeholder="Ej. Landing pages"
                     value={service.title}
                     onChange={(event) => updateService(index, { title: event.target.value })}
+                    maxLength={MAX_LENGTH.CARD_TITLE}
                   />
                   {renderError(index, 'title')}
                 </div>
@@ -196,6 +198,7 @@ function ServicesForm({ initialServices }) {
                   className="field__input offer-card__textarea"
                   value={service.description}
                   onChange={(event) => updateService(index, { description: event.target.value })}
+                  maxLength={MAX_LENGTH.CARD_DESCRIPTION}
                 />
                 {renderError(index, 'description')}
               </div>

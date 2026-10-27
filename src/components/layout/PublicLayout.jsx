@@ -1,8 +1,8 @@
 /* ==========================================================================
    PLANTILLA DE LAS PÁGINAS PÚBLICAS Y DEL PANEL DE USUARIO
    --------------------------------------------------------------------------
-   Header arriba, contenido de la página en el medio (<Outlet />),
-   Footer abajo y el botón fijo de WhatsApp.
+   Enlace "Saltar al contenido", Header arriba, contenido de la página en
+   el medio (<Outlet />), Footer abajo y el botón fijo de WhatsApp.
    ========================================================================== */
 
 import { useEffect } from 'react';
@@ -21,8 +21,13 @@ function PublicLayout() {
 
   return (
     <>
+      {/* Accesibilidad: primer elemento al pulsar Tab. Salta el menú y va
+          directo al contenido (solo se ve cuando recibe el foco). */}
+      <a href="#contenido" className="skip-link">
+        Saltar al contenido
+      </a>
       <Header />
-      <main className="page">
+      <main id="contenido" className="page" tabIndex={-1}>
         <Outlet />
       </main>
       <Footer />

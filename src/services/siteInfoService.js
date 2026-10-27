@@ -17,7 +17,7 @@ import { supabase } from '../lib/supabaseClient.js';
 import { ValidationError } from './errors.js';
 import { toAppError } from './supabaseErrors.js';
 import { BUCKETS, removePublicFiles, uploadPublicFile } from './storageFiles.js';
-import { isValidEmail, isValidPhone, isValidUrl } from '../utils/validators.js';
+import { MAX_LENGTH, isTooLong, isValidEmail, isValidPhone, isValidUrl, tooLongMessage } from '../utils/validators.js';
 
 /* --------------------------------------------------------------------------
    Indicadores (compartido entre Contacto y Nosotros)
@@ -32,7 +32,14 @@ function validateIndicators(indicators) {
     return 'Agrega al menos un indicador.';
   }
   const hasEmpty = indicators.some((item) => !item.value.trim() || !item.label.trim());
-  return hasEmpty ? 'Completa el valor y la descripción de cada indicador.' : '';
+  if (hasEmpty) return 'Completa el valor y la descripción de cada indicador.';
+
+  const hasTooLong = indicators.some(
+    (item) => isTooLong(item.value, MAX_LENGTH.INDICATOR_VALUE) || isTooLong(item.label, MAX_LENGTH.INDICATOR_LABEL)
+  );
+  return hasTooLong
+    ? `Cada valor puede tener máximo ${MAX_LENGTH.INDICATOR_VALUE} caracteres y cada descripción ${MAX_LENGTH.INDICATOR_LABEL}.`
+    : '';
 }
 
 /* Estructuras en blanco: solo se usan si la tabla está vacía, para que la web
@@ -40,6 +47,7 @@ function validateIndicators(indicators) {
 const EMPTY_CONTACT_INFO = {
   email: '',
   phone: '',
+  city: '',
   brandDescription: '',
   instagram: '',
   linkedin: '',
@@ -94,6 +102,7 @@ export async function getContactInfo() {
   return {
     email: row.email,
     phone: row.phone,
+    city: row.city ?? '',
     brandDescription: row.brand_description,
     instagram: row.instagram,
     linkedin: row.linkedin,
@@ -104,14 +113,20 @@ export async function getContactInfo() {
 
 export function validateContactInfo(data) {
   const errors = {};
-  if (!isValidEmail(data.email)) errors.email = 'Escribe un correo válido.';
+  if (!isValidEmail(data.email) || isTooLong(data.email, MAX_LENGTH.EMAIL)) errors.email = 'Escribe un correo válido.';
   if (!isValidPhone(data.phone)) errors.phone = 'Escribe un teléfono válido (ej. +57 300 000 0000).';
+  // Ciudad: domicilio del Responsable que exige la Política de privacidad (art. 13 Decreto 1377)
+  if (String(data.city || '').trim().length < 3) errors.city = 'Escribe la ciudad (ej. Dosquebradas, Risaralda, Colombia).';
+  else if (isTooLong(data.city, MAX_LENGTH.CITY)) errors.city = tooLongMessage(MAX_LENGTH.CITY);
   if (data.brandDescription.trim().length < 20) {
     errors.brandDescription = 'La descripción debe tener mínimo 20 caracteres.';
+  } else if (isTooLong(data.brandDescription, MAX_LENGTH.BRAND_DESCRIPTION)) {
+    errors.brandDescription = tooLongMessage(MAX_LENGTH.BRAND_DESCRIPTION);
   }
-  if (!isValidUrl(data.instagram)) errors.instagram = 'Escribe el enlace completo de Instagram.';
-  if (!isValidUrl(data.linkedin)) errors.linkedin = 'Escribe el enlace completo de LinkedIn.';
-  if (!isValidUrl(data.portfolio)) errors.portfolio = 'Escribe el enlace completo del portafolio.';
+  // Enlaces: solo http, https, mailto o tel (nunca javascript:) y con largo máximo
+  if (!isValidUrl(data.instagram) || isTooLong(data.instagram, MAX_LENGTH.URL)) errors.instagram = 'Escribe el enlace completo de Instagram.';
+  if (!isValidUrl(data.linkedin) || isTooLong(data.linkedin, MAX_LENGTH.URL)) errors.linkedin = 'Escribe el enlace completo de LinkedIn.';
+  if (!isValidUrl(data.portfolio) || isTooLong(data.portfolio, MAX_LENGTH.URL)) errors.portfolio = 'Escribe el enlace completo del portafolio.';
 
   const indicatorsError = validateIndicators(data.indicators);
   if (indicatorsError) errors.indicators = indicatorsError;
@@ -126,6 +141,7 @@ export async function saveContactInfo(data) {
   const cleanData = {
     email: data.email.trim(),
     phone: data.phone.trim(),
+    city: data.city.trim(),
     brandDescription: data.brandDescription.trim(),
     instagram: data.instagram.trim(),
     linkedin: data.linkedin.trim(),
@@ -178,15 +194,22 @@ export function validateAboutInfo(data) {
   const errors = {};
   if (data.brandDescription.trim().length < 20) {
     errors.brandDescription = 'La descripción debe tener mínimo 20 caracteres.';
+  } else if (isTooLong(data.brandDescription, MAX_LENGTH.BRAND_DESCRIPTION)) {
+    errors.brandDescription = tooLongMessage(MAX_LENGTH.BRAND_DESCRIPTION);
   }
   if (data.owner.name.trim().length < 3) errors.ownerName = 'Escribe el nombre.';
+  else if (isTooLong(data.owner.name, MAX_LENGTH.PERSON_NAME)) errors.ownerName = tooLongMessage(MAX_LENGTH.PERSON_NAME);
   if (data.owner.role.trim().length < 3) errors.ownerRole = 'Escribe el cargo.';
+  else if (isTooLong(data.owner.role, MAX_LENGTH.OWNER_ROLE)) errors.ownerRole = tooLongMessage(MAX_LENGTH.OWNER_ROLE);
   if (data.owner.bio.trim().length < 20) errors.ownerBio = 'La biografía debe tener mínimo 20 caracteres.';
+  else if (isTooLong(data.owner.bio, MAX_LENGTH.OWNER_BIO)) errors.ownerBio = tooLongMessage(MAX_LENGTH.OWNER_BIO);
 
   // Cada una de las 4 fases debe tener su explicación
   Object.entries(data.phases).forEach(([phaseKey, text]) => {
     if (text.trim().length < 10) {
       errors[`phase_${phaseKey}`] = 'Explica esta fase (mínimo 10 caracteres).';
+    } else if (isTooLong(text, MAX_LENGTH.PHASE_TEXT)) {
+      errors[`phase_${phaseKey}`] = tooLongMessage(MAX_LENGTH.PHASE_TEXT);
     }
   });
 

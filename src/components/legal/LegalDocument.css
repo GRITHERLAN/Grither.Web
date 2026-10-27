@@ -1,0 +1,220 @@
+/* ==========================================================================
+   DOCUMENTO LEGAL
+   Índice a la izquierda (fijo al hacer scroll) y texto a la derecha.
+   En móvil el índice queda arriba y el texto debajo.
+   ========================================================================== */
+
+.legal__header {
+  max-width: 80rem;
+  margin-bottom: 4.8rem;
+}
+
+.legal__title {
+  font-size: clamp(3.2rem, 5vw, 4.8rem);
+  margin-top: 1.2rem;
+}
+
+.legal__date {
+  margin-top: 1.2rem;
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+}
+
+.legal__intro {
+  margin-top: 2rem;
+  color: var(--color-text-muted);
+  font-size: 1.7rem;
+}
+
+/* ---------- Distribución: índice + texto ---------- */
+.legal__layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3.2rem;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .legal__layout {
+    grid-template-columns: 28rem 1fr;
+  }
+
+  .legal__toc {
+    position: sticky;
+    top: calc(var(--header-height) + 2.4rem);
+  }
+}
+
+/* ---------- Índice ---------- */
+.legal__toc {
+  padding: 2rem;
+}
+
+.legal__toc-title {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 1.2rem;
+}
+
+.legal__toc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.legal__toc-link {
+  display: block;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+}
+
+.legal__toc-link:hover,
+.legal__toc-link:focus-visible {
+  color: var(--color-text);
+  background-color: var(--color-accent-soft);
+}
+
+.legal__toc-link .text-mono {
+  color: var(--color-accent);
+  margin-right: 0.4rem;
+}
+
+/* ---------- Secciones ---------- */
+.legal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+  min-width: 0; /* evita que textos largos (correos, enlaces) desborden el grid */
+}
+
+.legal__section {
+  /* deja espacio para el header fijo al saltar desde el índice */
+  scroll-margin-top: calc(var(--header-height) + 2rem);
+}
+
+.legal__section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 1.2rem;
+  font-size: clamp(2.2rem, 2.6vw, 2.6rem);
+  margin-bottom: 1.6rem;
+}
+
+.legal__section-number {
+  font-size: 1.4rem;
+  color: var(--color-accent);
+}
+
+.legal__section p,
+.legal__section li {
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.legal__section p + p,
+.legal__section p + ul,
+.legal__section ul + p,
+.legal__section p + .legal__table-wrap,
+.legal__section .legal__table-wrap + p {
+  margin-top: 1.2rem;
+}
+
+.legal__section strong {
+  color: var(--color-text);
+}
+
+.legal__section a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.3rem;
+}
+
+/* Listas con viñeta propia (el reset quita las del navegador) */
+.legal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding-left: 2rem;
+}
+
+.legal__list li {
+  position: relative;
+}
+
+.legal__list li::before {
+  content: "";
+  position: absolute;
+  left: -1.6rem;
+  top: 1.1rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+}
+
+/* ---------- Tarjeta con los datos del Responsable ---------- */
+.legal__responsible {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1.6rem;
+  padding: 2rem;
+  margin-top: 1.6rem;
+}
+
+.legal__responsible dt {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.legal__responsible dd {
+  margin-top: 0.4rem;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Tabla (Política de cookies) ---------- */
+.legal__table-wrap {
+  overflow-x: auto; /* en móvil la tabla se desplaza dentro de su caja, no la página */
+  border: 0.1rem solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.legal__table {
+  width: 100%;
+  min-width: 60rem;
+  border-collapse: collapse;
+  font-size: 1.4rem;
+}
+
+.legal__table th,
+.legal__table td {
+  padding: 1.2rem 1.6rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 0.1rem solid var(--color-border);
+}
+
+.legal__table th {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+  background-color: var(--color-surface-2);
+}
+
+.legal__table td {
+  color: var(--color-text-muted);
+}
+
+.legal__table tr:last-child td {
+  border-bottom: none;
+}

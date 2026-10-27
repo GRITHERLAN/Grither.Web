@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import Modal from '../ui/Modal.jsx';
 import { cancelProject } from '../../services/projectService.js';
+import { MAX_LENGTH } from '../../utils/validators.js';
 
 /**
  * @param {object|null} project - Proyecto a cancelar (null = cerrado).
@@ -66,6 +67,7 @@ function CancelForm({ project, onClose, onCancelled }) {
             setReason(event.target.value);
             setError('');
           }}
+          maxLength={MAX_LENGTH.CANCEL_REASON}
         />
         {error && <p className="field__error">{error}</p>}
       </div>

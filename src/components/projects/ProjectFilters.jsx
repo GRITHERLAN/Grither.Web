@@ -14,6 +14,7 @@ import Icon from '../ui/Icon.jsx';
 import Select from '../ui/Select.jsx';
 import { PROJECT_CATEGORIES } from '../../services/projectService.js';
 import { SORT_OPTIONS, RECENT_OPTIONS } from '../../utils/filterProjects.js';
+import { MAX_LENGTH } from '../../utils/validators.js';
 import './ProjectFilters.css';
 
 /* Opciones del desplegable Categoría: "Todas" + cada categoría */
@@ -74,6 +75,7 @@ function ProjectFilters({ filters, onChange, onReset, counts, hideStatus = false
             placeholder="Buscar por ID (ej. GTH-8041)"
             value={filters.idQuery}
             onChange={handleFieldChange}
+            maxLength={MAX_LENGTH.SEARCH}
           />
         </label>
         <label className="project-filters__search-field">
@@ -85,6 +87,7 @@ function ProjectFilters({ filters, onChange, onReset, counts, hideStatus = false
             placeholder="Buscar por nombre"
             value={filters.nameQuery}
             onChange={handleFieldChange}
+            maxLength={MAX_LENGTH.SEARCH}
           />
         </label>
       </div>

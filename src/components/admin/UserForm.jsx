@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import Select from '../ui/Select.jsx';
 import { ROLES, ROLE_LABELS, updateUser, validateUserUpdate } from '../../services/authService.js';
+import { MAX_LENGTH } from '../../utils/validators.js';
 
 /* Opciones del desplegable Rol */
 const ROLE_OPTIONS = [
@@ -80,7 +81,7 @@ function UserForm({ user, actorId, onSaved, onCancel }) {
           <label className="field__label" htmlFor="user-name">
             Nombre de usuario
           </label>
-          <input id="user-name" name="name" className="field__input" value={form.name} onChange={handleChange} autoComplete="off" />
+          <input id="user-name" name="name" className="field__input" value={form.name} onChange={handleChange} autoComplete="off" maxLength={MAX_LENGTH.PERSON_NAME} />
           {renderError('name')}
         </div>
 
@@ -88,7 +89,7 @@ function UserForm({ user, actorId, onSaved, onCancel }) {
           <label className="field__label" htmlFor="user-email">
             Correo
           </label>
-          <input id="user-email" name="email" type="email" className="field__input" value={form.email} onChange={handleChange} autoComplete="off" />
+          <input id="user-email" name="email" type="email" className="field__input" value={form.email} onChange={handleChange} autoComplete="off" maxLength={MAX_LENGTH.EMAIL} />
           {renderError('email')}
         </div>
       </div>
@@ -116,6 +117,7 @@ function UserForm({ user, actorId, onSaved, onCancel }) {
             value={form.password}
             onChange={handleChange}
             autoComplete="new-password"
+            maxLength={MAX_LENGTH.PASSWORD}
           />
           {renderError('password')}
         </div>

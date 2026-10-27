@@ -10,6 +10,7 @@
 
 import { useId } from 'react';
 import Icon from '../ui/Icon.jsx';
+import { MAX_LENGTH } from '../../utils/validators.js';
 import './StringListEditor.css';
 
 /**
@@ -19,9 +20,10 @@ import './StringListEditor.css';
  * @param {string} addLabel - Texto del botón agregar.
  * @param {string} placeholder - Ejemplo dentro de cada input.
  * @param {number} max - Máximo de elementos.
+ * @param {number} maxLength - Máximo de caracteres de cada elemento.
  * @param {string} error - Mensaje de error (opcional).
  */
-function StringListEditor({ label, items, onChange, addLabel, placeholder = '', max = 6, error = '' }) {
+function StringListEditor({ label, items, onChange, addLabel, placeholder = '', max = 6, maxLength = MAX_LENGTH.CARD_ITEM, error = '' }) {
   // Prefijo único para enlazar cada input con su label oculto
   const baseId = useId();
 
@@ -55,6 +57,7 @@ function StringListEditor({ label, items, onChange, addLabel, placeholder = '', 
               placeholder={placeholder}
               value={item}
               onChange={(event) => handleItemChange(index, event.target.value)}
+              maxLength={maxLength}
             />
             <button
               type="button"

@@ -8,6 +8,7 @@
    ========================================================================== */
 
 import Icon from '../ui/Icon.jsx';
+import { MAX_LENGTH } from '../../utils/validators.js';
 import './IndicatorsEditor.css';
 
 const MAX_INDICATORS = 6;
@@ -52,6 +53,7 @@ function IndicatorsEditor({ indicators, onChange, error = '' }) {
               placeholder="+30"
               value={indicator.value}
               onChange={(event) => handleFieldChange(index, 'value', event.target.value)}
+              maxLength={MAX_LENGTH.INDICATOR_VALUE}
             />
             <label className="sr-only" htmlFor={`indicator-label-${index}`}>
               Descripción del indicador {index + 1}
@@ -62,6 +64,7 @@ function IndicatorsEditor({ indicators, onChange, error = '' }) {
               placeholder="Proyectos entregados"
               value={indicator.label}
               onChange={(event) => handleFieldChange(index, 'label', event.target.value)}
+              maxLength={MAX_LENGTH.INDICATOR_LABEL}
             />
             <button
               type="button"

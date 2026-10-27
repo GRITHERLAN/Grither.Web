@@ -13,7 +13,8 @@ import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext.jsx';
 import { getAboutInfo, saveAboutInfo, validateAboutInfo } from '../../services/siteInfoService.js';
 import { PROJECT_PHASES } from '../../services/projectService.js';
-import { processImageFile } from '../../utils/mediaFiles.js';
+import { ACCEPTED_PHOTO, processImageFile } from '../../utils/mediaFiles.js';
+import { MAX_LENGTH } from '../../utils/validators.js';
 import { getInitials } from '../../utils/format.js';
 import IndicatorsEditor from '../../components/admin/IndicatorsEditor.jsx';
 import Icon from '../../components/ui/Icon.jsx';
@@ -145,7 +146,7 @@ function AboutInfoForm({ initialData }) {
             <label className="field__label" htmlFor="about-brand">
               Descripción de marca <span className="field__hint">(deja una línea en blanco para separar párrafos)</span>
             </label>
-            <textarea id="about-brand" className="field__input about-admin__brand" value={form.brandDescription} onChange={handleBrandChange} />
+            <textarea id="about-brand" className="field__input about-admin__brand" value={form.brandDescription} onChange={handleBrandChange} maxLength={MAX_LENGTH.BRAND_DESCRIPTION} />
             {renderError('brandDescription')}
           </div>
           <IndicatorsEditor indicators={form.indicators} onChange={handleIndicatorsChange} error={errors.indicators} />
@@ -164,7 +165,7 @@ function AboutInfoForm({ initialData }) {
               </span>
             )}
             <div className="about-admin__photo-actions">
-              <input ref={photoInputRef} type="file" accept="image/*" className="sr-only" tabIndex={-1} onChange={handlePhotoSelected} />
+              <input ref={photoInputRef} type="file" accept={ACCEPTED_PHOTO} className="sr-only" tabIndex={-1} onChange={handlePhotoSelected} />
               <button type="button" className="btn btn--outline btn--sm" onClick={handleChoosePhoto}>
                 <Icon name="image" className="about-admin__btn-icon" />
                 {form.owner.photo ? 'Cambiar foto' : 'Subir foto'}
@@ -182,14 +183,14 @@ function AboutInfoForm({ initialData }) {
               <label className="field__label" htmlFor="about-owner-name">
                 Nombre
               </label>
-              <input id="about-owner-name" name="name" className="field__input" value={form.owner.name} onChange={handleOwnerChange} />
+              <input id="about-owner-name" name="name" className="field__input" value={form.owner.name} onChange={handleOwnerChange} maxLength={MAX_LENGTH.PERSON_NAME} />
               {renderError('ownerName')}
             </div>
             <div className={`field ${errors.ownerRole ? 'field--error' : ''}`}>
               <label className="field__label" htmlFor="about-owner-role">
                 Cargo
               </label>
-              <input id="about-owner-role" name="role" className="field__input" value={form.owner.role} onChange={handleOwnerChange} />
+              <input id="about-owner-role" name="role" className="field__input" value={form.owner.role} onChange={handleOwnerChange} maxLength={MAX_LENGTH.OWNER_ROLE} />
               {renderError('ownerRole')}
             </div>
           </div>
@@ -197,7 +198,7 @@ function AboutInfoForm({ initialData }) {
             <label className="field__label" htmlFor="about-owner-bio">
               Biografía
             </label>
-            <textarea id="about-owner-bio" name="bio" className="field__input" value={form.owner.bio} onChange={handleOwnerChange} />
+            <textarea id="about-owner-bio" name="bio" className="field__input" value={form.owner.bio} onChange={handleOwnerChange} maxLength={MAX_LENGTH.OWNER_BIO} />
             {renderError('ownerBio')}
           </div>
         </section>
@@ -217,6 +218,7 @@ function AboutInfoForm({ initialData }) {
                   className="field__input"
                   value={form.phases[phase.value]}
                   onChange={handlePhaseChange}
+                  maxLength={MAX_LENGTH.PHASE_TEXT}
                 />
                 {renderError(`phase_${phase.value}`)}
               </div>

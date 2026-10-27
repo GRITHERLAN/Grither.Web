@@ -20,3 +20,23 @@
 .footer__made {
   font-size: 1.3rem;
 }
+
+/* ---------- Enlaces legales ---------- */
+.footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 2rem;
+}
+
+.footer__link {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.3rem;
+  transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
+}
+
+.footer__link:hover,
+.footer__link:focus-visible {
+  color: var(--color-text);
+  text-decoration-color: currentColor;
+}

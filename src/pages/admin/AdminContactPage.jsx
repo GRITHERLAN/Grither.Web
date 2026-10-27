@@ -14,14 +14,17 @@ import { getContactInfo, saveContactInfo, validateContactInfo } from '../../serv
 import IndicatorsEditor from '../../components/admin/IndicatorsEditor.jsx';
 import LoadingState from '../../components/ui/LoadingState.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
+import { MAX_LENGTH } from '../../utils/validators.js';
 
 /* Campos de texto simples del formulario (se pintan con un map) */
 const TEXT_FIELDS = [
-  { name: 'email', label: 'Correo', type: 'email', placeholder: 'hola@grither.co' },
-  { name: 'phone', label: 'Teléfono', type: 'tel', placeholder: '+57 300 000 0000' },
-  { name: 'instagram', label: 'Instagram (enlace)', type: 'url', placeholder: 'https://www.instagram.com/...' },
-  { name: 'linkedin', label: 'LinkedIn (enlace)', type: 'url', placeholder: 'https://www.linkedin.com/in/...' },
-  { name: 'portfolio', label: 'Portafolio web personal', type: 'url', placeholder: 'https://...' },
+  { name: 'email', label: 'Correo', type: 'email', placeholder: 'hola@grither.co', maxLength: MAX_LENGTH.EMAIL },
+  { name: 'phone', label: 'Teléfono', type: 'tel', placeholder: '+57 300 000 0000', maxLength: MAX_LENGTH.PHONE },
+  // Domicilio del Responsable: se muestra en las páginas legales
+  { name: 'city', label: 'Ciudad (páginas legales)', type: 'text', placeholder: 'Dosquebradas, Risaralda, Colombia', maxLength: MAX_LENGTH.CITY },
+  { name: 'instagram', label: 'Instagram (enlace)', type: 'url', placeholder: 'https://www.instagram.com/...', maxLength: MAX_LENGTH.URL },
+  { name: 'linkedin', label: 'LinkedIn (enlace)', type: 'url', placeholder: 'https://www.linkedin.com/in/...', maxLength: MAX_LENGTH.URL },
+  { name: 'portfolio', label: 'Portafolio web personal', type: 'url', placeholder: 'https://...', maxLength: MAX_LENGTH.URL },
 ];
 
 function AdminContactPage() {
@@ -108,6 +111,7 @@ function ContactInfoForm({ initialData }) {
                   placeholder={field.placeholder}
                   value={form[field.name]}
                   onChange={handleChange}
+                  maxLength={field.maxLength}
                 />
                 {errors[field.name] && <p className="field__error">{errors[field.name]}</p>}
               </div>
@@ -121,7 +125,7 @@ function ContactInfoForm({ initialData }) {
             <label className="field__label" htmlFor="contact-brand">
               Descripción de marca
             </label>
-            <textarea id="contact-brand" name="brandDescription" className="field__input" value={form.brandDescription} onChange={handleChange} />
+            <textarea id="contact-brand" name="brandDescription" className="field__input" value={form.brandDescription} onChange={handleChange} maxLength={MAX_LENGTH.BRAND_DESCRIPTION} />
             {errors.brandDescription && <p className="field__error">{errors.brandDescription}</p>}
           </div>
 

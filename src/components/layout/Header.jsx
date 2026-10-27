@@ -10,7 +10,7 @@
    - En celulares el menú se esconde detrás de un botón hamburguesa.
    ========================================================================== */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
@@ -38,10 +38,30 @@ function Header() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Botón hamburguesa: al cerrar el menú con Escape el foco vuelve aquí
+  const menuButtonRef = useRef(null);
+
   // Cerramos el menú móvil cada vez que se cambia de página
   useEffect(() => {
     setIsMenuOpen(false);
   }, [location.pathname]);
+
+  // Accesibilidad: con el menú móvil abierto, la tecla Escape lo cierra y
+  // devuelve el foco al botón hamburguesa (para seguir navegando con teclado)
+  useEffect(() => {
+    if (!isMenuOpen) return undefined;
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMenuOpen]);
 
   function handleToggleMenu(event) {
     event.preventDefault();
@@ -65,6 +85,7 @@ function Header() {
 
         {/* Botón hamburguesa (solo visible en pantallas pequeñas) */}
         <button
+          ref={menuButtonRef}
           type="button"
           className="header__menu-btn icon-btn"
           aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}

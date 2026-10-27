@@ -3,6 +3,17 @@
    --------------------------------------------------------------------------
    Todos los iconos de la web dibujados con SVG en línea (sin librerías).
    Uso: <Icon name="edit" />   — toma el color del texto (currentColor).
+
+   Licencias (Auditoría de seguridad > Licencia de imágenes):
+     - Los iconos de interfaz son trazos simples de 24x24 al estilo de
+       Lucide/Feather. Si alguno se copió de esas librerías, su licencia
+       (ISC / MIT) permite usarlo libremente conservando este aviso:
+       "Lucide — ISC License, Copyright (c) Lucide Contributors" y
+       "Feather — MIT License, Copyright (c) 2013-2023 Cole Bemis".
+     - Instagram, LinkedIn y WhatsApp son MARCAS REGISTRADAS de sus dueños
+       (Meta y Microsoft). Sus iconos solo se usan para enlazar a los
+       perfiles oficiales (uso nominativo), sin cambiar su forma ni sugerir
+       patrocinio. No usarlos como logo de Grither ni en otros contextos.
    ========================================================================== */
 
 /* Cada icono es el contenido (paths) de un SVG de 24x24 */

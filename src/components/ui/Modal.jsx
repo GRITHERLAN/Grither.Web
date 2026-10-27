@@ -7,6 +7,8 @@
      - Foco atrapado dentro mientras está abierta.
    El contenido solo se monta cuando está abierta, así los formularios
    internos empiezan limpios cada vez.
+   Accesibilidad: al cerrarse, el foco vuelve al botón que la abrió, para
+   que quien navega con teclado no pierda su lugar en la página.
    ========================================================================== */
 
 import { useEffect, useId, useRef } from 'react';
@@ -25,15 +27,25 @@ function Modal({ isOpen, onClose, title, description = '', size = 'md', children
   // Id único para enlazar el título con el dialog (accesibilidad)
   const titleId = useId();
 
+  // Elemento que tenía el foco antes de abrir (normalmente el botón que la abrió)
+  const openerRef = useRef(null);
+
   // Abrimos o cerramos el <dialog> nativo según la prop isOpen
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
     if (isOpen && !dialog.open) {
+      openerRef.current = document.activeElement;
       dialog.showModal();
     } else if (!isOpen && dialog.open) {
       dialog.close();
+      // Devolvemos el foco solo si ese elemento sigue en la página
+      const opener = openerRef.current;
+      if (opener && opener.isConnected && typeof opener.focus === 'function') {
+        opener.focus();
+      }
+      openerRef.current = null;
     }
   }, [isOpen]);
 

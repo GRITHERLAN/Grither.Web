@@ -13,6 +13,7 @@ import StatusBadge from '../ui/StatusBadge.jsx';
 import { PROJECT_STATUS } from '../../services/projectService.js';
 import PhaseStepper from '../ui/PhaseStepper.jsx';
 import { formatCOP } from '../../utils/format.js';
+import { toSafeHref } from '../../utils/validators.js';
 import './ProjectCard.css';
 
 function ProjectCard({ project }) {
@@ -63,7 +64,7 @@ function ProjectCard({ project }) {
             Ver avance
           </Link>
           <a
-            href={project.contactLink}
+            href={toSafeHref(project.contactLink)}
             className="btn btn--outline btn--sm"
             target="_blank"
             rel="noopener noreferrer"
