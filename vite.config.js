@@ -20,10 +20,11 @@ import {
  * cargar scripts, imágenes, videos y conexiones. Si alguien lograra meter
  * código malicioso en la página (XSS), el navegador no lo ejecutaría ni lo
  * dejaría enviar datos a otro servidor.
- *   - Scripts, estilos y fuentes: solo del propio sitio.
+ *   - Scripts: del propio sitio y de Google Analytics (googletagmanager.com).
+ *   - Estilos y fuentes: solo del propio sitio.
  *   - Imágenes y videos: del propio sitio, de Supabase Storage y vistas
  *     previas locales (blob:, data:).
- *   - Conexiones: solo a Supabase (API, Auth, Storage y tiempo real).
+ *   - Conexiones: a Supabase (API, Auth, Storage y tiempo real) y a Google Analytics.
  *
  * Solo se agrega al compilar (npm run build). En "npm run dev" Vite necesita
  * scripts en línea para la recarga rápida y la CSP los bloquearía.
@@ -39,12 +40,13 @@ function cspPlugin(supabaseUrl) {
 
   const policy = [
     "default-src 'self'",
-    "script-src 'self'",
+    // Google Analytics (gtag.js). Solo se descarga si el visitante acepta el banner de cookies.
+    "script-src 'self' https://www.googletagmanager.com",
     "style-src 'self'",
     "font-src 'self'",
-    `img-src 'self' data: blob: ${supabaseOrigin}`,
+    `img-src 'self' data: blob: ${supabaseOrigin} https://*.google-analytics.com https://*.googletagmanager.com`,
     `media-src 'self' blob: ${supabaseOrigin}`,
-    `connect-src 'self' ${supabaseOrigin} ${supabaseSocket}`,
+    `connect-src 'self' ${supabaseOrigin} ${supabaseSocket} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

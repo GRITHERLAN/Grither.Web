@@ -6,7 +6,9 @@
    recolectar datos personales, así que aplica la Ley 1581 de 2012 y hay que
    informar al usuario qué se guarda y para qué.
 
-   Este sitio NO usa cookies. Solo usa el almacenamiento del navegador
+   Google Analytics (lib/analytics.js) solo se carga si el visitante lo acepta
+   en el banner; guarda su decisión en "grither_analytics_consent".
+   Aparte de eso, el sitio solo usa el almacenamiento del navegador
    (localStorage / sessionStorage) para lo estrictamente necesario:
      - grither_theme              -> utils/themeStorage.js
      - grither_remember           -> lib/supabaseClient.js
@@ -18,6 +20,8 @@
 import { Link } from 'react-router-dom';
 import LegalDocument from '../../components/legal/LegalDocument.jsx';
 import { LEGAL_ROUTES } from '../../data/siteContent.js';
+import { setConsent } from '../../lib/analytics.js';
+import { useConsent } from '../../hooks/useAnalytics.js';
 
 /* Todo lo que el sitio guarda en el navegador (se muestra en la tabla) */
 const STORED_ITEMS = [
@@ -27,6 +31,20 @@ const STORED_ITEMS = [
     purpose: 'Recordar si elegiste el modo oscuro o el claro.',
     type: 'Preferencia',
     duration: 'Hasta que borres los datos del sitio.',
+  },
+  {
+    name: 'grither_analytics_consent',
+    place: 'localStorage',
+    purpose: 'Recordar si aceptaste o rechazaste la analítica.',
+    type: 'Preferencia',
+    duration: 'Hasta que borres los datos del sitio.',
+  },
+  {
+    name: '_ga y _ga_FLDQJ162PC',
+    place: 'Cookie (la instala Google)',
+    purpose: 'Distinguir visitantes y sesiones para las estadísticas de Google Analytics. Solo si aceptas.',
+    type: 'Analítica',
+    duration: 'Hasta 2 años.',
   },
   {
     name: 'grither_remember',
@@ -46,6 +64,9 @@ const STORED_ITEMS = [
 ];
 
 function CookiesPage() {
+  // Decisión del visitante sobre Google Analytics (se actualiza al cambiarla)
+  const consent = useConsent();
+
   const sections = [
     {
       id: 'que-son',
@@ -58,13 +79,40 @@ function CookiesPage() {
       ),
     },
     {
-      id: 'no-usamos',
-      title: 'Este sitio no usa cookies',
+      id: 'analitica',
+      title: 'Analítica (Google Analytics)',
+      content: (
+        <>
+          <p>
+            Usamos Google Analytics para saber cuántas personas visitan el sitio y qué páginas ven, y así mejorarlo.
+            Solo se activa si pulsas &quot;Aceptar&quot; en el aviso de cookies; si rechazas, no se descarga ningún
+            script de Google. Al aceptar, Google instala cookies propias (como <span className="text-mono">_ga</span>)
+            y recibe datos de tu visita, como la página que ves y tu dispositivo, con la IP anonimizada. No usamos
+            publicidad ni rastreo con otros fines.
+          </p>
+          <p>
+            Tu decisión actual:{' '}
+            <strong>{consent === 'granted' ? 'aceptada' : consent === 'denied' ? 'rechazada' : 'sin elegir'}</strong>
+          </p>
+          <div className="cookie-choice">
+            <button type="button" className="btn btn--outline btn--sm" onClick={() => setConsent('denied')}>
+              Rechazar analítica
+            </button>
+            <button type="button" className="btn btn--primary btn--sm" onClick={() => setConsent('granted')}>
+              Aceptar analítica
+            </button>
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'sin-publicidad',
+      title: 'Lo que no usamos',
       content: (
         <p>
-          No usamos cookies propias ni de terceros. Tampoco usamos herramientas de analítica, publicidad, rastreo
-          ni redes sociales integradas en las páginas. Las fuentes e iconos se cargan desde nuestro propio sitio, y
-          las imágenes desde nuestro proveedor de almacenamiento (Supabase), que no instala cookies.
+          No usamos publicidad, rastreo con otros fines ni redes sociales integradas en las páginas. Las fuentes e
+          iconos se cargan desde nuestro propio sitio, y las imágenes desde nuestro proveedor de almacenamiento
+          (Supabase), que no instala cookies.
         </p>
       ),
     },
@@ -73,7 +121,10 @@ function CookiesPage() {
       title: 'Qué guardamos en tu navegador',
       content: (
         <>
-          <p>Solo guardamos lo necesario para que el sitio funcione y para recordar tu preferencia de tema:</p>
+          <p>
+            Guardamos lo necesario para que el sitio funcione, tu preferencia de tema y tu decisión sobre la
+            analítica. Las cookies de Google Analytics solo existen si las aceptas:
+          </p>
           <div className="legal__table-wrap">
             <table className="legal__table">
               <thead>
@@ -129,6 +180,10 @@ function CookiesPage() {
             la pestaña o el navegador.
           </li>
           <li>
+            <strong>Retirar la analítica:</strong> pulsa &quot;Rechazar analítica&quot; en la sección de Google
+            Analytics de esta página. Se detiene el envío de datos y se borran las cookies de Google de este sitio.
+          </li>
+          <li>
             Puedes borrar todo desde la configuración de tu navegador, en la opción para borrar los datos de los
             sitios. Si lo haces, tendrás que volver a iniciar sesión y elegir de nuevo el tema.
           </li>
@@ -140,8 +195,8 @@ function CookiesPage() {
       title: 'Cambios en esta política',
       content: (
         <p>
-          Si algún día agregamos cookies o herramientas de analítica, actualizaremos esta página y te pediremos
-          permiso antes de activarlas.
+          Si algún día agregamos otras cookies o herramientas, actualizaremos esta página y te pediremos permiso
+          antes de activarlas.
         </p>
       ),
     },

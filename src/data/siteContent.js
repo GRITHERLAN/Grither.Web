@@ -33,7 +33,7 @@ export const BUDGET_OPTIONS = [
 export const LEGAL_CITY = 'Dosquebradas, Risaralda, Colombia';
 
 /* Fecha en que entran en vigencia las políticas (cambiarla si se modifican) */
-export const LEGAL_UPDATED_AT = '27 de octubre de 2026';
+export const LEGAL_UPDATED_AT = '28 de octubre de 2026';
 
 /* Rutas de las páginas legales (se usan en el Footer, Contacto y las rutas) */
 export const LEGAL_ROUTES = {

@@ -10,6 +10,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
 import WhatsAppButton from './WhatsAppButton.jsx';
+import CookieBanner from './CookieBanner.jsx';
 
 function PublicLayout() {
   const { pathname } = useLocation();
@@ -32,6 +33,7 @@ function PublicLayout() {
       </main>
       <Footer />
       <WhatsAppButton />
+      <CookieBanner />
     </>
   );
 }

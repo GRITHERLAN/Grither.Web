@@ -78,6 +78,11 @@ function PrivacyPage() {
               <strong>Datos técnicos:</strong> tu sesión y tu preferencia de tema (oscuro o claro) se guardan en
               tu propio navegador. Lo explicamos en la <Link to={LEGAL_ROUTES.COOKIES}>Política de cookies</Link>.
             </li>
+            <li>
+              <strong>Datos de navegación (solo si aceptas la analítica):</strong> páginas que visitas, tipo de
+              dispositivo y navegador, país o ciudad aproximada y un identificador anónimo de cookie. La dirección IP
+              se anonimiza. Si rechazas la analítica en el aviso de cookies, no recogemos estos datos.
+            </li>
           </ul>
           <p>
             No pedimos datos sensibles (salud, origen racial, ideas políticas, datos biométricos, etc.) ni datos
@@ -101,6 +106,10 @@ function PrivacyPage() {
             <li>Comunicarnos contigo sobre tu proyecto por correo, teléfono o WhatsApp.</li>
             <li>Cumplir obligaciones legales, contables y tributarias.</li>
             <li>Proteger la seguridad del sitio y de las cuentas.</li>
+            <li>
+              Medir cuántas personas visitan el sitio y qué páginas ven, para mejorarlo (solo si aceptas la
+              analítica).
+            </li>
           </ul>
           <p>
             No vendemos, alquilamos ni cedemos tus datos a terceros, y no los usamos para publicidad de otras
@@ -129,6 +138,10 @@ function PrivacyPage() {
               tu autorización por escrito (por ejemplo, en el contrato, por correo o por WhatsApp). Guardamos esa
               autorización como prueba (art. 8 del Decreto 1377 de 2013).
             </li>
+            <li>
+              <strong>Analítica:</strong> pulsando &quot;Aceptar&quot; en el aviso de cookies. Puedes retirarla cuando
+              quieras desde la <Link to={LEGAL_ROUTES.COOKIES}>Política de cookies</Link>.
+            </li>
           </ul>
           <p>Tu silencio nunca se entiende como autorización.</p>
         </>
@@ -146,12 +159,16 @@ function PrivacyPage() {
               servidores están en Estados Unidos (región us-east-1).
             </li>
             <li>
+              <strong>Google LLC (Google Analytics):</strong> estadísticas de visitas del sitio. Solo recibe datos si
+              aceptas la analítica en el aviso de cookies. Sus servidores están principalmente en Estados Unidos.
+            </li>
+            <li>
               <strong>Proveedor de alojamiento del sitio web:</strong> entrega las páginas a tu navegador.
             </li>
           </ul>
           <p>
-            Enviar datos a Estados Unidos es una transferencia o transmisión internacional (art. 26 de la Ley 1581
-            de 2012). Estados Unidos está en la lista de países con un nivel adecuado de protección que publicó la
+            Enviar datos a Estados Unidos (a Supabase y a Google) es una transferencia o transmisión internacional
+            (art. 26 de la Ley 1581 de 2012). Estados Unidos está en la lista de países con un nivel adecuado de protección que publicó la
             SIC en la Circular Externa 005 de 2017. Además, al autorizar esta política nos autorizas de forma
             expresa a hacer esta transmisión.
           </p>
@@ -226,11 +243,17 @@ function PrivacyPage() {
       id: 'conservacion',
       title: 'Cuánto tiempo guardamos tus datos',
       content: (
-        <p>
-          Guardamos tus datos mientras dure nuestra relación comercial y el plazo de garantía del proyecto. Al
-          terminar, inactivamos o borramos tu cuenta, y solo conservamos lo que la ley nos obligue a guardar (por
-          ejemplo, información contable).
-        </p>
+        <>
+          <p>
+            Guardamos tus datos mientras dure nuestra relación comercial y el plazo de garantía del proyecto. Al
+            terminar, inactivamos o borramos tu cuenta, y solo conservamos lo que la ley nos obligue a guardar (por
+            ejemplo, información contable).
+          </p>
+          <p>
+            Los datos de navegación de la analítica (Google Analytics) se conservan 14 meses desde tu última visita y
+            después Google los elimina automáticamente.
+          </p>
+        </>
       ),
     },
     {

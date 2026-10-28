@@ -24,6 +24,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { usePageMeta } from './hooks/usePageMeta.js';
+import { useAnalytics } from './hooks/useAnalytics.js';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
@@ -65,6 +66,8 @@ function RouteMeta() {
   // "/contacto/" y "/contacto" cuentan como la misma página
   const cleanPath = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
   usePageMeta(cleanPath);
+  // Google Analytics: solo envía datos si el visitante aceptó el banner de cookies
+  useAnalytics();
   return null;
 }
 
