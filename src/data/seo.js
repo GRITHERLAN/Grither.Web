@@ -26,7 +26,7 @@ export const PUBLIC_PAGES = [
     path: '/',
     title: 'Grither · Desarrollo web a medida en Colombia',
     description:
-      'Soy Grither, desarrollador web freelance. Creo landing pages, sitios web y aplicaciones web a la medida para negocios en Colombia. Conoce los servicios, planes y cómo trabajo.',
+      'Soy Grither, desarrollador web freelance. Creo landing pages, sitios web y aplicaciones a la medida para negocios en Colombia. Cotiza hoy.',
     h1: 'Construyo la web que tu negocio necesita para crecer.',
     intro:
       'Desarrollo web freelance en Colombia: landing pages, sitios web, aplicaciones web y soporte, desde la reunión inicial hasta el despliegue.',
