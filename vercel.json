@@ -5,6 +5,11 @@
       "has": [{ "type": "host", "value": "gritherweb.com" }],
       "destination": "https://www.gritherweb.com/$1",
       "permanent": true
+    },
+    {
+      "source": "/sobre-nosotros",
+      "destination": "/sobre-mi",
+      "permanent": true
     }
   ],
   "rewrites": [{ "source": "/((?!\\.well-known/).*)", "destination": "/index.html" }],

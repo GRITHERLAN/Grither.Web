@@ -1,5 +1,5 @@
 /* ==========================================================================
-   EDITOR DE SERVICIOS ("Qué hacemos")
+   EDITOR DE SERVICIOS ("Qué hago")
    --------------------------------------------------------------------------
    Permite al administrador editar, agregar y quitar las cards de servicios
    de la página Servicios. Los cambios solo se publican al pulsar
@@ -116,7 +116,7 @@ function ServicesForm({ initialServices }) {
       <header className="offer-editor__header">
         <div>
           <h2 id="services-editor-title" className="admin-form-section__title">
-            Qué hacemos
+            Qué hago
           </h2>
           <p className="text-muted">Cards de servicios ({services.length}/{MAX_CARDS}).</p>
         </div>

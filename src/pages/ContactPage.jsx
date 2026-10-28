@@ -61,7 +61,7 @@ function validateContactForm(form) {
     errors.whatsapp = 'Escribe un número válido (ej. +57 300 000 0000).';
   }
 
-  if (form.message.trim().length < 10) errors.message = 'Cuéntanos un poco más (mínimo 10 caracteres).';
+  if (form.message.trim().length < 10) errors.message = 'Cuéntame un poco más (mínimo 10 caracteres).';
   else if (isTooLong(form.message, MAX_LENGTH.CONTACT_MESSAGE)) errors.message = `Máximo ${MAX_LENGTH.CONTACT_MESSAGE} caracteres.`;
 
   if (!form.consent) errors.consent = 'Debes autorizar el tratamiento de tus datos para poder enviar el mensaje.';
@@ -158,7 +158,7 @@ function ContactContent({ contact }) {
       <section className="contact-info" aria-labelledby="contact-title">
         <span className="eyebrow contact-info__eyebrow">Contacto</span>
         <h1 id="contact-title" className="contact-info__title">
-          Cuéntanos tu idea. <span className="contact-info__accent">Te respondemos hoy.</span>
+          Cuéntame tu idea. <span className="contact-info__accent">Te respondo hoy.</span>
         </h1>
         <p className="contact-info__text">{contact.brandDescription}</p>
 
@@ -190,7 +190,7 @@ function ContactContent({ contact }) {
       <section className="card contact-form-card" aria-labelledby="contact-form-title">
         {/* Subtítulo oculto a la vista: da la jerarquía h1 > h2 correcta al formulario */}
         <h2 id="contact-form-title" className="sr-only">
-          Escríbenos tu mensaje
+          Escríbeme tu mensaje
         </h2>
         <form className="form" onSubmit={handleSubmit} noValidate>
           <div className="form__row">
@@ -256,7 +256,7 @@ function ContactContent({ contact }) {
 
           <div className={`field ${errors.message ? 'field--error' : ''}`}>
             <label className="field__label" htmlFor="contact-message">
-              Cuéntanos del proyecto
+              Cuéntame del proyecto
             </label>
             <textarea id="contact-message" name="message" className="field__input" placeholder="Objetivo, fecha ideal, referencias que te gusten..." value={form.message} onChange={handleChange} maxLength={MAX_LENGTH.CONTACT_MESSAGE} />
             {errors.message && <p className="field__error">{errors.message}</p>}

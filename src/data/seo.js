@@ -26,33 +26,81 @@ export const PUBLIC_PAGES = [
     path: '/',
     title: 'Grither · Desarrollo web a medida en Colombia',
     description:
-      'Grither crea landing pages, sitios web y aplicaciones web a la medida para negocios en Colombia. Conoce los servicios, planes y cómo trabajamos.',
-    h1: 'Construimos la web que tu negocio necesita para crecer.',
+      'Soy Grither, desarrollador web freelance. Creo landing pages, sitios web y aplicaciones web a la medida para negocios en Colombia. Conoce los servicios, planes y cómo trabajo.',
+    h1: 'Construyo la web que tu negocio necesita para crecer.',
     intro:
       'Desarrollo web freelance en Colombia: landing pages, sitios web, aplicaciones web y soporte, desde la reunión inicial hasta el despliegue.',
+    sections: [
+      {
+        h2: 'Qué hago',
+        paragraphs: [
+          'Soy Grither, desarrollador web freelance en Dosquebradas, Risaralda, y atiendo a negocios y emprendedores de toda Colombia. Si buscas crear una página web en Pereira, Dosquebradas o en cualquier ciudad del país, trabajo contigo desde la idea hasta que tu sitio está publicado y funcionando.',
+          'Diseño y programo landing pages para captar clientes, sitios web corporativos que presentan tu marca, aplicaciones web y plataformas SaaS a la medida, además de soporte y mantenimiento para las webs que ya tienes en línea.',
+        ],
+      },
+      {
+        h2: 'Landing pages, sitios web y aplicaciones web',
+        paragraphs: [
+          'Una landing page es una página enfocada en una sola acción: que te escriban, te llamen o compren. Un sitio web reúne tus servicios, tu historia y tus datos de contacto en varias páginas. Una aplicación web resuelve un proceso de tu negocio, como reservas, inventarios o paneles de seguimiento para tus clientes.',
+          'Todos los proyectos se construyen con tecnologías modernas como React, JavaScript, Supabase y Vercel, son responsive (se ven bien en celular, tableta y computador) y están pensados para cargar rápido y posicionar en Google.',
+        ],
+      },
+      {
+        h2: 'Cómo trabajo',
+        paragraphs: [
+          'El proceso tiene cuatro fases: reunión inicial para entender tu negocio, bocetos y prototipos para validar el diseño, desarrollo del sitio y despliegue en internet. Cada cliente cuenta con un panel privado para ver en qué fase va su proyecto, con imágenes, descripción y categoría.',
+          'Los precios dependen del alcance de cada proyecto. Escríbeme por WhatsApp o desde la página de contacto y te respondo con una propuesta clara para tu negocio en Colombia.',
+        ],
+      },
+    ],
+    externalLinks: [{ href: WHATSAPP_URL, label: 'Escríbeme por WhatsApp' }],
     schemaType: 'WebPage',
     changefreq: 'monthly',
     priority: '1.0',
   },
   {
-    path: '/sobre-nosotros',
-    title: 'Sobre nosotros · Quién es Grither y cómo trabaja',
+    path: '/sobre-mi',
+    title: 'Sobre mí · Quién es Grither y cómo trabajo',
     description:
-      'Conoce quién está detrás de Grither, las tecnologías que usa y el proceso de trabajo: reunión, bocetos, desarrollo y despliegue.',
-    h1: 'Le damos alas a las ideas digitales.',
+      'Conoce quién soy, las tecnologías que uso y mi proceso de trabajo como desarrollador web freelance: reunión, bocetos, desarrollo y despliegue.',
+    h1: 'Le doy alas a las ideas digitales.',
     intro:
-      'Conoce al desarrollador detrás de Grither y las cuatro fases con las que convertimos tu idea en una web publicada.',
+      'Conoce al desarrollador detrás de Grither y las cuatro fases con las que convierto tu idea en una web publicada.',
+    sections: [
+      {
+        h2: 'Mi proceso',
+        paragraphs: [
+          'Trabajo en cuatro fases: reunión para definir objetivos y alcance, bocetos y prototipos para aprobar el diseño antes de programar, desarrollo con entregas por etapa y despliegue para publicar tu web en internet.',
+        ],
+      },
+      {
+        h2: 'Quién soy',
+        paragraphs: [
+          'Soy Grither, desarrollador web freelance con base en Dosquebradas, Risaralda. Trabajo con HTML, CSS, JavaScript, React, Node.js, Supabase y Vercel, y apoyo mi flujo de trabajo con inteligencia artificial para entregar más rápido sin perder calidad.',
+        ],
+      },
+    ],
+    externalLinks: [{ href: WHATSAPP_URL, label: 'Escríbeme por WhatsApp' }],
     schemaType: 'AboutPage',
     changefreq: 'monthly',
     priority: '0.8',
   },
   {
     path: '/contacto',
-    title: 'Contacto · Cuéntanos tu proyecto web | Grither',
+    title: 'Contacto · Cuéntame tu proyecto web | Grither',
     description:
-      'Escríbenos para cotizar tu página web o aplicación. Contacto por correo, WhatsApp y redes sociales. Respondemos rápido.',
-    h1: 'Cuéntanos tu idea. Te respondemos hoy.',
-    intro: 'Cuéntanos qué necesitas y te respondemos con una propuesta para tu proyecto web.',
+      'Escríbeme para cotizar tu página web o aplicación. Contacto por correo, WhatsApp y redes sociales. Respondo rápido.',
+    h1: 'Cuéntame tu idea. Te respondo hoy.',
+    intro: 'Cuéntame qué necesitas y te respondo con una propuesta para tu proyecto web.',
+    sections: [
+      {
+        h2: 'Cotiza tu página web',
+        paragraphs: [
+          'Cuéntame qué necesitas: una landing page, un sitio web, una aplicación web o soporte para tu web actual. Puedes escribirme por correo, por WhatsApp o desde el formulario de esta página, y te respondo con una propuesta para tu proyecto.',
+        ],
+      },
+    ],
+    externalLinks: [{ href: WHATSAPP_URL, label: 'Escríbeme por WhatsApp' }],
     schemaType: 'ContactPage',
     changefreq: 'monthly',
     priority: '0.8',
@@ -98,7 +146,7 @@ export const PRIVATE_META = {
 /* Enlaces internos que se escriben en el HTML estático de cada página */
 export const INTERNAL_LINKS = [
   { path: '/', label: 'Servicios' },
-  { path: '/sobre-nosotros', label: 'Sobre nosotros' },
+  { path: '/sobre-mi', label: 'Sobre mí' },
   { path: '/contacto', label: 'Contacto' },
 ];
 

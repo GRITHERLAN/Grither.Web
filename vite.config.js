@@ -112,17 +112,31 @@ function seoPlugin(siteUrlFromEnv) {
       ...schemas.map((schema) => `<script type="application/ld+json">${JSON.stringify(schema).replace(/</g, '\\u003c')}</script>`),
     ].join('\n    ');
 
-    // Texto base visible solo si el navegador no ejecuta JavaScript
+    // Contenido base dentro de #root: lo leen los rastreadores que no ejecutan
+    // JavaScript (un <noscript> lo ignoran). Cuando React monta, createRoot().render
+    // reemplaza todo lo que haya dentro de #root, así que el visitante no ve duplicados.
     const links = INTERNAL_LINKS.map((link) => `<a href="${link.path}">${escapeHtml(link.label)}</a>`).join(' · ');
-    const noscript =
-      `<noscript><main><h1>${escapeHtml(page.h1)}</h1><p>${escapeHtml(page.intro)}</p>` +
-      `<nav aria-label="Principal">${links}</nav></main></noscript>`;
+    const sections = (page.sections || [])
+      .map(
+        (section) =>
+          `<section><h2>${escapeHtml(section.h2)}</h2>` +
+          section.paragraphs.map((text) => `<p>${escapeHtml(text)}</p>`).join('') +
+          '</section>',
+      )
+      .join('');
+    const externalLinks = (page.externalLinks || [])
+      .map((link) => `<a href="${escapeHtml(link.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)}</a>`)
+      .join(' · ');
+    const staticContent =
+      `<main class="container"><h1>${escapeHtml(page.h1)}</h1><p>${escapeHtml(page.intro)}</p>` +
+      `${sections}<nav aria-label="Principal">${links}</nav>` +
+      `${externalLinks ? `<p>${externalLinks}</p>` : ''}</main>`;
 
     return template
       .replace(/<title>[\s\S]*?<\/title>/, `<title>${escapeHtml(page.title)}</title>`)
       .replace(/<meta name="description"[^>]*>/, `<meta name="description" content="${escapeHtml(page.description)}" />`)
       .replace('</head>', `    ${headTags}\n  </head>`)
-      .replace('<div id="root"></div>', `<div id="root"></div>\n    ${noscript}`);
+      .replace('<div id="root"></div>', () => `<div id="root">${staticContent}</div>`);
   }
 
   /* sitemap.xml: lista de páginas públicas para Google */

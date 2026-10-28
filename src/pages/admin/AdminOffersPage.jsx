@@ -2,7 +2,7 @@
    PANEL ADMIN: SERVICIOS Y PLANES
    --------------------------------------------------------------------------
    Edición de las cards de la página Servicios:
-     - "Qué hacemos": servicios (título, descripción, icono, etiquetas).
+     - "Qué hago": servicios (título, descripción, icono, etiquetas).
      - "Planes": nombre, precio COP, descripción, características, botón.
    Cada bloque se guarda por separado y se puede agregar o quitar cards.
    ========================================================================== */

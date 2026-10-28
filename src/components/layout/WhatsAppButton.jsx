@@ -18,7 +18,7 @@ function WhatsAppButton() {
       href={WHATSAPP_URL}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Escríbenos por WhatsApp: ¿Quieres más información?"
+      aria-label="Escríbeme por WhatsApp: ¿Quieres más información?"
     >
       <span className="whatsapp-button__icon">
         <Icon name="whatsapp" />

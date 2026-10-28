@@ -44,7 +44,7 @@ function UserProjectsPage() {
         ) : projects.length === 0 ? (
           <div className="empty-state">
             <p className="empty-state__title">Aún no tienes proyectos activos</p>
-            <p>Cuando el equipo de Grither active tu proyecto lo verás aquí.</p>
+            <p>Cuando Grither active tu proyecto lo verás aquí.</p>
             <Link to="/contacto" className="btn btn--primary btn--sm">
               Cotizar un proyecto
             </Link>

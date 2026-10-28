@@ -3,7 +3,7 @@
    --------------------------------------------------------------------------
    Mapa de rutas de la web:
      /                       Servicios (inicio)
-     /sobre-nosotros         Sobre nosotros
+     /sobre-mi         Sobre mí
      /contacto               Contacto
      /ingresar               Inicio de sesión
      /proyecto               Panel Usuario (solo clientes)
@@ -12,7 +12,7 @@
      /administrador/terminados Panel Admin: proyectos terminados
      /administrador/servicios Panel Admin: cards de Servicios y Planes
      /administrador/contacto Panel Admin: información de contacto
-     /administrador/nosotros Panel Admin: información de Sobre nosotros
+     /administrador/nosotros Panel Admin: información de Sobre mí
      /administrador/usuarios Panel Admin: usuarios registrados
      /politica-de-privacidad Política de tratamiento de datos (Ley 1581)
      /terminos-y-condiciones Términos y condiciones
@@ -20,7 +20,7 @@
    ========================================================================== */
 
 import { lazy, Suspense } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { usePageMeta } from './hooks/usePageMeta.js';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
@@ -76,7 +76,9 @@ function App() {
             {/* ---------- Páginas con Header, Footer y WhatsApp ---------- */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<ServicesPage />} />
-              <Route path="/sobre-nosotros" element={<AboutPage />} />
+              <Route path="/sobre-mi" element={<AboutPage />} />
+              {/* Ruta antigua: quien llegue con un enlace viejo pasa a la nueva */}
+              <Route path="/sobre-nosotros" element={<Navigate to="/sobre-mi" replace />} />
               <Route path="/contacto" element={<ContactPage />} />
 
               {/* Páginas legales (públicas) */}

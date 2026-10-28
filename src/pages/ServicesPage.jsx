@@ -3,7 +3,7 @@
    --------------------------------------------------------------------------
    Secciones:
      1. Héroe con título, breve descripción y botones.
-     2. "Qué hacemos": 3 tarjetas de servicios.
+     2. "Qué hago": 3 tarjetas de servicios.
      3. "Planes": 3 planes de referencia.
    ========================================================================== */
 
@@ -42,11 +42,11 @@ function ServicesPage() {
       <section className="services-hero">
         <span className="eyebrow eyebrow--pill">Servicios Grither</span>
         <h1 className="services-hero__title">
-          Construimos la web que tu negocio <span className="text-gradient">necesita para crecer.</span>
+          Construyo la web que tu negocio <span className="text-gradient">necesita para crecer.</span>
         </h1>
         <p className="services-hero__text">
           Desde una landing de un día hasta plataformas completas. Diseño, desarrollo y despliegue con
-          un solo equipo.
+          un solo desarrollador a tu lado.
         </p>
         <div className="services-hero__actions">
           <Link to="/contacto" className="btn btn--primary">
@@ -58,7 +58,7 @@ function ServicesPage() {
           </a>
         </div>
         <p className="services-hero__more">
-          ¿Quieres saber cómo trabajamos? Conoce <Link to="/sobre-nosotros">quién está detrás de Grither</Link> y nuestro
+          ¿Quieres saber cómo trabajo? Conoce <Link to="/sobre-mi">quién está detrás de Grither</Link> y mi
           proceso.
         </p>
       </section>
@@ -72,7 +72,7 @@ function ServicesPage() {
 }
 
 /**
- * Secciones "Qué hacemos" y "Planes" (se pintan cuando ya llegaron los datos).
+ * Secciones "Qué hago" y "Planes" (se pintan cuando ya llegaron los datos).
  * @param {Array} services - Cards de servicios.
  * @param {Array} plans - Cards de planes.
  * @param {object} plansRef - Referencia para el botón "Ver planes".
@@ -80,11 +80,11 @@ function ServicesPage() {
 function OfferSections({ services, plans, plansRef }) {
   return (
     <>
-      {/* ---------- 2. Qué hacemos ---------- */}
+      {/* ---------- 2. Qué hago ---------- */}
       <section className="section" aria-labelledby="services-title">
         <header className="section__header">
           <h2 id="services-title" className="section__title">
-            Qué hacemos
+            Qué hago
           </h2>
           <p className="section__meta">{String(services.length).padStart(2, '0')} servicios</p>
         </header>

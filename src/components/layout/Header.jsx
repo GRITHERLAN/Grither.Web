@@ -2,7 +2,7 @@
    CABECERA PRINCIPAL (Header)
    --------------------------------------------------------------------------
    - Logo + nombre "Grither".
-   - Navegación: Servicios, Sobre nosotros, Contacto.
+   - Navegación: Servicios, Sobre mí, Contacto.
    - Pestaña según el rol (solo con sesión iniciada):
        Cliente -> "Proyecto"      Administrador -> "Administrador"
    - Botón Ingresar (sin sesión) o nombre + Salir (con sesión).
@@ -22,7 +22,7 @@ import './Header.css';
 /* Enlaces públicos visibles para todos */
 const PUBLIC_LINKS = [
   { to: '/', label: 'Servicios' },
-  { to: '/sobre-nosotros', label: 'Sobre nosotros' },
+  { to: '/sobre-mi', label: 'Sobre mí' },
   { to: '/contacto', label: 'Contacto' },
 ];
 

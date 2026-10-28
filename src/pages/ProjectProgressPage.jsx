@@ -29,7 +29,7 @@ function ProjectProgressPage() {
   const { projectId } = useParams();
   const { user, isAdmin } = useAuth();
 
-  // Pedimos a la vez el proyecto y los textos de las fases (de Sobre nosotros)
+  // Pedimos a la vez el proyecto y los textos de las fases (de Sobre mí)
   const { data, loading, error, reload } = useAsyncData(
     async () => {
       const [project, about] = await Promise.all([getProjectById(projectId), getAboutInfo()]);
@@ -70,7 +70,7 @@ function ProjectProgressPage() {
     );
   }
 
-  // Explicación de la fase actual (la misma que se ve en Sobre nosotros)
+  // Explicación de la fase actual (la misma que se ve en Sobre mí)
   const phaseText = about.phases[project.phase];
 
   return (

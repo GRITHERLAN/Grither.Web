@@ -27,14 +27,14 @@ function AdminAboutPage() {
   const { data, error, reload } = useAsyncData(getAboutInfo, []);
 
   if (!data) {
-    return <LoadingState label="Cargando información de Sobre nosotros..." error={error} onRetry={reload} />;
+    return <LoadingState label="Cargando información de Sobre mí..." error={error} onRetry={reload} />;
   }
   return <AboutInfoForm initialData={data} />;
 }
 
 /**
  * Formulario de edición (se monta con los datos ya cargados).
- * @param {object} initialData - Información de Sobre nosotros guardada.
+ * @param {object} initialData - Información de Sobre mí guardada.
  */
 function AboutInfoForm({ initialData }) {
   const { showToast } = useToast();
@@ -113,7 +113,7 @@ function AboutInfoForm({ initialData }) {
     setIsSaving(true);
     try {
       setForm(await saveAboutInfo(form));
-      showToast('Información de Sobre nosotros guardada.');
+      showToast('Información de Sobre mí guardada.');
     } catch (error) {
       setErrors(error.fieldErrors || {});
       showToast(error.message, 'error');
@@ -130,10 +130,10 @@ function AboutInfoForm({ initialData }) {
     <>
       <header className="admin-header">
         <div>
-          <h1 className="admin-header__title">Sobre nosotros</h1>
+          <h1 className="admin-header__title">Sobre mí</h1>
           <p className="admin-header__text">Marca, indicadores, quién está detrás y forma de trabajo.</p>
         </div>
-        <Link to="/sobre-nosotros" className="btn btn--outline">
+        <Link to="/sobre-mi" className="btn btn--outline">
           Ver página
         </Link>
       </header>

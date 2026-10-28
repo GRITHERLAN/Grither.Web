@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SERVICIO DE OFERTA: SERVICIOS ("Qué hacemos") Y PLANES
+   SERVICIO DE OFERTA: SERVICIOS ("Qué hago") Y PLANES
    --------------------------------------------------------------------------
    Lee, valida y guarda las cards que se ven en la página Servicios.
    Solo las edita el Administrador. Igual que projectService, toda escritura
@@ -92,7 +92,7 @@ function validateListShape(list, getName, errors, itemsName) {
 }
 
 /* --------------------------------------------------------------------------
-   Servicios ("Qué hacemos")
+   Servicios ("Qué hago")
    -------------------------------------------------------------------------- */
 
 export async function getServices() {

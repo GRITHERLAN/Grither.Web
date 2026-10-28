@@ -4,7 +4,7 @@
    Secciones (todo editable desde el panel admin, menos tecnologías):
      1. Héroe con la descripción de la marca y el emblema.
      2. Indicadores.
-     3. Nuestro proceso: Reunión, Bocetos/prototipos, Desarrollo, Despliegue.
+     3. Mi proceso: Reunión, Bocetos/prototipos, Desarrollo, Despliegue.
      4. Quién está detrás de la marca + tecnologías.
      5. Llamado a la acción.
    ========================================================================== */
@@ -30,9 +30,9 @@ function AboutPage() {
         {/* El título aparece desde el inicio; la descripción llega con los datos */}
         <section className="about-hero">
           <div className="about-hero__content">
-            <span className="eyebrow">Sobre nosotros</span>
+            <span className="eyebrow">Sobre mí</span>
             <h1 className="about-hero__title">
-              Le damos alas <span className="text-gradient">a las ideas digitales.</span>
+              Le doy alas <span className="text-gradient">a las ideas digitales.</span>
             </h1>
           </div>
         </section>
@@ -49,9 +49,9 @@ function AboutPage() {
       {/* ---------- 1. Héroe ---------- */}
       <section className="about-hero">
         <div className="about-hero__content">
-          <span className="eyebrow">Sobre nosotros</span>
+          <span className="eyebrow">Sobre mí</span>
           <h1 className="about-hero__title">
-            Le damos alas <span className="text-gradient">a las ideas digitales.</span>
+            Le doy alas <span className="text-gradient">a las ideas digitales.</span>
           </h1>
           {paragraphs.map((paragraph) => (
             <p key={paragraph} className="about-hero__text">
@@ -80,7 +80,7 @@ function AboutPage() {
         <header className="section__header">
           <div>
             <h2 id="about-process" className="section__title">
-              Nuestro proceso
+              Mi proceso
             </h2>
             <p className="section__subtitle">Así trabajamos desde la firma del contrato hasta el lanzamiento.</p>
           </div>
@@ -119,7 +119,7 @@ function AboutPage() {
         </article>
 
         <article className="card">
-          <h2 className="owner-card__tech-title">Tecnologías con las que trabajamos</h2>
+          <h2 className="owner-card__tech-title">Tecnologías con las que trabajo</h2>
           <ul className="tag-list">
             {TECHNOLOGIES.map((technology) => (
               <li key={technology} className="tag text-mono">

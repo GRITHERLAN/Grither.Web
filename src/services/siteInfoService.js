@@ -156,7 +156,7 @@ export async function saveContactInfo(data) {
 }
 
 /* --------------------------------------------------------------------------
-   Sobre nosotros
+   Sobre mí
    -------------------------------------------------------------------------- */
 
 export async function getAboutInfo() {
@@ -165,7 +165,7 @@ export async function getAboutInfo() {
     getIndicators('nosotros'),
   ]);
   if (aboutResult.error) {
-    throw toAppError(aboutResult.error, 'No se pudo cargar la información de Sobre nosotros.');
+    throw toAppError(aboutResult.error, 'No se pudo cargar la información de Sobre mí.');
   }
 
   const row = aboutResult.data;
@@ -220,7 +220,7 @@ export function validateAboutInfo(data) {
 }
 
 /**
- * Guarda la información de Sobre nosotros.
+ * Guarda la información de Sobre mí.
  * La foto puede llegar de tres formas:
  *   - owner.photoFile (Blob): foto NUEVA elegida -> se sube a Storage.
  *   - owner.photo con una URL: se conserva la foto que ya estaba.
@@ -259,7 +259,7 @@ export async function saveAboutInfo(data) {
   if (error) {
     // No se guardó: la foto recién subida sobra y se borra
     if (data.owner.photoFile) await removePublicFiles(BUCKETS.SITE_ASSETS, [photoUrl]);
-    throw toAppError(error, 'No se pudo guardar la información de Sobre nosotros.');
+    throw toAppError(error, 'No se pudo guardar la información de Sobre mí.');
   }
 
   // Ya guardado: si la foto anterior ya no se usa, se borra de Storage

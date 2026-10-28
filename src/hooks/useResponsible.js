@@ -3,7 +3,7 @@
    --------------------------------------------------------------------------
    Datos del "Responsable del tratamiento" que exigen las páginas legales
    (art. 13 del Decreto 1377 de 2013): nombre, domicilio, correo y teléfono.
-     - Nombre:           Sobre nosotros > Quién está detrás (about_info).
+     - Nombre:           Sobre mí > Quién está detrás (about_info).
      - Correo, teléfono y ciudad: Contacto (contact_info).
        Si la ciudad aún no se ha guardado, se usa LEGAL_CITY (siteContent.js).
    Así, si el admin cambia su correo o teléfono, las políticas se actualizan solas.

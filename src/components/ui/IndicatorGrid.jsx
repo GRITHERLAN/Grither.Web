@@ -2,7 +2,7 @@
    CUADRÍCULA DE INDICADORES
    --------------------------------------------------------------------------
    Muestra cifras destacadas tipo "+30 Proyectos entregados".
-   Se usa en Sobre nosotros y en Contacto.
+   Se usa en Sobre mí y en Contacto.
    ========================================================================== */
 
 import './IndicatorGrid.css';
