@@ -14,6 +14,7 @@ import './Footer.css';
 /* Páginas principales del sitio */
 const MAIN_LINKS = [
   { to: '/', label: 'Servicios' },
+  { to: '/portafolio', label: 'Portafolio' },
   { to: '/sobre-mi', label: 'Sobre mí' },
   { to: '/contacto', label: 'Contacto' },
 ];

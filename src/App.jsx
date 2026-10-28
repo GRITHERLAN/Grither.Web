@@ -3,7 +3,8 @@
    --------------------------------------------------------------------------
    Mapa de rutas de la web:
      /                       Servicios (inicio)
-     /sobre-mi         Sobre mí
+     /portafolio             Portafolio (trabajos realizados)
+     /sobre-mi               Sobre mí
      /contacto               Contacto
      /ingresar               Inicio de sesión
      /proyecto               Panel Usuario (solo clientes)
@@ -11,6 +12,7 @@
      /administrador          Panel Admin: proyectos pendientes
      /administrador/terminados Panel Admin: proyectos terminados
      /administrador/servicios Panel Admin: cards de Servicios y Planes
+     /administrador/portafolio Panel Admin: CRUD del Portafolio
      /administrador/contacto Panel Admin: información de contacto
      /administrador/nosotros Panel Admin: información de Sobre mí
      /administrador/usuarios Panel Admin: usuarios registrados
@@ -29,6 +31,7 @@ import { ROLES } from './services/authService.js';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import PublicLayout from './components/layout/PublicLayout.jsx';
 import ServicesPage from './pages/ServicesPage.jsx';
+import PortfolioPage from './pages/PortfolioPage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
 import LoadingState from './components/ui/LoadingState.jsx';
@@ -47,6 +50,7 @@ const ProjectProgressPage = lazy(() => import('./pages/ProjectProgressPage.jsx')
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout.jsx'));
 const AdminProjectsPage = lazy(() => import('./pages/admin/AdminProjectsPage.jsx'));
 const AdminOffersPage = lazy(() => import('./pages/admin/AdminOffersPage.jsx'));
+const AdminPortfolioPage = lazy(() => import('./pages/admin/AdminPortfolioPage.jsx'));
 const AdminContactPage = lazy(() => import('./pages/admin/AdminContactPage.jsx'));
 const AdminAboutPage = lazy(() => import('./pages/admin/AdminAboutPage.jsx'));
 const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage.jsx'));
@@ -76,6 +80,7 @@ function App() {
             {/* ---------- Páginas con Header, Footer y WhatsApp ---------- */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<ServicesPage />} />
+              <Route path="/portafolio" element={<PortfolioPage />} />
               <Route path="/sobre-mi" element={<AboutPage />} />
               {/* Ruta antigua: quien llegue con un enlace viejo pasa a la nueva */}
               <Route path="/sobre-nosotros" element={<Navigate to="/sobre-mi" replace />} />
@@ -125,6 +130,7 @@ function App() {
               <Route index element={<AdminProjectsPage key="pendientes" />} />
               <Route path="terminados" element={<AdminProjectsPage key="terminados" isCompletedList />} />
               <Route path="servicios" element={<AdminOffersPage />} />
+              <Route path="portafolio" element={<AdminPortfolioPage />} />
               <Route path="contacto" element={<AdminContactPage />} />
               <Route path="nosotros" element={<AdminAboutPage />} />
               <Route path="usuarios" element={<AdminUsersPage />} />

@@ -36,6 +36,9 @@ export function toAppError(error, fallback = 'No se pudo completar la acción. I
     if (text.includes('projects_name_unique')) {
       return new ValidationError({ name: 'Ya existe un proyecto con este nombre.' });
     }
+    if (text.includes('portfolio_title_unique')) {
+      return new ValidationError({ title: 'Ya existe un portafolio con este título.' });
+    }
     if (text.includes('plans_single_featured')) {
       return new ValidationError({ list: 'Solo un plan puede ser "Más elegido".' });
     }

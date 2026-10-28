@@ -6,6 +6,7 @@ Idioma del sitio: español (Colombia). Moneda de los precios de referencia: peso
 
 ## Páginas principales
 - [Servicios y planes](https://www.gritherweb.com/): qué hacemos y planes con precios de referencia.
+- [Portafolio](https://www.gritherweb.com/portafolio): proyectos web desarrollados (reales y de demostración), con su categoría y stack.
 - [Sobre mí](https://www.gritherweb.com/sobre-mi): quién está detrás de la marca, tecnologías y proceso de trabajo (reunión, bocetos/prototipos, desarrollo y despliegue).
 - [Contacto](https://www.gritherweb.com/contacto): formulario de contacto, correo, WhatsApp y redes sociales.
 

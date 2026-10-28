@@ -59,6 +59,27 @@ export const PUBLIC_PAGES = [
     priority: '1.0',
   },
   {
+    path: '/portafolio',
+    title: 'Portafolio · Proyectos web que he desarrollado | Grither',
+    description:
+      'Mira sitios web, tiendas online y aplicaciones a medida que he desarrollado como freelancer en Colombia. Conoce el stack de cada proyecto.',
+    h1: 'Proyectos que ya levantaron vuelo.',
+    intro:
+      'Una selección de sitios, tiendas online y sistemas a medida construidos con Grither, con la tecnología usada en cada uno.',
+    sections: [
+      {
+        h2: 'Trabajos de desarrollo web',
+        paragraphs: [
+          'En este portafolio reúno landing pages, sitios web, tiendas online y aplicaciones web a la medida. Cada proyecto indica su categoría, el stack con el que se construyó y si es un proyecto real de un cliente o una demostración.',
+        ],
+      },
+    ],
+    externalLinks: [{ href: WHATSAPP_URL, label: 'Escríbeme por WhatsApp' }],
+    schemaType: 'CollectionPage',
+    changefreq: 'weekly',
+    priority: '0.9',
+  },
+  {
     path: '/sobre-mi',
     title: 'Sobre mí · Quién es Grither y cómo trabajo',
     description:
@@ -146,6 +167,7 @@ export const PRIVATE_META = {
 /* Enlaces internos que se escriben en el HTML estático de cada página */
 export const INTERNAL_LINKS = [
   { path: '/', label: 'Servicios' },
+  { path: '/portafolio', label: 'Portafolio' },
   { path: '/sobre-mi', label: 'Sobre mí' },
   { path: '/contacto', label: 'Contacto' },
 ];

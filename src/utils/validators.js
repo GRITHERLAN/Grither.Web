@@ -36,6 +36,9 @@ export const MAX_LENGTH = {
   CARD_DESCRIPTION: 300,
   CARD_ITEM: 80, // cada etiqueta o característica
   CTA_TEXT: 40, // texto del botón de un plan
+  PORTFOLIO_TITLE: 80, // portafolio (migración 20261028120000_portafolio.sql)
+  PORTFOLIO_DESCRIPTION: 300,
+  PORTFOLIO_CATEGORY: 40,
   CONTACT_MESSAGE: 2000,
   SEARCH: 80, // buscadores de los filtros
 };

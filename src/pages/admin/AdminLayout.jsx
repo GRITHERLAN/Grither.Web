@@ -3,7 +3,7 @@
    --------------------------------------------------------------------------
    Barra lateral (como en el diseño) con:
      - Logo + "Panel admin".
-     - Menú: Proyectos (desplegable: Pendientes / Terminados), Servicios y planes, Contacto, Sobre mí, Usuarios.
+     - Menú: Proyectos (desplegable: Pendientes / Terminados), Servicios y planes, Portafolio, Contacto, Sobre mí, Usuarios.
      - Abajo: volver al sitio, cambio de tema y tarjeta del admin con Salir.
    El contenido de cada sección se pinta en <Outlet />.
    En celulares la barra lateral pasa a ser una barra superior con un menú hamburguesa.
@@ -27,6 +27,7 @@ const PROJECT_LINKS = [
 
 const ADMIN_LINKS = [
   { to: '/administrador/servicios', label: 'Servicios y planes', icon: 'layout' },
+  { to: '/administrador/portafolio', label: 'Portafolio', icon: 'folder' },
   { to: '/administrador/contacto', label: 'Contacto', icon: 'mail' },
   { to: '/administrador/nosotros', label: 'Sobre mí', icon: 'user' },
   { to: '/administrador/usuarios', label: 'Usuarios', icon: 'users' },

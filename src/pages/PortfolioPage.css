@@ -1,0 +1,136 @@
+/* ==========================================================================
+   PÁGINA PORTAFOLIO
+   ========================================================================== */
+
+/* ---------- Héroe centrado ---------- */
+.portfolio-hero {
+  display: grid;
+  justify-items: center;
+  gap: 2.4rem;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-top: 4rem;
+  text-align: center;
+}
+
+.portfolio-hero__title {
+  font-size: clamp(3.4rem, 6vw, 6.4rem);
+  letter-spacing: -0.02em;
+}
+
+.portfolio-hero__text {
+  max-width: 56rem;
+  font-size: 1.8rem;
+  color: var(--color-text-muted);
+}
+
+/* ---------- Filtros ---------- */
+.portfolio-gallery {
+  margin-top: 6rem;
+}
+
+.portfolio-filters {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.6rem;
+  margin-bottom: 2.4rem;
+}
+
+.portfolio-filters__groups {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.portfolio-filters__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Chips redondeados como en el diseño */
+.portfolio-filters__chip {
+  border-radius: var(--radius-full);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.portfolio-filters__chip:hover:not(.chip--active) {
+  border-color: var(--color-accent-border);
+}
+
+.portfolio-filters__meta {
+  padding-top: 1.2rem;
+  font-size: 1.3rem;
+  color: var(--color-text-muted);
+}
+
+/* ---------- Cuadrícula: 3 columnas en escritorio, bajan a 1 en celular ---------- */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(30rem, 100%), 1fr));
+  gap: 2rem;
+}
+
+.portfolio-empty {
+  margin-top: 6rem;
+}
+
+/* ---------- Llamado a la acción ---------- */
+.portfolio-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2.4rem;
+  margin-top: 8rem;
+  padding: 4rem 4.8rem;
+  border: 0.1rem solid var(--color-accent-border);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  background-image: radial-gradient(ellipse at 90% 50%, var(--color-accent-soft), transparent 60%);
+}
+
+.portfolio-cta__title {
+  font-size: clamp(2.4rem, 3vw, 3.2rem);
+}
+
+.portfolio-cta__text {
+  margin-top: 0.6rem;
+  font-size: 1.7rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 600px) {
+  /* En celular cada grupo de chips es una sola fila que se desliza de lado
+     (así los filtros no ocupan media pantalla) */
+  .portfolio-filters,
+  .portfolio-filters__groups {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .portfolio-filters__list {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.4rem;
+    scrollbar-width: none;
+  }
+
+  .portfolio-filters__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .portfolio-filters__meta {
+    padding-top: 0;
+  }
+
+  .portfolio-cta {
+    padding: 3rem 2.4rem;
+  }
+
+  .portfolio-cta .btn {
+    width: 100%;
+  }
+}

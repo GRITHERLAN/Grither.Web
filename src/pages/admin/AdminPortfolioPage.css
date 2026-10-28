@@ -1,0 +1,60 @@
+/* ==========================================================================
+   PANEL ADMIN: PORTAFOLIO
+   ========================================================================== */
+
+.admin-portfolio__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Cuadrícula de cards (igual que en la página pública) */
+.admin-portfolio__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(30rem, 100%), 1fr));
+  gap: 2rem;
+}
+
+.admin-portfolio__btn-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+/* ---------- Formulario: portada ---------- */
+.portfolio-form__image-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.portfolio-form__image {
+  width: 16rem;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-md);
+  border: 0.1rem solid var(--color-border-strong);
+  object-fit: cover;
+}
+
+.portfolio-form__image--empty {
+  display: grid;
+  place-items: center;
+  color: var(--color-text-soft);
+  background-color: var(--color-bg-soft);
+}
+
+.portfolio-form__image--empty svg {
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+.portfolio-form__image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.portfolio-form__btn-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}
