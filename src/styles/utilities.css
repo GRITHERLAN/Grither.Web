@@ -79,12 +79,9 @@
   background-color: var(--color-accent);
 }
 
-/* ---------- Texto con degradado (palabras resaltadas en títulos) ---------- */
+/* ---------- Texto resaltado (palabras destacadas en títulos) ---------- */
 .text-gradient {
-  background-image: var(--gradient-highlight);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-accent);
 }
 
 .text-muted {
