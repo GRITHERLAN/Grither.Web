@@ -29,6 +29,9 @@ html {
   font-size: 62.5%; /* 1rem = 10px */
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* Quita el recuadro azul que Android/iOS pintan al tocar botones y enlaces;
+     la respuesta al toque la dan los propios estilos (:active en motion.css) */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -38,11 +41,33 @@ body {
   line-height: 1.6;
   color: var(--color-text);
   background-color: var(--color-bg);
-  /* Resplandor del fondo del logo; fixed para que no se repita al hacer scroll */
-  background-image: var(--page-bg);
-  background-attachment: fixed;
-  transition: background-color var(--transition), color var(--transition);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Resplandor del fondo del logo, fijo en pantalla.
+   RENDIMIENTO: capa fija propia en vez de background-attachment: fixed; esa
+   propiedad obliga al celular a repintar toda la pantalla en cada scroll. */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  height: 100lvh; /* alto con la barra del navegador oculta: sin huecos al hacer scroll */
+  z-index: -1;
+  background-image: var(--page-bg);
+  pointer-events: none;
+}
+
+/* Mientras cambia el tema se apagan las transiciones (ver ThemeContext.jsx).
+   Sin esto, cada texto, borde y tarjeta animaba su color a la vez y el
+   celular repintaba la página completa en cada fotograma. La bolita del
+   interruptor sí conserva su animación. */
+:root[data-theme-switching] *:not(.theme-toggle__thumb),
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  transition: none !important;
 }
 
 img,

@@ -33,7 +33,16 @@ export function ThemeProvider({ children }) {
 
   // Cada vez que cambia el tema lo aplicamos al <html> y lo guardamos
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    const root = document.documentElement;
+    // Cambio instantáneo: se apagan las transiciones (base.css), se fuerza al
+    // navegador a calcular los colores nuevos y se vuelven a encender
+    root.dataset.themeSwitching = '';
+    root.dataset.theme = theme;
+    window.getComputedStyle(document.body).color;
+    delete root.dataset.themeSwitching;
+
+    // Color de la barra del navegador en el celular, igual al fondo del tema
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === THEMES.DARK ? '#030a04' : '#ffffff');
     saveTheme(theme);
   }, [theme]);
 
