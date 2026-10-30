@@ -14,8 +14,8 @@
 }
 
 .portfolio-hero__title {
-  font-size: clamp(3.4rem, 6vw, 6.4rem);
-  letter-spacing: -0.02em;
+  font-size: clamp(3rem, 5.4vw, 5.6rem);
+  letter-spacing: 0.01em;
 }
 
 .portfolio-hero__text {

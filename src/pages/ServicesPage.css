@@ -14,8 +14,8 @@
 }
 
 .services-hero__title {
-  font-size: clamp(3.4rem, 6vw, 6.4rem);
-  letter-spacing: -0.02em;
+  font-size: clamp(3rem, 5.4vw, 5.6rem);
+  letter-spacing: 0.01em;
 }
 
 .services-hero__text {
@@ -64,11 +64,27 @@
   transform: translateY(-0.3rem);
 }
 
+/* ---------- Encabezado de vidrio (servicios y planes) ----------
+   Imita un panel de vidrio: fondo translúcido mezclado con el color del
+   texto (en oscuro queda claro, en claro queda oscuro), borde fino y una
+   línea de luz arriba, como el borde de un cristal.
+   RENDIMIENTO: sin backdrop-filter (blur); dentro de la tarjeta el fondo
+   es liso y el desenfoque no se notaría, solo costaría. */
+.service-card__glass,
+.plan-card__glass {
+  display: grid;
+  gap: 1.4rem;
+  padding: 1.6rem;
+  border-radius: var(--radius-md);
+  border: 0.1rem solid color-mix(in srgb, var(--color-text) 10%, transparent);
+  background-color: color-mix(in srgb, var(--color-text) 4%, transparent);
+  box-shadow: inset 0 0.1rem 0 color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+
 .service-card__top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.6rem;
 }
 
 .service-card__code {
@@ -136,18 +152,31 @@
 }
 
 .plan-card__price {
-  font-size: 2.8rem;
-  color: var(--color-accent);
+  display: grid;
+  justify-items: start;
+  gap: 0.6rem;
 }
 
 .plan-card__from {
-  display: block;
   font-size: 1.2rem;
   color: var(--color-text-muted);
 }
 
+/* Precio en píldora oscura (como la etiqueta de precio de la card de referencia) */
+.plan-card__pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  padding: 0.6rem 1.6rem;
+  border-radius: var(--radius-full);
+  border: 0.1rem solid var(--color-accent-border);
+  background-color: color-mix(in srgb, var(--color-bg) 60%, transparent);
+  font-size: 2.4rem;
+  line-height: 1.3;
+  color: var(--color-accent);
+}
+
 .plan-card__currency {
-  margin-left: 0.8rem;
   font-size: 1.3rem;
   color: var(--color-text-muted);
 }

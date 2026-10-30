@@ -1,19 +1,24 @@
 /* ==========================================================================
    LOGO DE GRITHER
    --------------------------------------------------------------------------
-   Cambia la imagen según el tema:
-     - Modo Oscuro -> Logo__Grither__Oscuro__Vectorial (neón cian/magenta)
-     - Modo Claro  -> Logo__Grither__Blanco__Vectorial (negro/morado)
+   Cambia el archivo según el tema (todos son SVG de la carpeta NewLogo):
+     - Modo Oscuro -> versión neón (líneas verdes y lima con brillo).
+     - Modo Claro  -> versión "tinta neón" (líneas negras y verdes, pensada
+                      para fondo blanco).
    Variantes:
-     - "brand":  icono pequeño en caja + nombre "Grither" en degradado.
-     - "emblem": solo el emblema grande (para héroes y carrusel vacío).
+     - "brand":  emblema pequeño + nombre "Grither" con la letra del logo.
+     - "emblem": solo el emblema grande (Sobre mí, tarjetas y carrusel vacío).
    ========================================================================== */
 
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext.jsx';
-// Versiones de 400 px de ancho (las originales de 960 px pesaban ~208 KB)
-import logoDark from '../../assets/logos/logo-oscuro-400.png';
-import logoLight from '../../assets/logos/logo-claro-400.png';
+// Emblema sin nombre (viewBox recortado al dibujo, sin márgenes vacíos)
+import emblemDark from '../../assets/logos/grither-emblema.svg';
+import emblemLight from '../../assets/logos/grither-emblema-claro.svg';
+// Mismo emblema con trazos más gruesos: a tamaño de ícono (header) las líneas
+// originales medirían menos de 1 px y casi no se verían
+import iconDark from '../../assets/logos/grither-icono.svg';
+import iconLight from '../../assets/logos/grither-icono-claro.svg';
 import './Logo.css';
 
 /**
@@ -23,19 +28,27 @@ import './Logo.css';
  */
 function Logo({ variant = 'brand', subtitle = '', to = '/' }) {
   const { isDark } = useTheme();
-  const logoSrc = isDark ? logoDark : logoLight;
 
   // Solo el emblema grande
   if (variant === 'emblem') {
     // width/height reservan el espacio antes de cargar (evita saltos de diseño);
-    // el tamaño real lo controla el CSS
-    return <img className="logo-emblem" src={logoSrc} alt="Emblema de Grither" width="400" height="273" decoding="async" />;
+    // el tamaño real lo controla el CSS. Proporción del SVG: ~880 × 610.
+    return (
+      <img
+        className="logo-emblem"
+        src={isDark ? emblemDark : emblemLight}
+        alt="Emblema de Grither"
+        width="400"
+        height="277"
+        decoding="async"
+      />
+    );
   }
 
-  // Icono + nombre (enlace a la página de inicio)
+  // Emblema + nombre (enlace a la página de inicio)
   return (
     <Link to={to} className="logo" aria-label="Grither, ir al inicio">
-      <img className="logo__image" src={logoSrc} alt="" width="400" height="273" decoding="async" />
+      <img className="logo__image" src={isDark ? iconDark : iconLight} alt="" width="400" height="280" decoding="async" />
       <span className="logo__text">
         <span className="logo__name">Grither</span>
         {subtitle && <span className="logo__subtitle">{subtitle}</span>}

@@ -1,0 +1,329 @@
+/* ==========================================================================
+   MOVIMIENTO DEL SITIO PÚBLICO
+   --------------------------------------------------------------------------
+   Todo lo de este archivo empieza con :root[data-motion]. Esa marca la pone
+   el hook usePublicMotion solo en el sitio público y en Ingresar, así el
+   panel administrativo queda sin estas animaciones.
+
+   Reglas que seguimos (estilo Apple, "Designing Fluid Interfaces"):
+     - Solo se animan transform/translate/scale y opacity: no recalculan el
+       diseño de la página y se ven fluidos incluso en celulares.
+     - Curva de resorte sin rebote (--ease-spring): llega rápido y se asienta.
+     - Respuesta inmediata al presionar (en el "pointer-down", con :active).
+     - Con "reducir movimiento" en el sistema, base.css acorta todas las
+       animaciones a casi 0 ms y el hook no oculta nada: queda todo visible.
+   ========================================================================== */
+
+/* ---------- Animaciones base ---------- */
+
+/* Sube 2.4rem mientras aparece */
+@keyframes motion-rise {
+  from {
+    opacity: 0;
+    translate: 0 2.4rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* Aparece creciendo un poco (para el emblema) */
+@keyframes motion-grow {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* Fundido simple */
+@keyframes motion-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   1. CAMBIO DE PÁGINA
+   El contenedor de la página se vuelve a montar en cada ruta (key en
+   PublicLayout), así que esta animación se repite al navegar.
+   ========================================================================== */
+:root[data-motion] .route-view {
+  animation: motion-fade 350ms var(--ease-spring) both;
+}
+
+/* ==========================================================================
+   2. ENTRADA DEL HÉROE (inicio de cada página)
+   Los hijos del bloque principal entran uno tras otro: etiqueta, título,
+   texto, botones... --hero-order fija el turno de cada uno.
+   "backwards" aplica el primer fotograma durante la espera, así no se ven
+   un instante antes de empezar.
+   ========================================================================== */
+:root[data-motion] :is(
+    .services-hero,
+    .portfolio-hero,
+    .about-hero__content,
+    .contact-info,
+    .user-projects__header,
+    .progress__info,
+    .auth-page__intro
+  ) > * {
+  animation: motion-rise var(--motion-enter) var(--ease-spring) backwards;
+  animation-delay: calc(var(--hero-order, 6) * 80ms + 60ms);
+}
+
+:root[data-motion] :is(
+    .services-hero,
+    .portfolio-hero,
+    .about-hero__content,
+    .contact-info,
+    .user-projects__header,
+    .progress__info,
+    .auth-page__intro
+  ) > :nth-child(1) { --hero-order: 0; }
+:root[data-motion] :is(
+    .services-hero,
+    .portfolio-hero,
+    .about-hero__content,
+    .contact-info,
+    .user-projects__header,
+    .progress__info,
+    .auth-page__intro
+  ) > :nth-child(2) { --hero-order: 1; }
+:root[data-motion] :is(
+    .services-hero,
+    .portfolio-hero,
+    .about-hero__content,
+    .contact-info,
+    .user-projects__header,
+    .progress__info,
+    .auth-page__intro
+  ) > :nth-child(3) { --hero-order: 2; }
+:root[data-motion] :is(
+    .services-hero,
+    .portfolio-hero,
+    .about-hero__content,
+    .contact-info,
+    .user-projects__header,
+    .progress__info,
+    .auth-page__intro
+  ) > :nth-child(4) { --hero-order: 3; }
+:root[data-motion] :is(
+    .services-hero,
+    .portfolio-hero,
+    .about-hero__content,
+    .contact-info,
+    .user-projects__header,
+    .progress__info,
+    .auth-page__intro
+  ) > :nth-child(5) { --hero-order: 4; }
+
+/* El emblema de Sobre mí crece suavemente junto al título */
+:root[data-motion] .about-hero__emblem {
+  animation: motion-grow 900ms var(--ease-spring) 200ms backwards;
+}
+
+/* ==========================================================================
+   3. APARICIÓN AL HACER SCROLL
+   El hook pone data-reveal="hidden" y luego "shown" al entrar en pantalla.
+   --reveal-delay hace la cascada cuando entran varios a la vez.
+   ========================================================================== */
+:root[data-motion] [data-reveal="hidden"] {
+  opacity: 0;
+}
+
+:root[data-motion] [data-reveal="shown"] {
+  animation: motion-rise var(--motion-enter) var(--ease-spring) backwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+/* ==========================================================================
+   4. FOCO NEÓN QUE SIGUE AL PUNTERO (solo con ratón)
+   El hook escribe --spot-x / --spot-y. El brillo es un ::before detrás del
+   contenido: "isolation: isolate" crea una capa propia y z-index -1 lo deja
+   encima del fondo de la tarjeta pero debajo de sus textos.
+   :where() no suma especificidad: si un componente ya define su propia
+   posición (ej. el índice "sticky" de los textos legales), gana el componente.
+   ========================================================================== */
+@media (hover: hover) and (pointer: fine) {
+  :where(:root[data-motion]) :where(.card, .indicator-grid__item, .contact-card) {
+    position: relative;
+    isolation: isolate;
+  }
+
+  :where(:root[data-motion]) :where(.card, .indicator-grid__item, .contact-card)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: radial-gradient(
+      32rem circle at var(--spot-x, 50%) var(--spot-y, 0%),
+      color-mix(in srgb, var(--color-accent) 14%, transparent),
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 400ms var(--ease-spring);
+  }
+
+  :where(:root[data-motion]) :where(.card, .indicator-grid__item, .contact-card):hover::before {
+    opacity: 1;
+  }
+
+  :where(:root[data-motion]) :where(.card, .indicator-grid__item, .contact-card):hover {
+    border-color: var(--color-accent-border);
+  }
+}
+
+/* ==========================================================================
+   4b. TARJETAS CON INCLINACIÓN 3D (TiltCard: "Qué hago" y "Planes")
+   TiltCard.jsx escribe --tilt-rx / --tilt-ry y data-tilt="active|idle".
+     - El giro usa perspective() dentro del propio transform; preserve-3d deja
+       que las capas internas tengan profundidad propia (translateZ).
+     - Activa: transición corta (120 ms) para seguir al puntero casi 1:1.
+     - Al salir: vuelve al centro con resorte (sin rebote).
+     - isolation: auto porque "isolate" aplana el 3D. El transform siempre
+       presente ya crea la capa propia que necesita el foco neón (::before).
+   ========================================================================== */
+@media (hover: hover) and (pointer: fine) {
+  :root[data-motion] .tilt-card {
+    isolation: auto;
+    transform-style: preserve-3d;
+    transform: perspective(100rem) rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg)) scale(1);
+    transition: transform 600ms var(--ease-spring), border-color 300ms ease;
+  }
+
+  :root[data-motion] .tilt-card[data-tilt="active"] {
+    transform: perspective(100rem) rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg)) scale(1.03);
+    transition: transform 120ms ease-out, border-color 300ms ease;
+  }
+
+  /* Capas internas: en reposo están planas; al inclinar se separan de la
+     tarjeta (más Z = más cerca), como en la card de referencia */
+  :root[data-motion] .tilt-card :is(.service-card__glass, .plan-card__glass, .tag-list, .plan-card__features) {
+    transform-style: preserve-3d;
+    transition: transform var(--motion-slide) var(--ease-spring);
+  }
+
+  :root[data-motion] .tilt-card .plan-card__pill {
+    transition: transform var(--motion-slide) var(--ease-spring);
+  }
+
+  :root[data-motion] .tilt-card[data-tilt="active"] :is(.service-card__glass, .plan-card__glass) {
+    transform: translateZ(4rem);
+  }
+
+  :root[data-motion] .tilt-card[data-tilt="active"] .plan-card__pill {
+    transform: translateZ(2rem);
+  }
+
+  :root[data-motion] .tilt-card[data-tilt="active"] :is(.tag-list, .plan-card__features) {
+    transform: translateZ(1.6rem);
+  }
+}
+
+/* ==========================================================================
+   5. RESPUESTA AL PRESIONAR
+   Se encoge un poco en el mismo instante en que se presiona (no al soltar):
+   así se siente que el botón "obedece" al dedo.
+   ========================================================================== */
+:root[data-motion] :is(.btn, .chip, .contact-card, .header__link):active {
+  transform: scale(0.97);
+  transition-duration: var(--motion-press);
+}
+
+/* ==========================================================================
+   6. BOTÓN DE WHATSAPP
+   Entra desde su esquina (izquierda) un momento después de cargar la página,
+   para no competir con el título.
+   ========================================================================== */
+@keyframes motion-slide-from-left {
+  from {
+    opacity: 0;
+    translate: -3.2rem 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+:root[data-motion] .whatsapp-button {
+  animation: motion-slide-from-left 800ms var(--ease-spring) 900ms backwards;
+}
+
+:root[data-motion] .whatsapp-button:active .whatsapp-button__icon {
+  transform: scale(0.94);
+  transition-duration: var(--motion-press);
+}
+
+/* ==========================================================================
+   7. CARRUSEL DE "VER AVANCE"
+   La imagen nueva entra desde el lado hacia el que se avanza: con
+   "Siguiente" llega desde la derecha y con "Anterior" desde la izquierda
+   (mismo camino de ida y vuelta).
+   ========================================================================== */
+@keyframes motion-slide-next {
+  from {
+    opacity: 0;
+    translate: 4rem 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes motion-slide-prev {
+  from {
+    opacity: 0;
+    translate: -4rem 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+:root[data-motion] .carousel__slide[data-direction="next"] .carousel__media {
+  animation: motion-slide-next var(--motion-slide) var(--ease-spring) both;
+}
+
+:root[data-motion] .carousel__slide[data-direction="prev"] .carousel__media {
+  animation: motion-slide-prev var(--motion-slide) var(--ease-spring) both;
+}
+
+/* ==========================================================================
+   8. "REDUCIR MOVIMIENTO" ACTIVADO EN EL SISTEMA
+   base.css acorta las duraciones, pero no las esperas (animation-delay):
+   durante la espera el contenido seguiría invisible. Aquí quitamos las
+   entradas por completo para que todo se vea desde el primer momento.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-motion] :is(
+      .route-view,
+      .about-hero__emblem,
+      .whatsapp-button,
+      [data-reveal="shown"],
+      .carousel__media
+    ),
+  :root[data-motion] :is(
+      .services-hero,
+      .portfolio-hero,
+      .about-hero__content,
+      .contact-info,
+      .user-projects__header,
+      .progress__info,
+      .auth-page__intro
+    ) > * {
+    animation: none;
+  }
+}

@@ -100,8 +100,11 @@
   gap: 0.8rem;
   min-height: 4.4rem;
   padding: 1rem 2.2rem;
-  font-size: 1.5rem;
+  /* Letra del logo; es ancha, por eso un tamaño un poco menor que el texto */
+  font-family: var(--font-display);
+  font-size: 1.35rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
   line-height: 1.2;
   text-align: center;
   border-radius: var(--radius-md);
@@ -124,7 +127,7 @@
   transform: none;
 }
 
-/* Botón principal: degradado cian→azul (oscuro) o negro (claro) */
+/* Botón principal: verde neón del logo con texto oscuro (en ambos temas) */
 .btn--primary {
   background: var(--btn-primary-bg);
   color: var(--btn-primary-text);
@@ -158,7 +161,7 @@
 .btn--sm {
   min-height: 3.6rem;
   padding: 0.6rem 1.4rem;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   border-radius: var(--radius-sm);
 }
 

@@ -178,7 +178,9 @@ function PortfolioGallery({ items }) {
           <p>Prueba con otra categoría o tipo de proyecto.</p>
         </div>
       ) : (
-        <ul className="portfolio-grid">
+        // key con los filtros: al cambiar de filtro la cuadrícula se crea de
+        // nuevo y sus tarjetas vuelven a entrar en cascada (usePublicMotion)
+        <ul key={`${category}-${type}`} className="portfolio-grid">
           {visibleItems.map((item, index) => (
             <li key={item.id}>
               <PortfolioCard item={item} index={index} />

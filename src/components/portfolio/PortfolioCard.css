@@ -30,10 +30,10 @@
 
 .portfolio-card__cover--0 { --mockup-color: var(--color-accent-3); --mockup-tint: color-mix(in srgb, var(--color-accent-3) 22%, transparent); }
 .portfolio-card__cover--1 { --mockup-color: var(--color-accent-2); --mockup-tint: color-mix(in srgb, var(--color-accent-2) 22%, transparent); }
-.portfolio-card__cover--2 { --mockup-color: #4f8cff; --mockup-tint: rgba(79, 140, 255, 0.2); }
+.portfolio-card__cover--2 { --mockup-color: var(--color-success); --mockup-tint: color-mix(in srgb, var(--color-success) 20%, transparent); }
 .portfolio-card__cover--3 { --mockup-color: var(--color-accent); --mockup-tint: color-mix(in srgb, var(--color-accent) 20%, transparent); }
 
-/* En modo claro el diseño alterna barras negras y moradas */
+/* En modo claro se alternan barras negras y verdes */
 :root[data-theme="light"] .portfolio-card__cover--0,
 :root[data-theme="light"] .portfolio-card__cover--2 {
   --mockup-color: var(--color-text);

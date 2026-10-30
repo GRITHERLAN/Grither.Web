@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="510 75 900 630" width="900" height="630">
+<title>Grither</title>
+<defs>
+<linearGradient id="gradDiagL" gradientUnits="userSpaceOnUse" x1="533" y1="176" x2="892" y2="388">
+<stop offset="0" stop-color="#cdf53c"/><stop offset="1" stop-color="#86ff45"/></linearGradient>
+<linearGradient id="gradDiagR" gradientUnits="userSpaceOnUse" x1="1387" y1="176" x2="1028" y2="388">
+<stop offset="0" stop-color="#cdf53c"/><stop offset="1" stop-color="#86ff45"/></linearGradient>
+<linearGradient id="gradG" gradientUnits="userSpaceOnUse" x1="0" y1="426" x2="0" y2="530">
+<stop offset="0" stop-color="#2af037"/><stop offset="0.45" stop-color="#fcfff6"/><stop offset="1" stop-color="#cdf53c"/></linearGradient>
+
+</defs>
+<g id="emblema">
+<g id="alas" stroke="#2af037" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><path d="M623,341L741,341L841,408"/><path d="M623,341L765,462"/><path d="M758,408L930,679"/><path d="M1297,341L1179,341L1079,408"/><path d="M1297,341L1155,462"/><path d="M1162,408L990,679"/></g>
+<path id="ala-superior-izq" d="M533,176.1L865.2,361" stroke="url(#gradDiagL)" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="ala-superior-der" d="M1387,176.1L1054.8,361" stroke="url(#gradDiagR)" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M865.2,361L892.4,388L892.4,544" stroke="#86ff45" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1054.8,361L1027.6,388L1027.6,544" stroke="#86ff45" fill="none" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="punta" d="M960,95L969,199L960,303L951,199Z" fill="#cdf53c"/>
+<path d="M960,115L960,282" stroke="#f6ffd2" stroke-width="8" stroke-linecap="round" fill="none"/>
+<path id="letra-G" d="M935.83,422.50L984.17,422.50L1000.83,439.17L994.17,445.50L981.67,431.67L940.00,431.67L927.50,450.00L927.50,500.83L940.00,520.00L980.00,520.00L993.33,500.83L993.33,480.83L960.00,480.83L960.00,470.83L1002.50,470.83L1002.50,501.67L985.00,529.17L935.83,529.17L918.33,501.67L918.33,445.83Z" fill="url(#gradG)"/>
+</g>
+</svg>

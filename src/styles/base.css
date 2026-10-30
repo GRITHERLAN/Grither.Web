@@ -6,6 +6,17 @@
    - Reset mínimo para que todos los navegadores se vean igual.
    ========================================================================== */
 
+/* Fuente de títulos: Orbitron (variable, pesos 400 a 900). Archivo local con
+   los caracteres latinos (incluye tildes, ñ, ¿ y ¡). Licencia en OFL.txt.
+   font-display: swap muestra primero la fuente del sistema y cambia al cargar. */
+@font-face {
+  font-family: "Orbitron";
+  src: url("../assets/fonts/orbitron-latin.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -27,6 +38,9 @@ body {
   line-height: 1.6;
   color: var(--color-text);
   background-color: var(--color-bg);
+  /* Resplandor del fondo del logo; fixed para que no se repita al hacer scroll */
+  background-image: var(--page-bg);
+  background-attachment: fixed;
   transition: background-color var(--transition), color var(--transition);
   -webkit-font-smoothing: antialiased;
 }
@@ -67,6 +81,13 @@ h3,
 h4 {
   line-height: 1.15;
   font-weight: 700;
+}
+
+/* Títulos principales con la letra cuadrada del logo */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
 }
 
 /* Contorno visible al navegar con teclado (accesibilidad) */

@@ -19,6 +19,7 @@ import { MAX_LENGTH } from '../utils/validators.js';
 import Logo from '../components/layout/Logo.jsx';
 import ThemeToggle from '../components/layout/ThemeToggle.jsx';
 import Icon from '../components/ui/Icon.jsx';
+import { usePublicMotion } from '../hooks/usePublicMotion.js';
 import './AuthPage.css';
 
 const EMPTY_LOGIN = { email: '', password: '', remember: true };
@@ -28,6 +29,9 @@ function AuthPage() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Ingresar está fuera de PublicLayout: activamos aquí las mismas animaciones
+  usePublicMotion();
 
   const [loginForm, setLoginForm] = useState(EMPTY_LOGIN);
   const [errors, setErrors] = useState({});

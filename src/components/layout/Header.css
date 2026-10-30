@@ -11,6 +11,12 @@
   z-index: 100;
   border-bottom: 0.1rem solid var(--color-border);
   background-color: var(--color-bg);
+  transition: box-shadow 300ms ease;
+}
+
+/* Al bajar por la página el header "flota" sobre el contenido con una sombra */
+.header[data-scrolled="true"] {
+  box-shadow: var(--shadow-card);
 }
 
 .header__inner {
@@ -28,9 +34,45 @@
 }
 
 .header__links {
+  /* relative: la píldora se posiciona respecto a la lista.
+     isolation: la píldora (z-index -1) queda detrás de los textos pero
+     encima del fondo del header */
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+/* ---------- Píldora deslizante ----------
+   Header.jsx escribe su posición y tamaño (--pill-x, --pill-y, --pill-w,
+   --pill-h) según el enlace activo o el que está bajo el puntero. */
+.header__links::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: var(--pill-w, 0);
+  height: var(--pill-h, 0);
+  border-radius: var(--radius-md);
+  border: 0.1rem solid var(--color-accent-border);
+  background-color: var(--color-accent-soft);
+  transform: translate(var(--pill-x, 0), var(--pill-y, 0));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.header__links[data-pill="on"]::before {
+  opacity: 1;
+}
+
+/* Desde el segundo fotograma la píldora se desliza con curva de resorte.
+   Una transición CSS siempre arranca desde el valor actual, así que si el
+   puntero cambia de enlace a mitad de camino, la píldora gira sin saltar. */
+.header__links[data-pill-animate="on"]::before {
+  transition: transform var(--motion-slide) var(--ease-spring), width var(--motion-slide) var(--ease-spring),
+    height var(--motion-slide) var(--ease-spring), opacity 200ms ease;
 }
 
 .header__link {
@@ -54,6 +96,12 @@
   color: var(--color-accent);
   background-color: var(--color-accent-soft);
   border-color: var(--color-accent-border);
+}
+
+/* Con la píldora funcionando, el fondo lo pone ella (no el enlace) */
+.header__links[data-pill="on"] .header__link--active {
+  background-color: transparent;
+  border-color: transparent;
 }
 
 .header__actions {
@@ -107,6 +155,9 @@
 
   .header__menu--open {
     display: flex;
+    /* Se despliega desde el botón hamburguesa (arriba a la derecha) */
+    transform-origin: top right;
+    animation: header-menu-in 350ms var(--ease-spring);
   }
 
   .header__links {
@@ -117,5 +168,16 @@
   .header__actions {
     justify-content: space-between;
     flex-wrap: wrap;
+  }
+}
+
+@keyframes header-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.8rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

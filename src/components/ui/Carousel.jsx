@@ -4,6 +4,8 @@
    Muestra un archivo a la vez con flechas para avanzar/retroceder, puntos
    para saltar a uno específico y soporte de teclado (← →).
    Si el proyecto no tiene archivos, muestra el logo como marcador.
+   Movimiento: el archivo nuevo entra desde el lado hacia el que se avanza
+   (data-direction + motion.css).
    ========================================================================== */
 
 import { useState } from 'react';
@@ -17,6 +19,9 @@ import './Carousel.css';
  */
 function Carousel({ media = [], title }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  // Hacia dónde se movió el usuario: 'next' (entra por la derecha) o 'prev'.
+  // Empieza vacío para que el primer archivo no se deslice al cargar.
+  const [direction, setDirection] = useState('');
   const total = media.length;
 
   // ---------- Sin archivos: marcador con el logo ----------
@@ -32,12 +37,14 @@ function Carousel({ media = [], title }) {
   /** Va al anterior (si está en el primero, salta al último) */
   function goPrevious(event) {
     event.preventDefault();
+    setDirection('prev');
     setCurrentIndex((index) => (index - 1 + total) % total);
   }
 
   /** Va al siguiente (si está en el último, vuelve al primero) */
   function goNext(event) {
     event.preventDefault();
+    setDirection('next');
     setCurrentIndex((index) => (index + 1) % total);
   }
 
@@ -60,11 +67,13 @@ function Carousel({ media = [], title }) {
       onKeyDown={handleKeyDown}
     >
       {/* Archivo actual */}
-      <figure className="carousel__slide">
+      <figure className="carousel__slide" data-direction={direction || undefined}>
         {currentItem.type === 'video' ? (
           <video key={safeIndex} className="carousel__media" src={currentItem.src} controls />
         ) : (
           <img
+            // key: cada imagen es un elemento nuevo, así su animación de entrada se repite
+            key={safeIndex}
             className="carousel__media"
             src={currentItem.src}
             alt={`${title} - imagen ${safeIndex + 1} de ${total}`}
@@ -106,6 +115,8 @@ function Carousel({ media = [], title }) {
                   aria-current={index === safeIndex}
                   onClick={(event) => {
                     event.preventDefault();
+                    // El punto elegido está a la derecha o a la izquierda del actual
+                    setDirection(index > safeIndex ? 'next' : 'prev');
                     setCurrentIndex(index);
                   }}
                 />

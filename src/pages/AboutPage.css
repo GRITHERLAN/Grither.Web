@@ -17,8 +17,8 @@
 }
 
 .about-hero__title {
-  font-size: clamp(3.4rem, 5vw, 5.6rem);
-  letter-spacing: -0.02em;
+  font-size: clamp(3rem, 4.6vw, 5rem);
+  letter-spacing: 0.01em;
 }
 
 .about-hero__text {
@@ -26,7 +26,7 @@
   color: var(--color-text-muted);
 }
 
-/* Caja oscura con brillo azul alrededor del emblema */
+/* Caja con brillo verde alrededor del emblema */
 .about-hero__emblem {
   display: grid;
   place-items: center;
@@ -63,19 +63,16 @@
   font-family: var(--font-mono);
   font-size: 1.4rem;
   font-weight: 700;
-  color: #05070f;
+  color: #030a04;
   background-color: var(--phase-color, var(--color-accent));
 }
 
-/* Colores del degradado del logo: cian → azul → morado → magenta */
-:root[data-theme="dark"] .process-card--1 { --phase-color: #2ee6e6; }
-:root[data-theme="dark"] .process-card--2 { --phase-color: #4f8cff; }
-:root[data-theme="dark"] .process-card--3 { --phase-color: #a855f7; }
-:root[data-theme="dark"] .process-card--4 { --phase-color: #e040fb; }
-
-:root[data-theme="light"] .process-card__number {
-  color: #ffffff;
-}
+/* Colores del logo: verde neón → verde claro → lima → amarillo lima
+   (en ambos temas; el número va en negro, se lee bien sobre todos) */
+.process-card--1 { --phase-color: #2af037; }
+.process-card--2 { --phase-color: #5cf83e; }
+.process-card--3 { --phase-color: #86ff45; }
+.process-card--4 { --phase-color: #cdf53c; }
 
 .process-card__title {
   font-size: 1.9rem;

@@ -10,6 +10,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../components/ui/Icon.jsx';
+import TiltCard from '../components/ui/TiltCard.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import { useAsyncData } from '../hooks/useAsyncData.js';
 import { getServices, getPlans } from '../services/offerService.js';
@@ -92,15 +93,19 @@ function OfferSections({ services, plans, plansRef }) {
         <ul className="services-grid">
           {services.map((service, index) => (
             <li key={service.id}>
-              <article className="card service-card">
-                <header className="service-card__top">
-                  <span className="card__icon">
-                    <Icon name={service.icon} />
-                  </span>
-                  {/* El código SRV-0X sale de la posición de la card */}
-                  <span className="service-card__code text-mono">SRV-{String(index + 1).padStart(2, '0')}</span>
+              {/* TiltCard: se inclina en 3D siguiendo al puntero */}
+              <TiltCard className="card service-card">
+                {/* Encabezado de vidrio: en 3D "flota" por encima de la tarjeta */}
+                <header className="service-card__glass">
+                  <div className="service-card__top">
+                    <span className="card__icon">
+                      <Icon name={service.icon} />
+                    </span>
+                    {/* El código SRV-0X sale de la posición de la card */}
+                    <span className="service-card__code text-mono">SRV-{String(index + 1).padStart(2, '0')}</span>
+                  </div>
+                  <h3 className="service-card__title">{service.title}</h3>
                 </header>
-                <h3 className="service-card__title">{service.title}</h3>
                 <p className="service-card__text">{service.description}</p>
                 <ul className="tag-list">
                   {service.tags.map((tag) => (
@@ -109,7 +114,7 @@ function OfferSections({ services, plans, plansRef }) {
                     </li>
                   ))}
                 </ul>
-              </article>
+              </TiltCard>
             </li>
           ))}
         </ul>
@@ -129,22 +134,29 @@ function OfferSections({ services, plans, plansRef }) {
         <ul className="plans-grid">
           {plans.map((plan) => (
             <li key={plan.id}>
-              <article className={`card plan-card ${plan.featured ? 'plan-card--featured' : ''}`}>
-                <header className="plan-card__top">
-                  <h3 className="plan-card__name text-mono">{plan.name}</h3>
-                  {plan.featured && <span className="plan-card__badge">Más elegido</span>}
-                </header>
+              {/* TiltCard: se inclina en 3D siguiendo al puntero */}
+              <TiltCard className={`card plan-card ${plan.featured ? 'plan-card--featured' : ''}`}>
+                {/* Encabezado de vidrio con el nombre y el precio en píldora */}
+                <header className="plan-card__glass">
+                  <div className="plan-card__top">
+                    <h3 className="plan-card__name text-mono">{plan.name}</h3>
+                    {plan.featured && <span className="plan-card__badge">Más elegido</span>}
+                  </div>
 
-                <p className="plan-card__price text-mono">
-                  {plan.price === null ? (
-                    'Cotización'
-                  ) : (
-                    <>
-                      <span className="plan-card__from">Desde</span> {formatCOP(plan.price)}
-                      <span className="plan-card__currency">COP</span>
-                    </>
-                  )}
-                </p>
+                  <p className="plan-card__price text-mono">
+                    {plan.price !== null && <span className="plan-card__from">Desde</span>}
+                    <span className="plan-card__pill">
+                      {plan.price === null ? (
+                        'Cotización'
+                      ) : (
+                        <>
+                          {formatCOP(plan.price)}
+                          <span className="plan-card__currency">COP</span>
+                        </>
+                      )}
+                    </span>
+                  </p>
+                </header>
 
                 <p className="plan-card__text">{plan.description}</p>
 
@@ -166,7 +178,7 @@ function OfferSections({ services, plans, plansRef }) {
                 >
                   {plan.cta}
                 </a>
-              </article>
+              </TiltCard>
             </li>
           ))}
         </ul>

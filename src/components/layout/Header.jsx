@@ -8,9 +8,12 @@
    - Botón Ingresar (sin sesión) o nombre + Salir (con sesión).
    - Interruptor de Modo Oscuro / Claro.
    - En celulares el menú se esconde detrás de un botón hamburguesa.
+   - Movimiento: una "píldora" verde se desliza bajo el enlace de la página
+     actual y sigue al puntero o al foco del teclado; al soltar, vuelve a la
+     página actual. Al bajar por la página el header gana una sombra.
    ========================================================================== */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
@@ -41,6 +44,75 @@ function Header() {
 
   // Botón hamburguesa: al cerrar el menú con Escape el foco vuelve aquí
   const menuButtonRef = useRef(null);
+  // Lista de enlaces: dentro de ella se dibuja la píldora (::before en Header.css)
+  const linksRef = useRef(null);
+  // ¿Ya bajamos un poco por la página? (para la sombra del header)
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  /**
+   * Mueve la píldora hasta "link" escribiendo su posición y tamaño en
+   * variables CSS de la lista. Si no hay enlace (o está oculto), la esconde.
+   * La animación la hace el CSS: una transición de resorte que siempre parte
+   * de donde está la píldora en ese momento, así se puede redirigir a mitad
+   * de camino sin saltos.
+   */
+  const movePillTo = useCallback((link) => {
+    const list = linksRef.current;
+    if (!list) return;
+
+    // offsetWidth = 0 significa que el menú está oculto (celular cerrado)
+    if (!link || link.offsetWidth === 0) {
+      list.dataset.pill = 'off';
+      return;
+    }
+
+    list.style.setProperty('--pill-x', `${link.offsetLeft}px`);
+    list.style.setProperty('--pill-y', `${link.offsetTop}px`);
+    list.style.setProperty('--pill-w', `${link.offsetWidth}px`);
+    list.style.setProperty('--pill-h', `${link.offsetHeight}px`);
+    list.dataset.pill = 'on';
+  }, []);
+
+  /** Devuelve la píldora al enlace de la página actual */
+  const movePillToActive = useCallback(() => {
+    movePillTo(linksRef.current?.querySelector('.header__link--active'));
+  }, [movePillTo]);
+
+  // Al cambiar de página, de sesión o al abrir el menú móvil: píldora a la
+  // página actual. useLayoutEffect mide antes de pintar (sin parpadeos).
+  useLayoutEffect(() => {
+    movePillToActive();
+
+    // La primera vez se coloca sin animar; desde el siguiente fotograma ya
+    // se desliza (si no, al cargar volaría desde la esquina)
+    const frameId = window.requestAnimationFrame(() => {
+      if (linksRef.current) linksRef.current.dataset.pillAnimate = 'on';
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [location.pathname, isMenuOpen, user, movePillToActive]);
+
+  // Si cambia el tamaño de la ventana, los enlaces se mueven: medimos otra vez
+  useEffect(() => {
+    window.addEventListener('resize', movePillToActive);
+    return () => window.removeEventListener('resize', movePillToActive);
+  }, [movePillToActive]);
+
+  // Sombra del header en cuanto la página baja 8px
+  useEffect(() => {
+    function handleScroll() {
+      setIsScrolled(window.scrollY > 8);
+    }
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  /** Puntero o foco sobre un enlace: la píldora va hacia él */
+  function handleLinkHover(event) {
+    const link = event.target.closest('.header__link');
+    if (link) movePillTo(link);
+  }
 
   // Cerramos el menú móvil cada vez que se cambia de página
   useEffect(() => {
@@ -80,7 +152,7 @@ function Header() {
   const firstName = user ? user.name.split(' ')[0] : '';
 
   return (
-    <header className="header">
+    <header className="header" data-scrolled={isScrolled}>
       <div className="container header__inner">
         <Logo />
 
@@ -99,7 +171,14 @@ function Header() {
 
         <div id="main-menu" className={`header__menu ${isMenuOpen ? 'header__menu--open' : ''}`}>
           <nav aria-label="Navegación principal">
-            <ul className="header__links">
+            <ul
+              ref={linksRef}
+              className="header__links"
+              onPointerOver={handleLinkHover}
+              onPointerLeave={movePillToActive}
+              onFocus={handleLinkHover}
+              onBlur={movePillToActive}
+            >
               {PUBLIC_LINKS.map((link) => (
                 <li key={link.to}>
                   <NavLink to={link.to} end className={getLinkClass}>

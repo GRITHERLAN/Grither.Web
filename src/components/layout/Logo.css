@@ -10,7 +10,7 @@
 
 /* Emblema suelto, sin caja alrededor */
 .logo__image {
-  width: 5.2rem;
+  width: 5.6rem;
   height: auto;
   flex-shrink: 0;
 }
@@ -20,12 +20,16 @@
   line-height: 1.1;
 }
 
-/* "Grither" en el color de acento */
+/* "Grither" con la letra del logo:
+   - Oscuro: blanco verdoso con halo neón (igual que el nombre del logo).
+   - Claro: verde neón con contorno oscuro (como la plantilla clara). */
 .logo__name {
-  font-size: 2.2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--logo-name-color);
+  text-shadow: var(--logo-name-shadow);
 }
 
 .logo__subtitle {
@@ -34,7 +38,7 @@
   color: var(--color-text-muted);
 }
 
-/* Emblema grande con brillo */
+/* Emblema grande con brillo verde suave */
 .logo-emblem {
   width: 100%;
   height: auto;
