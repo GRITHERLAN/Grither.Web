@@ -1,0 +1,282 @@
+/* ==========================================================================
+   CARRUSEL 3D DEL PORTAFOLIO
+   Usa solo los tokens del tema: se ve bien en modo oscuro y claro.
+   ========================================================================== */
+
+.portfolio-carousel {
+  position: relative;
+  display: grid;
+  gap: 1.4rem;
+  /* Las cards de los lados se recortan en el borde del contenedor
+     (sin crear scroll horizontal); en vertical no se recortan sombras */
+  overflow-x: clip;
+}
+
+/* ---------- Escenario: perspectiva 3D y arrastre ---------- */
+.portfolio-carousel__stage {
+  position: relative;
+  padding-block: 2rem 4rem;
+  perspective: 1200px;
+  touch-action: pan-y; /* el scroll vertical sigue funcionando en celular */
+  user-select: none;
+  cursor: grab;
+}
+
+.portfolio-carousel__stage[data-dragging] {
+  cursor: grabbing;
+}
+
+.portfolio-carousel__stage img {
+  -webkit-user-drag: none;
+}
+
+/* Brillo verde en el "piso", debajo de la card activa.
+   Degradado suave en vez de filter: blur() (el blur es caro de pintar) */
+.portfolio-carousel__floor {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: min(68rem, 90%);
+  height: 7rem;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--color-accent) 16%, transparent),
+    color-mix(in srgb, var(--color-accent) 6%, transparent) 55%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Todas las cards en la misma celda: el alto lo da la más alta y todas
+   quedan iguales */
+.portfolio-carousel__track {
+  display: grid;
+  grid-template-columns: var(--carousel-card-w);
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+/* Cada card va en su propia capa de GPU (will-change): moverla o girarla no
+   obliga a volver a pintar su contenido */
+.portfolio-carousel__slide {
+  position: relative;
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  will-change: transform;
+  cursor: pointer;
+  transition: transform 700ms var(--ease-spring), opacity 500ms ease;
+}
+
+/* Las que están fuera de vista no ocupan capa ni reciben clicks */
+.portfolio-carousel__slide[data-hidden] {
+  opacity: 0;
+  pointer-events: none;
+  will-change: auto;
+}
+
+.portfolio-carousel__stage[data-dragging] .portfolio-carousel__slide,
+.portfolio-carousel__stage[data-dragging] .portfolio-carousel__slide::after {
+  transition: none;
+}
+
+.portfolio-carousel__slide[data-active] {
+  cursor: inherit;
+}
+
+/* Velo que oscurece (o aclara, en modo claro) las cards de los lados.
+   Solo cambia su opacity, que también la resuelve la GPU */
+.portfolio-carousel__slide::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg);
+  opacity: var(--carousel-shade, 0);
+  pointer-events: none;
+  transition: opacity 500ms ease;
+}
+
+.portfolio-carousel__slide:not([data-hidden])::after {
+  will-change: opacity;
+}
+
+.portfolio-carousel__card {
+  height: 100%;
+}
+
+.portfolio-carousel__card[inert] {
+  pointer-events: none;
+}
+
+/* ---------- La card del sitio dentro del carrusel ---------- */
+/* Borde y sombra cambian sin transición: animar box-shadow repinta la card
+   en cada fotograma. El movimiento lo dan el giro y el velo. */
+.portfolio-carousel .portfolio-card {
+  box-shadow: 0 2rem 4rem -1.4rem rgba(0, 0, 0, 0.6);
+  transition: none;
+}
+
+.portfolio-carousel .portfolio-card:hover {
+  transform: none;
+}
+
+/* La activa se resalta con el borde y el brillo de acento */
+.portfolio-carousel__slide[data-active] .portfolio-card {
+  border-color: var(--color-accent-border);
+  box-shadow:
+    0 0 4.4rem -1rem color-mix(in srgb, var(--color-accent) 45%, transparent),
+    0 2.4rem 4.8rem -1.6rem rgba(0, 0, 0, 0.6);
+}
+
+/* Descripción a 4 líneas: las cards quedan compactas y parejas */
+.portfolio-carousel .portfolio-card__text {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---------- Dock de controles ---------- */
+.portfolio-carousel__bottom {
+  position: relative;
+  z-index: 12;
+  display: grid;
+  justify-items: center;
+  gap: 1.4rem;
+}
+
+/* Fondo sólido en vez de backdrop-filter: el desenfoque de fondo se
+   recalcula en cada fotograma y es de lo más caro en celular */
+.portfolio-carousel__dock {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 0.5rem 0.7rem 0.5rem 1.8rem;
+  border: 0.1rem solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* Barra de tiempo de la reproducción automática (crece con scaleX) */
+.portfolio-carousel__progress {
+  position: absolute;
+  left: 2.4rem;
+  right: 2.4rem;
+  bottom: -0.1rem;
+  height: 0.2rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-accent);
+  transform-origin: left center;
+  animation: carousel-progress var(--carousel-autoplay, 6000ms) linear both;
+}
+
+@keyframes carousel-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.portfolio-carousel__count {
+  display: flex;
+  gap: 0.6rem;
+  padding-right: 1.4rem;
+  border-right: 0.1rem solid var(--color-border);
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-soft);
+}
+
+.portfolio-carousel__count b {
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.portfolio-carousel__buttons {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.portfolio-carousel__buttons button {
+  display: grid;
+  place-items: center;
+  width: 4.4rem;
+  height: 4.4rem;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+  touch-action: manipulation; /* sin espera de doble toque en celular */
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.portfolio-carousel__buttons button:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.portfolio-carousel__buttons button:hover:not(:disabled) {
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.portfolio-carousel__buttons button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.portfolio-carousel__buttons svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.portfolio-carousel__buttons .portfolio-carousel__play {
+  background-color: var(--color-accent-soft);
+}
+
+.portfolio-carousel__buttons .portfolio-carousel__play svg {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.portfolio-carousel__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 1.2rem;
+  color: var(--color-text-soft);
+}
+
+.portfolio-carousel__hint svg {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+@media (max-width: 640px) {
+  .portfolio-carousel__stage {
+    perspective: 900px;
+  }
+
+  /* El arrastre ya se explica solo en celular */
+  .portfolio-carousel__hint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-carousel__slide,
+  .portfolio-carousel__slide::after {
+    transition: none;
+  }
+
+  /* Sin barra que crece: solo se ve llena mientras está en reproducción */
+  .portfolio-carousel__progress {
+    animation: none;
+  }
+}

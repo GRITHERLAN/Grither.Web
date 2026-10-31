@@ -66,13 +66,6 @@
   color: var(--color-text-muted);
 }
 
-/* ---------- Cuadrícula: 3 columnas en escritorio, bajan a 1 en celular ---------- */
-.portfolio-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(30rem, 100%), 1fr));
-  gap: 2rem;
-}
-
 .portfolio-empty {
   margin-top: 6rem;
 }

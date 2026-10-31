@@ -7,14 +7,14 @@
           - Por categoría ("Todos" + una por cada categoría, con contador).
           - Por tipo de proyecto (Todos / Reales / De prueba).
         Y el texto "Mostrando X de Y".
-     3. Cuadrícula de cards (se administran en Administrador > Portafolio).
+     3. Carrusel 3D de cards (se administran en Administrador > Portafolio).
      4. Llamado a la acción "¿Tu proyecto puede ser el siguiente?".
    ========================================================================== */
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import LoadingState from '../components/ui/LoadingState.jsx';
-import PortfolioCard from '../components/portfolio/PortfolioCard.jsx';
+import PortfolioCarousel from '../components/portfolio/PortfolioCarousel.jsx';
 import { useAsyncData } from '../hooks/useAsyncData.js';
 import { PORTFOLIO_TYPES, getPortfolio } from '../services/portfolioService.js';
 import './PortfolioPage.css';
@@ -171,22 +171,16 @@ function PortfolioGallery({ items }) {
         </p>
       </div>
 
-      {/* ---------- 3. Cuadrícula ---------- */}
+      {/* ---------- 3. Carrusel ---------- */}
       {visibleItems.length === 0 ? (
         <div className="empty-state">
           <p className="empty-state__title">No hay proyectos con estos filtros</p>
           <p>Prueba con otra categoría o tipo de proyecto.</p>
         </div>
       ) : (
-        // key con los filtros: al cambiar de filtro la cuadrícula se crea de
-        // nuevo y sus tarjetas vuelven a entrar en cascada (usePublicMotion)
-        <ul key={`${category}-${type}`} className="portfolio-grid">
-          {visibleItems.map((item, index) => (
-            <li key={item.id}>
-              <PortfolioCard item={item} index={index} />
-            </li>
-          ))}
-        </ul>
+        // key con los filtros: al cambiar de filtro el carrusel se crea de
+        // nuevo, vuelve al primer proyecto y entra otra vez (usePublicMotion)
+        <PortfolioCarousel key={`${category}-${type}`} items={visibleItems} />
       )}
     </section>
   );

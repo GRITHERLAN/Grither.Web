@@ -26,9 +26,14 @@ const REVEAL_SELECTOR = [
   '.section__header',
   '.indicator-grid__item',
   '.about-cta',
+  '.portfolio-carousel',
   '.portfolio-cta',
   '.empty-state',
 ].join(', ');
+
+/* Las cards del carrusel no aparecen una por una: entran y salen por los
+   lados con su propio movimiento 3D, así que entra el carrusel completo */
+const NO_REVEAL_SELECTOR = '.portfolio-carousel__track';
 
 /* Bloques del inicio de cada página: ya entran con su propia animación en
    CSS (motion.css), así que sus hijos no se ocultan otra vez */
@@ -98,7 +103,7 @@ export function usePublicMotion() {
         targets.forEach((element) => {
           // Los que ya aparecieron no se vuelven a esconder
           if (element.dataset.reveal === 'shown') return;
-          if (element.closest(HERO_SELECTOR)) return;
+          if (element.closest(HERO_SELECTOR) || element.closest(NO_REVEAL_SELECTOR)) return;
 
           element.dataset.reveal = 'hidden';
           revealObserver.observe(element);
