@@ -9,7 +9,7 @@
      - Se mueve arrastrando (ratón o dedo), con las flechas del teclado o
        con el dock de abajo (contador, anterior, reproducir y siguiente).
      - Al tocar una card vecina, esa pasa al centro.
-     - Reproducción automática: avanza al darle play y luego cada 6 s; una
+     - Reproducción automática: avanza al darle play y luego cada 3 s; una
        barra en el dock muestra cuánto falta. Se pausa al arrastrar o con la
        pestaña oculta.
 
@@ -34,7 +34,7 @@ const SPACING_RATIO = 0.74;
 /* Cards visibles a cada lado de la activa */
 const SIDE_CARDS = 2;
 /* Tiempo entre cambios con la reproducción automática */
-const AUTOPLAY_MS = 6000;
+const AUTOPLAY_MS = 3000;
 
 /* La card no se vuelve a pintar si no cambian sus datos */
 const MemoCard = memo(PortfolioCard);
