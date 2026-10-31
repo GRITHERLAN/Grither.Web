@@ -274,7 +274,7 @@ function PortfolioCarousel({ items }) {
                 {/* Las vecinas no reciben foco ni clicks propios: un click
                     sobre ellas lo recibe el <li> y la trae al centro */}
                 <div className="portfolio-carousel__card" inert={isActive ? undefined : ''}>
-                  <MemoCard item={items[itemIndex]} index={itemIndex} />
+                  <MemoCard item={items[itemIndex]} index={itemIndex} isActive={isActive} />
                 </div>
               </li>
             );

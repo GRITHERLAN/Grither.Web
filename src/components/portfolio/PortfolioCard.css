@@ -146,9 +146,19 @@
   line-height: 1.25;
 }
 
-.portfolio-card__text {
+.portfolio-card__description {
   flex: 1;
+}
+
+.portfolio-card__text {
   color: var(--color-text-muted);
+}
+
+/* Botón "Descripción" y "Cerrar": ocultos salvo en el carrusel en celular
+   (ver PortfolioCarousel.css) */
+.portfolio-card__desc-toggle,
+.portfolio-card__desc-close {
+  display: none;
 }
 
 .portfolio-card__stack .tag {

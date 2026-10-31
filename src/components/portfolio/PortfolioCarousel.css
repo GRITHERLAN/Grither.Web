@@ -267,6 +267,95 @@
   .portfolio-carousel__hint {
     display: none;
   }
+
+  /* ---------- Descripción plegada (cards más cortas) ---------- */
+  .portfolio-carousel .portfolio-card {
+    position: relative;
+  }
+
+  /* Botón "Descripción" bajo el título, con el estilo de las etiquetas */
+  .portfolio-carousel .portfolio-card__desc-toggle {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.6rem;
+    min-height: 4rem; /* área táctil cómoda */
+    padding: 0 1.4rem;
+    border: 0.1rem solid var(--color-accent-border);
+    border-radius: var(--radius-full);
+    background-color: var(--color-accent-soft);
+    color: var(--color-accent);
+    font: inherit;
+    font-size: 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .portfolio-carousel .portfolio-card__desc-toggle svg {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  /* Todas las cards miden lo que la más alta: las etiquetas y "Ver web"
+     bajan al fondo, así el espacio libre queda arriba y no como hueco */
+  .portfolio-carousel .portfolio-card__stack {
+    margin-top: auto;
+  }
+
+  /* El texto no ocupa lugar en la card... */
+  .portfolio-carousel .portfolio-card__description {
+    display: none;
+  }
+
+  /* ...y al abrirlo aparece en un panel encima de toda la card: la card no
+     cambia de alto */
+  .portfolio-carousel .portfolio-card__description[data-open] {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2.4rem 2.2rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: inherit;
+    background-color: var(--color-surface);
+    animation: carousel-description-in 300ms var(--ease-spring) both;
+  }
+
+  .portfolio-carousel .portfolio-card__description[data-open] .portfolio-card__text {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+    font-size: 1.6rem;
+    line-height: 1.7;
+  }
+
+  .portfolio-carousel .portfolio-card__desc-close {
+    display: inline-flex;
+    align-self: flex-start;
+    gap: 0.6rem;
+    margin-top: auto;
+  }
+
+  .portfolio-carousel .portfolio-card__desc-close svg {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+}
+
+/* Solo opacity y translate: se anima en la GPU */
+@keyframes carousel-description-in {
+  from {
+    opacity: 0;
+    translate: 0 1.2rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -276,7 +365,8 @@
   }
 
   /* Sin barra que crece: solo se ve llena mientras está en reproducción */
-  .portfolio-carousel__progress {
+  .portfolio-carousel__progress,
+  .portfolio-carousel .portfolio-card__description[data-open] {
     animation: none;
   }
 }

@@ -9,8 +9,13 @@
      - Título, descripción y el stack como etiquetas.
      - Enlace "Ver web" (abre en otra pestaña).
    "children" permite agregar botones extra abajo (Editar / Borrar en el admin).
+
+   Botón "Descripción": solo se ve en el carrusel en celular (lo decide el
+   CSS). Ahí la descripción se oculta para que la card no sea tan alta, y
+   este botón la abre en un panel encima de la card.
    ========================================================================== */
 
+import { useEffect, useId, useRef, useState } from 'react';
 import Icon from '../ui/Icon.jsx';
 import { PORTFOLIO_TYPES, PORTFOLIO_TYPE_LABELS } from '../../services/portfolioService.js';
 import { toSafeHref } from '../../utils/validators.js';
@@ -23,10 +28,32 @@ const MOCKUP_VARIANTS = 4;
  * @param {object} item - Portafolio ({ title, description, category, stack, url, type, imageUrl }).
  * @param {number} index - Posición en la lista (elige el color del boceto).
  * @param {string} headingLevel - Etiqueta del título ('h2' o 'h3') según la página.
+ * @param {boolean} isActive - En el carrusel: false cuando la card sale del centro
+ *   (cierra el panel de descripción).
  */
-function PortfolioCard({ item, index = 0, headingLevel = 'h3', children }) {
+function PortfolioCard({ item, index = 0, headingLevel = 'h3', isActive, children }) {
   const Heading = headingLevel;
   const isReal = item.type === PORTFOLIO_TYPES.REAL;
+  const descriptionId = useId();
+  const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+  const openButtonRef = useRef(null);
+  const closeButtonRef = useRef(null);
+
+  // Si la card deja de estar al centro, el panel se cierra
+  useEffect(() => {
+    if (isActive === false) setIsDescriptionOpen(false);
+  }, [isActive]);
+
+  function openDescription() {
+    setIsDescriptionOpen(true);
+    // El foco pasa a "Cerrar" (después de que el panel se muestre)
+    requestAnimationFrame(() => closeButtonRef.current?.focus());
+  }
+
+  function closeDescription() {
+    setIsDescriptionOpen(false);
+    openButtonRef.current?.focus();
+  }
 
   return (
     <article className="card portfolio-card">
@@ -69,7 +96,36 @@ function PortfolioCard({ item, index = 0, headingLevel = 'h3', children }) {
         </div>
 
         <Heading className="portfolio-card__title">{item.title}</Heading>
-        <p className="portfolio-card__text">{item.description}</p>
+
+        <button
+          ref={openButtonRef}
+          type="button"
+          className="portfolio-card__desc-toggle"
+          aria-expanded={isDescriptionOpen}
+          aria-controls={descriptionId}
+          onClick={openDescription}
+        >
+          Descripción
+          <Icon name="chevronDown" />
+        </button>
+
+        <div
+          id={descriptionId}
+          className="portfolio-card__description"
+          data-open={isDescriptionOpen || undefined}
+          onKeyDown={(event) => event.key === 'Escape' && closeDescription()}
+        >
+          <p className="portfolio-card__text">{item.description}</p>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className="btn btn--outline btn--sm portfolio-card__desc-close"
+            onClick={closeDescription}
+          >
+            <Icon name="close" />
+            Cerrar
+          </button>
+        </div>
 
         <ul className="tag-list portfolio-card__stack" aria-label="Stack usado">
           {item.stack.map((tech) => (
