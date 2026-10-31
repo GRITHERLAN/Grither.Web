@@ -5,7 +5,6 @@
      1. Héroe con píldora "PORTAFOLIO", título y descripción.
      2. Filtros tipo chip:
           - Por categoría ("Todos" + una por cada categoría, con contador).
-          - Por tipo de proyecto (Todos / Reales / De prueba).
         Y el texto "Mostrando X de Y".
      3. Carrusel 3D de cards (se administran en Administrador > Portafolio).
      4. Llamado a la acción "¿Tu proyecto puede ser el siguiente?".
@@ -16,18 +15,11 @@ import { Link } from 'react-router-dom';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import PortfolioCarousel from '../components/portfolio/PortfolioCarousel.jsx';
 import { useAsyncData } from '../hooks/useAsyncData.js';
-import { PORTFOLIO_TYPES, getPortfolio } from '../services/portfolioService.js';
+import { getPortfolio } from '../services/portfolioService.js';
 import './PortfolioPage.css';
 
 /* Valor del chip que muestra todo */
 const ALL = 'todos';
-
-/* Chips del filtro por tipo */
-const TYPE_FILTERS = [
-  { value: ALL, label: 'Todos los tipos' },
-  { value: PORTFOLIO_TYPES.REAL, label: 'Reales' },
-  { value: PORTFOLIO_TYPES.DEMO, label: 'De prueba' },
-];
 
 function PortfolioPage() {
   const { data: items, error, reload } = useAsyncData(() => getPortfolio(), []);
@@ -72,7 +64,6 @@ function PortfolioPage() {
  */
 function PortfolioGallery({ items }) {
   const [category, setCategory] = useState(ALL);
-  const [type, setType] = useState(ALL);
 
   // Categorías en el orden en que aparecen, con cuántos trabajos tiene cada una
   const categories = [];
@@ -85,15 +76,7 @@ function PortfolioGallery({ items }) {
     }
   });
 
-  // Se aplican los dos filtros a la vez
-  const visibleItems = items.filter(
-    (item) => (category === ALL || item.category === category) && (type === ALL || item.type === type)
-  );
-
-  /** Cuántos trabajos hay de un tipo (para el contador del chip) */
-  function countType(value) {
-    return value === ALL ? items.length : items.filter((item) => item.type === value).length;
-  }
+  const visibleItems = items.filter((item) => category === ALL || item.category === category);
 
   /** Pinta un chip de filtro (botón con estado "presionado") */
   function renderChip({ key, label, count, isActive, onSelect }) {
@@ -151,18 +134,6 @@ function PortfolioGallery({ items }) {
               })
             )}
           </ul>
-
-          <ul className="portfolio-filters__list" aria-label="Filtrar por tipo de proyecto">
-            {TYPE_FILTERS.map((filter) =>
-              renderChip({
-                key: filter.value,
-                label: filter.label,
-                count: countType(filter.value),
-                isActive: type === filter.value,
-                onSelect: () => setType(filter.value),
-              })
-            )}
-          </ul>
         </div>
 
         {/* aria-live: los lectores de pantalla anuncian el cambio al filtrar */}
@@ -174,13 +145,13 @@ function PortfolioGallery({ items }) {
       {/* ---------- 3. Carrusel ---------- */}
       {visibleItems.length === 0 ? (
         <div className="empty-state">
-          <p className="empty-state__title">No hay proyectos con estos filtros</p>
-          <p>Prueba con otra categoría o tipo de proyecto.</p>
+          <p className="empty-state__title">No hay proyectos con este filtro</p>
+          <p>Prueba con otra categoría.</p>
         </div>
       ) : (
-        // key con los filtros: al cambiar de filtro el carrusel se crea de
+        // key con el filtro: al cambiar de filtro el carrusel se crea de
         // nuevo, vuelve al primer proyecto y entra otra vez (usePublicMotion)
-        <PortfolioCarousel key={`${category}-${type}`} items={visibleItems} />
+        <PortfolioCarousel key={category} items={visibleItems} />
       )}
     </section>
   );
