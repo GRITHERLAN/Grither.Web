@@ -146,8 +146,16 @@
   line-height: 1.25;
 }
 
+/* Descripción + stack: el texto arriba y las etiquetas al fondo */
 .portfolio-card__description {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
   flex: 1;
+}
+
+.portfolio-card__description .portfolio-card__stack {
+  margin-top: auto;
 }
 
 .portfolio-card__text {

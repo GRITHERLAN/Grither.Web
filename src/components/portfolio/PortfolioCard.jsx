@@ -11,8 +11,8 @@
    "children" permite agregar botones extra abajo (Editar / Borrar en el admin).
 
    Botón "Descripción": solo se ve en el carrusel en celular (lo decide el
-   CSS). Ahí la descripción se oculta para que la card no sea tan alta, y
-   este botón la abre en un panel encima de la card.
+   CSS). Ahí la descripción y el stack se ocultan para que la card no sea
+   tan alta, y este botón los abre en un panel encima de la card.
    ========================================================================== */
 
 import { useEffect, useId, useRef, useState } from 'react';
@@ -116,6 +116,15 @@ function PortfolioCard({ item, index = 0, headingLevel = 'h3', isActive, childre
           onKeyDown={(event) => event.key === 'Escape' && closeDescription()}
         >
           <p className="portfolio-card__text">{item.description}</p>
+
+          <ul className="tag-list portfolio-card__stack" aria-label="Stack usado">
+            {item.stack.map((tech) => (
+              <li key={tech} className="tag text-mono">
+                {tech}
+              </li>
+            ))}
+          </ul>
+
           <button
             ref={closeButtonRef}
             type="button"
@@ -126,14 +135,6 @@ function PortfolioCard({ item, index = 0, headingLevel = 'h3', isActive, childre
             Cerrar
           </button>
         </div>
-
-        <ul className="tag-list portfolio-card__stack" aria-label="Stack usado">
-          {item.stack.map((tech) => (
-            <li key={tech} className="tag text-mono">
-              {tech}
-            </li>
-          ))}
-        </ul>
 
         <a
           href={toSafeHref(item.url)}

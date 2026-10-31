@@ -297,13 +297,13 @@
     height: 1.6rem;
   }
 
-  /* Todas las cards miden lo que la más alta: las etiquetas y "Ver web"
-     bajan al fondo, así el espacio libre queda arriba y no como hueco */
-  .portfolio-carousel .portfolio-card__stack {
+  /* Todas las cards miden lo que la más alta: "Ver web" baja al fondo,
+     así el espacio libre no queda como hueco */
+  .portfolio-carousel .portfolio-card__link {
     margin-top: auto;
   }
 
-  /* El texto no ocupa lugar en la card... */
+  /* El texto y el stack no ocupan lugar en la card... */
   .portfolio-carousel .portfolio-card__description {
     display: none;
   }
@@ -331,6 +331,11 @@
     overflow: visible;
     font-size: 1.6rem;
     line-height: 1.7;
+  }
+
+  /* En el panel las etiquetas van justo bajo el texto */
+  .portfolio-carousel .portfolio-card__description[data-open] .portfolio-card__stack {
+    margin-top: 0;
   }
 
   .portfolio-carousel .portfolio-card__desc-close {
