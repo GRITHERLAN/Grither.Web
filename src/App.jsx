@@ -36,6 +36,7 @@ import PortfolioPage from './pages/PortfolioPage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
 import LoadingState from './components/ui/LoadingState.jsx';
+import IntroVideo from './components/ui/IntroVideo.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import PrivacyPage from './pages/legal/PrivacyPage.jsx';
 import TermsPage from './pages/legal/TermsPage.jsx';
@@ -77,6 +78,8 @@ function App() {
       <ToastProvider>
         <AuthProvider>
           <RouteMeta />
+          {/* Video de entrada: solo al cargar o recargar la página */}
+          <IntroVideo />
           {/* Mientras se descarga una pantalla lazy se muestra el indicador de carga */}
           <Suspense fallback={<LoadingState label="Cargando..." />}>
           <Routes>

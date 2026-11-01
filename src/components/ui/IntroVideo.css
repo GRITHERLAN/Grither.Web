@@ -1,0 +1,70 @@
+/* ==========================================================================
+   PANTALLA DE CARGA CON VIDEO
+   ========================================================================== */
+
+/* Capa a pantalla completa por encima de todo (header, toasts, WhatsApp...).
+   Fondo negro puro: el mismo del video, para que no se note el borde */
+.intro-video {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background-color: #000000;
+  opacity: 1;
+  transition: opacity 500ms ease;
+}
+
+/* Salida: solo opacidad, que la GPU anima sin repintar */
+.intro-video--leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-video__media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.intro-video__skip {
+  position: absolute;
+  right: 2.4rem;
+  bottom: 2.4rem;
+  padding: 0.8rem 1.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  font: inherit;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.intro-video__skip:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Pantallas verticales (celular): el video es horizontal (16:9). Se muestra
+   centrado y un poco más ancho que la pantalla para que el logo se vea grande;
+   solo se recortan los lados, que en el video son negros */
+@media (orientation: portrait) {
+  .intro-video {
+    overflow: hidden;
+  }
+
+  .intro-video__media {
+    width: 160%;
+    max-width: none;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .intro-video__skip {
+    right: auto;
+    left: 50%;
+    bottom: calc(3.2rem + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+  }
+}
