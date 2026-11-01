@@ -9,9 +9,14 @@
    ========================================================================== */
 
 import { useEffect, useState } from 'react';
+import { useTheme } from '../../context/ThemeContext.jsx';
 import './IntroVideo.css';
 
-const VIDEO_SRC = '/video/Grither_animacion_3s.mp4';
+/* Un video por tema: se usa el del tema activo al cargar la página */
+const VIDEO_SRC = {
+  dark: '/video/Grither_animacion_3s.mp4',
+  light: '/video/Grither_animacion_claro_3s.mp4',
+};
 
 /* Tiempo máximo (ms) antes de cerrar aunque el video no haya terminado */
 const MAX_DURATION = 6000;
@@ -24,6 +29,9 @@ const prefersReducedMotion =
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function IntroVideo() {
+  const { isDark } = useTheme();
+  // Se fija al montar: si cambian el tema durante la intro, el video no se corta
+  const [isDarkIntro] = useState(isDark);
   const [isVisible, setIsVisible] = useState(!prefersReducedMotion);
   const [isLeaving, setIsLeaving] = useState(false);
 
@@ -59,10 +67,13 @@ function IntroVideo() {
   if (!isVisible) return null;
 
   return (
-    <div className={`intro-video ${isLeaving ? 'intro-video--leaving' : ''}`} aria-hidden="true">
+    <div
+      className={`intro-video ${isDarkIntro ? '' : 'intro-video--light'} ${isLeaving ? 'intro-video--leaving' : ''}`}
+      aria-hidden="true"
+    >
       <video
         className="intro-video__media"
-        src={VIDEO_SRC}
+        src={isDarkIntro ? VIDEO_SRC.dark : VIDEO_SRC.light}
         autoPlay
         muted
         playsInline

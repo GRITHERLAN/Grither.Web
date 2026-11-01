@@ -229,6 +229,7 @@ function Select({ id, name, value, options, onChange, disabled = false }) {
           role="listbox"
           className={`select__list ${position?.opensUp ? 'select__list--up' : ''}`}
           style={listStyle}
+          data-lenis-prevent // scroll propio: la rueda mueve la lista, no la página
         >
           {options.map((option, index) => {
             const isSelected = index === selectedIndex;

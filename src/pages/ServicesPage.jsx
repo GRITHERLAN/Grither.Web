@@ -16,6 +16,7 @@ import { useAsyncData } from '../hooks/useAsyncData.js';
 import { getServices, getPlans } from '../services/offerService.js';
 import { formatCOP } from '../utils/format.js';
 import { toSafeHref } from '../utils/validators.js';
+import { scrollToElement } from '../lib/smoothScroll.js';
 import './ServicesPage.css';
 
 function ServicesPage() {
@@ -34,7 +35,7 @@ function ServicesPage() {
   /** Baja suavemente hasta la sección de planes */
   function handleScrollToPlans(event) {
     event.preventDefault();
-    plansRef.current?.scrollIntoView({ behavior: 'smooth' });
+    scrollToElement(plansRef.current);
   }
 
   return (

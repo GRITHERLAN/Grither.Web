@@ -4,7 +4,7 @@
    Se usa en PublicLayout y en la página de Ingresar. El panel administrativo
    NO lo usa, así que allí no hay animaciones de scroll ni brillos.
 
-   Hace tres cosas:
+   Hace cuatro cosas:
      1. Marca <html data-motion="public">: los estilos de styles/motion.css
         solo se aplican con esa marca.
      2. Aparición al hacer scroll: tarjetas y bloques empiezan ocultos
@@ -12,6 +12,7 @@
         los hace subir y aparecer. Si entran varios a la vez, salen en cascada.
      3. Foco neón: guarda la posición del puntero dentro de la tarjeta en las
         variables --spot-x / --spot-y; el CSS dibuja un brillo verde ahí.
+     4. Scroll suave con la rueda del ratón (lib/smoothScroll.js).
 
    Accesibilidad: con "reducir movimiento" activado en el sistema no se
    oculta nada (todo se ve desde el principio) y no hay brillo que persiga
@@ -19,6 +20,7 @@
    ========================================================================== */
 
 import { useLayoutEffect } from 'react';
+import { startSmoothScroll, stopSmoothScroll } from '../lib/smoothScroll.js';
 
 /* Elementos que aparecen al hacer scroll */
 const REVEAL_SELECTOR = [
@@ -152,9 +154,13 @@ export function usePublicMotion() {
       document.addEventListener('pointermove', handlePointerMove, { passive: true });
     }
 
+    /* ---------- 3. Scroll suave ---------- */
+    startSmoothScroll();
+
     /* ---------- Limpieza al salir del sitio público ---------- */
     return () => {
       delete html.dataset.motion;
+      stopSmoothScroll();
       revealObserver?.disconnect();
       mutationObserver?.disconnect();
       document.removeEventListener('pointermove', handlePointerMove);

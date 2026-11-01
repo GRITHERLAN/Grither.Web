@@ -113,6 +113,7 @@ function PortfolioCard({ item, index = 0, headingLevel = 'h3', isActive, childre
           id={descriptionId}
           className="portfolio-card__description"
           data-open={isDescriptionOpen || undefined}
+          data-lenis-prevent // abierto tiene scroll propio: la rueda lo mueve a él, no a la página
           onKeyDown={(event) => event.key === 'Escape' && closeDescription()}
         >
           <p className="portfolio-card__text">{item.description}</p>

@@ -15,6 +15,11 @@
   transition: opacity 500ms ease;
 }
 
+/* Modo claro: fondo blanco, el mismo del video claro */
+.intro-video--light {
+  background-color: #ffffff;
+}
+
 /* Salida: solo opacidad, que la GPU anima sin repintar */
 .intro-video--leaving {
   opacity: 0;
@@ -46,9 +51,19 @@
   background-color: rgba(0, 0, 0, 0.7);
 }
 
+.intro-video--light .intro-video__skip {
+  border-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.6);
+  color: #030a04;
+}
+
+.intro-video--light .intro-video__skip:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
 /* Pantallas verticales (celular): el video es horizontal (16:9). Se muestra
    centrado y un poco más ancho que la pantalla para que el logo se vea grande;
-   solo se recortan los lados, que en el video son negros */
+   solo se recortan los lados, que en ambos videos son del color del fondo */
 @media (orientation: portrait) {
   .intro-video {
     overflow: hidden;

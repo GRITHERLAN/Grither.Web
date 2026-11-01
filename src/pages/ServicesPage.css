@@ -2,6 +2,12 @@
    PÁGINA SERVICIOS
    ========================================================================== */
 
+/* "Ver planes" baja hasta aquí: el margen deja la sección debajo del header
+   sticky en vez de quedar tapada por él */
+#planes {
+  scroll-margin-top: var(--header-height);
+}
+
 /* ---------- Héroe centrado ---------- */
 .services-hero {
   display: grid;

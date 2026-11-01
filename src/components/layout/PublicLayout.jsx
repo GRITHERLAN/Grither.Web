@@ -13,6 +13,7 @@ import Footer from './Footer.jsx';
 import WhatsAppButton from './WhatsAppButton.jsx';
 import CookieBanner from './CookieBanner.jsx';
 import { usePublicMotion } from '../../hooks/usePublicMotion.js';
+import { scrollToTop } from '../../lib/smoothScroll.js';
 
 function PublicLayout() {
   const { pathname } = useLocation();
@@ -20,9 +21,10 @@ function PublicLayout() {
   // Aparición al hacer scroll, foco neón en tarjetas y demás animaciones
   usePublicMotion();
 
-  // Al cambiar de página volvemos al inicio de la pantalla
+  // Al cambiar de página volvemos al inicio de la pantalla (cortando la
+  // inercia del scroll suave, si no la página nueva seguiría bajando)
   useEffect(() => {
-    window.scrollTo(0, 0);
+    scrollToTop();
   }, [pathname]);
 
   return (
