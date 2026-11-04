@@ -182,6 +182,6 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
 
   return {
-    plugins: [react(), cspPlugin(env.VITE_SUPABASE_URL, env.API_URL), seoPlugin(env.VITE_SITE_URL)],
+    plugins: [react(), cspPlugin(env.SUPABASE_URL, env.API_URL), seoPlugin(env.SITE_URL)],
   };
 });

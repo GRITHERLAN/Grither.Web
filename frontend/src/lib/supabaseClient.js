@@ -7,21 +7,21 @@
      - Storage para las imágenes y videos.
 
    Las credenciales salen de las variables de entorno (.env.local):
-     VITE_SUPABASE_URL              -> dirección del proyecto
-     VITE_SUPABASE_PUBLISHABLE_KEY  -> llave PÚBLICA (puede ir en el navegador;
+     SUPABASE_URL              -> dirección del proyecto
+     SUPABASE_PUBLISHABLE_KEY  -> llave PÚBLICA (puede ir en el navegador;
                                        lo que protege los datos es la RLS)
    La llave secreta (service_role) NUNCA va en el frontend.
    ========================================================================== */
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_URL = import.meta.env.SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.SUPABASE_PUBLISHABLE_KEY;
 
 // Si faltan las variables, avisamos claro en la consola del desarrollador
 if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   console.error(
-    'Faltan VITE_SUPABASE_URL o VITE_SUPABASE_PUBLISHABLE_KEY. Copia .env.example como .env.local y complétalo.'
+    'Faltan SUPABASE_URL o SUPABASE_PUBLISHABLE_KEY. Copia .env.example como .env.local y complétalo.'
   );
 }
 

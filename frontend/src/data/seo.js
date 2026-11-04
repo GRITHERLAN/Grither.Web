@@ -10,7 +10,7 @@
    Por eso NO usa import.meta.env ni nada propio del navegador.
    ========================================================================== */
 
-/* Dominio de producción por defecto (se puede sobreescribir con VITE_SITE_URL) */
+/* Dominio de producción por defecto (se puede sobreescribir con SITE_URL) */
 export const DEFAULT_SITE_URL = 'https://www.gritherweb.com';
 
 export const SITE_NAME = 'Grither';

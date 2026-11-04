@@ -16,8 +16,8 @@
 import { useEffect } from 'react';
 import { OG_IMAGE_PATH, PRIVATE_META, SITE_NAME, buildUrl, getPageSeo, normalizeSiteUrl } from '../data/seo.js';
 
-/* Dominio del sitio (se define en .env con VITE_SITE_URL) */
-const SITE_URL = normalizeSiteUrl(import.meta.env.VITE_SITE_URL);
+/* Dominio del sitio (se define en .env con SITE_URL) */
+const SITE_URL = normalizeSiteUrl(import.meta.env.SITE_URL);
 
 /**
  * Busca una etiqueta del <head> con ese selector; si no existe la crea.
