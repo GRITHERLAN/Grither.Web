@@ -5,19 +5,25 @@
    Solo las edita el Administrador. Igual que projectService, toda escritura
    se VUELVE a validar aquí ("BackEnd") aunque el formulario ya lo haya hecho.
 
-   Fuente de datos: Supabase (tablas services y plans). Para guardar se usan
-   las funciones SQL save_services y save_plans, que reemplazan la lista
-   completa en una sola transacción (solo el Administrador, por la RLS).
+   Fuente de datos: la API del backend (GET/PUT /api/services y /api/plans).
+   El backend vuelve a validar todo y guarda la lista completa; aquí se
+   valida antes solo para mostrar los errores al instante.
 
    Los errores se devuelven en un objeto plano con estas llaves:
      "list"          -> error general de la lista (ej. "máximo 6 cards")
      "<indice>.campo" -> error de un campo de una card (ej. "0.title")
    ========================================================================== */
 
-import { supabase } from '../lib/supabaseClient.js';
 import { ValidationError } from './errors.js';
-import { toAppError } from './supabaseErrors.js';
-import { MAX_LENGTH, isTooLong, isValidUrl, normalizeText, tooLongMessage } from '../utils/validators.js';
+import { apiRequest } from './apiClient.js';
+import {
+  MAX_LENGTH,
+  isTooLong,
+  isValidUrl,
+  normalizeText,
+  tooLongMessage,
+  validateStringList,
+} from '../utils/validators.js';
 
 /* Límites de cards por bloque */
 export const MIN_CARDS = 1;
@@ -46,23 +52,6 @@ export function createOfferId(prefix) {
 export function parsePlanPrice(value) {
   if (value === null || value === undefined || String(value).trim() === '') return null;
   return Number(value);
-}
-
-/**
- * Valida una lista de textos (etiquetas o características).
- * @returns {string} mensaje de error o cadena vacía
- */
-function validateStringList(list, singularName) {
-  if (!Array.isArray(list) || list.length === 0) {
-    return `Agrega al menos ${singularName}.`;
-  }
-  if (list.some((item) => String(item).trim().length === 0)) {
-    return 'No dejes elementos vacíos.';
-  }
-  if (list.some((item) => isTooLong(item, MAX_LENGTH.CARD_ITEM))) {
-    return `Cada elemento puede tener máximo ${MAX_LENGTH.CARD_ITEM} caracteres.`;
-  }
-  return '';
 }
 
 /** Quita espacios extra de cada texto de una lista */
@@ -96,13 +85,7 @@ function validateListShape(list, getName, errors, itemsName) {
    -------------------------------------------------------------------------- */
 
 export async function getServices() {
-  const { data, error } = await supabase
-    .from('services')
-    .select('id, icon, title, description, tags')
-    .order('position');
-  if (error) throw toAppError(error, 'No se pudieron cargar los servicios.');
-
-  return data;
+  return apiRequest('/api/services');
 }
 
 /** Valida la lista de servicios. Devuelve errores (vacío = todo bien) */
@@ -145,9 +128,8 @@ export async function saveServices(services) {
     tags: cleanStringList(service.tags),
   }));
 
-  const { error } = await supabase.rpc('save_services', { items: cleanServices });
-  if (error) throw toAppError(error, 'No se pudieron guardar los servicios.');
-  return cleanServices;
+  // El backend guarda la lista completa (en este orden) y devuelve cómo quedó
+  return apiRequest('/api/services', { method: 'PUT', body: cleanServices });
 }
 
 /* --------------------------------------------------------------------------
@@ -155,14 +137,8 @@ export async function saveServices(services) {
    -------------------------------------------------------------------------- */
 
 export async function getPlans() {
-  const { data, error } = await supabase
-    .from('plans')
-    .select('id, name, price, description, features, cta, cta_url, featured')
-    .order('position');
-  if (error) throw toAppError(error, 'No se pudieron cargar los planes.');
-
   // price null significa "Cotización"
-  return data;
+  return apiRequest('/api/plans');
 }
 
 /** Valida la lista de planes. Devuelve errores (vacío = todo bien) */
@@ -228,7 +204,6 @@ export async function savePlans(plans) {
     featured: Boolean(plan.featured),
   }));
 
-  const { error } = await supabase.rpc('save_plans', { items: cleanPlans });
-  if (error) throw toAppError(error, 'No se pudieron guardar los planes.');
-  return cleanPlans;
+  // El backend guarda la lista completa (en este orden) y devuelve cómo quedó
+  return apiRequest('/api/plans', { method: 'PUT', body: cleanPlans });
 }

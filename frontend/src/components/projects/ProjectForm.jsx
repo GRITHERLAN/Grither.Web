@@ -11,7 +11,7 @@
      - Al editar, el ID no se puede cambiar y la fecha se conserva.
    ========================================================================== */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from '../ui/Icon.jsx';
 import Select from '../ui/Select.jsx';
 import {
@@ -85,26 +85,28 @@ function ProjectForm({ project, clients, onSaved, onCancel }) {
   const [takenKeys, setTakenKeys] = useState(() => ({ ids: new Set(), names: new Set() }));
   useEffect(() => {
     let isCurrent = true;
-    getTakenProjectKeys(editingId)
-      .then((keys) => {
+
+    // useEffect no puede ser async: se crea una función async adentro y se llama
+    async function loadTakenKeys() {
+      try {
+        const keys = await getTakenProjectKeys(editingId);
         if (isCurrent) setTakenKeys(keys);
-      })
-      .catch(() => {
-        // Si falla, no bloqueamos el formulario: la base de datos revisa al guardar
-      });
+      } catch {
+        // Si falla, no bloqueamos el formulario: el backend revisa al guardar
+      }
+    }
+    loadTakenKeys();
+
     return () => {
       isCurrent = false;
     };
   }, [editingId]);
 
   // Opciones del desplegable de clientes (la primera, vacía, sirve de aviso)
-  const clientOptions = useMemo(
-    () => [
-      { value: '', label: clients.length ? 'Selecciona un cliente' : 'No hay clientes registrados' },
-      ...clients.map((client) => ({ value: client.id, label: `${client.name} (${client.email})` })),
-    ],
-    [clients]
-  );
+  const clientOptions = [
+    { value: '', label: clients.length ? 'Selecciona un cliente' : 'No hay clientes registrados' },
+    ...clients.map((client) => ({ value: client.id, label: `${client.name} (${client.email})` })),
+  ];
 
   /** Cambia un campo y revisa duplicados en vivo para ID y Nombre */
   function handleChange(event) {

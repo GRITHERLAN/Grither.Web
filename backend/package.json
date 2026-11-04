@@ -1,0 +1,19 @@
+{
+  "name": "grither-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "API de Grither Web (Node + Express). Es la única parte que habla con la base de datos.",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file=.env src/server.js",
+    "start": "node --env-file-if-exists=.env src/server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  }
+}

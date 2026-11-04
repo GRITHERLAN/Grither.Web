@@ -7,7 +7,7 @@
      correcta en variables.css.
    ========================================================================== */
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { readTheme, saveTheme } from '../utils/themeStorage.js';
 
 /* Valores posibles del tema */
@@ -47,14 +47,11 @@ export function ThemeProvider({ children }) {
   }, [theme]);
 
   // Alterna entre oscuro y claro
-  const toggleTheme = useCallback(() => {
+  function toggleTheme() {
     setTheme((currentTheme) => (currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK));
-  }, []);
+  }
 
-  const value = useMemo(
-    () => ({ theme, isDark: theme === THEMES.DARK, toggleTheme }),
-    [theme, toggleTheme]
-  );
+  const value = { theme, isDark: theme === THEMES.DARK, toggleTheme };
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

@@ -13,7 +13,7 @@
      página actual. Al bajar por la página el header gana una sombra.
    ========================================================================== */
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
@@ -35,6 +35,36 @@ function getLinkClass({ isActive }) {
   return `header__link ${isActive ? 'header__link--active' : ''}`;
 }
 
+/**
+ * Mueve la píldora hasta "link" escribiendo su posición y tamaño en
+ * variables CSS de la lista. Si no hay enlace (o está oculto), la esconde.
+ * La animación la hace el CSS: una transición de resorte que siempre parte
+ * de donde está la píldora en ese momento, así se puede redirigir a mitad
+ * de camino sin saltos.
+ * Está fuera del componente porque no usa su estado: recibe la lista (list)
+ * y el enlace (link) como parámetros.
+ */
+function movePillTo(list, link) {
+  if (!list) return;
+
+  // offsetWidth = 0 significa que el menú está oculto (celular cerrado)
+  if (!link || link.offsetWidth === 0) {
+    list.dataset.pill = 'off';
+    return;
+  }
+
+  list.style.setProperty('--pill-x', `${link.offsetLeft}px`);
+  list.style.setProperty('--pill-y', `${link.offsetTop}px`);
+  list.style.setProperty('--pill-w', `${link.offsetWidth}px`);
+  list.style.setProperty('--pill-h', `${link.offsetHeight}px`);
+  list.dataset.pill = 'on';
+}
+
+/** Devuelve la píldora al enlace de la página actual */
+function movePillToActive(list) {
+  movePillTo(list, list?.querySelector('.header__link--active'));
+}
+
 function Header() {
   const { user, isAdmin, isClient, logout } = useAuth();
   const { showToast } = useToast();
@@ -49,39 +79,10 @@ function Header() {
   // ¿Ya bajamos un poco por la página? (para la sombra del header)
   const [isScrolled, setIsScrolled] = useState(false);
 
-  /**
-   * Mueve la píldora hasta "link" escribiendo su posición y tamaño en
-   * variables CSS de la lista. Si no hay enlace (o está oculto), la esconde.
-   * La animación la hace el CSS: una transición de resorte que siempre parte
-   * de donde está la píldora en ese momento, así se puede redirigir a mitad
-   * de camino sin saltos.
-   */
-  const movePillTo = useCallback((link) => {
-    const list = linksRef.current;
-    if (!list) return;
-
-    // offsetWidth = 0 significa que el menú está oculto (celular cerrado)
-    if (!link || link.offsetWidth === 0) {
-      list.dataset.pill = 'off';
-      return;
-    }
-
-    list.style.setProperty('--pill-x', `${link.offsetLeft}px`);
-    list.style.setProperty('--pill-y', `${link.offsetTop}px`);
-    list.style.setProperty('--pill-w', `${link.offsetWidth}px`);
-    list.style.setProperty('--pill-h', `${link.offsetHeight}px`);
-    list.dataset.pill = 'on';
-  }, []);
-
-  /** Devuelve la píldora al enlace de la página actual */
-  const movePillToActive = useCallback(() => {
-    movePillTo(linksRef.current?.querySelector('.header__link--active'));
-  }, [movePillTo]);
-
   // Al cambiar de página, de sesión o al abrir el menú móvil: píldora a la
   // página actual. useLayoutEffect mide antes de pintar (sin parpadeos).
   useLayoutEffect(() => {
-    movePillToActive();
+    movePillToActive(linksRef.current);
 
     // La primera vez se coloca sin animar; desde el siguiente fotograma ya
     // se desliza (si no, al cargar volaría desde la esquina)
@@ -89,13 +90,17 @@ function Header() {
       if (linksRef.current) linksRef.current.dataset.pillAnimate = 'on';
     });
     return () => window.cancelAnimationFrame(frameId);
-  }, [location.pathname, isMenuOpen, user, movePillToActive]);
+  }, [location.pathname, isMenuOpen, user]);
 
   // Si cambia el tamaño de la ventana, los enlaces se mueven: medimos otra vez
   useEffect(() => {
-    window.addEventListener('resize', movePillToActive);
-    return () => window.removeEventListener('resize', movePillToActive);
-  }, [movePillToActive]);
+    function handleResize() {
+      movePillToActive(linksRef.current);
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Sombra del header en cuanto la página baja 8px
   useEffect(() => {
@@ -111,7 +116,7 @@ function Header() {
   /** Puntero o foco sobre un enlace: la píldora va hacia él */
   function handleLinkHover(event) {
     const link = event.target.closest('.header__link');
-    if (link) movePillTo(link);
+    if (link) movePillTo(linksRef.current, link);
   }
 
   // Cerramos el menú móvil cada vez que se cambia de página
@@ -175,9 +180,9 @@ function Header() {
               ref={linksRef}
               className="header__links"
               onPointerOver={handleLinkHover}
-              onPointerLeave={movePillToActive}
+              onPointerLeave={() => movePillToActive(linksRef.current)}
               onFocus={handleLinkHover}
-              onBlur={movePillToActive}
+              onBlur={() => movePillToActive(linksRef.current)}
             >
               {PUBLIC_LINKS.map((link) => (
                 <li key={link.to}>

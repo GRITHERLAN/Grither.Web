@@ -56,7 +56,7 @@ function UserForm({ user, actorId, onSaved, onCancel }) {
     // El servicio vuelve a validar ("BackEnd") y guarda
     setIsSaving(true);
     try {
-      const savedUser = await updateUser(user.id, form, actorId);
+      const savedUser = await updateUser(user.id, form);
       onSaved(savedUser);
     } catch (error) {
       setErrors(error.fieldErrors || {});

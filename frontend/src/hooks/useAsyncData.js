@@ -13,7 +13,7 @@
      const { data, loading, error, reload } = useAsyncData(() => getProjects(), []);
    ========================================================================== */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * @param {function} loader - Función async que devuelve los datos.
@@ -33,19 +33,21 @@ export function useAsyncData(loader, deps = []) {
     // respuesta, ignoramos ese resultado viejo para no pisar datos nuevos.
     let isCurrent = true;
 
-    setLoading(true);
-    setError(null);
-
-    loader()
-      .then((result) => {
+    /* useEffect no puede ser async directamente (debe devolver la función de
+       limpieza, no una promesa), por eso se crea esta función async adentro. */
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await loader();
         if (isCurrent) setData(result);
-      })
-      .catch((loadError) => {
+      } catch (loadError) {
         if (isCurrent) setError(loadError);
-      })
-      .finally(() => {
+      } finally {
         if (isCurrent) setLoading(false);
-      });
+      }
+    }
+    load();
 
     return () => {
       isCurrent = false;
@@ -56,9 +58,9 @@ export function useAsyncData(loader, deps = []) {
   }, [...deps, reloadCount]);
 
   /** Vuelve a pedir los datos (mantiene los anteriores mientras llegan) */
-  const reload = useCallback(() => {
+  function reload() {
     setReloadCount((count) => count + 1);
-  }, []);
+  }
 
   return { data, loading, error, reload, setData };
 }

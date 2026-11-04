@@ -24,7 +24,8 @@ import {
  *   - Estilos y fuentes: solo del propio sitio.
  *   - Imágenes y videos: del propio sitio, de Supabase Storage y vistas
  *     previas locales (blob:, data:).
- *   - Conexiones: a Supabase (API, Auth, Storage y tiempo real) y a Google Analytics.
+ *   - Conexiones: a nuestra API (backend), a Supabase (Auth y subida de
+ *     archivos a Storage) y a Google Analytics.
  *
  * Solo se agrega al compilar (npm run build). En "npm run dev" Vite necesita
  * scripts en línea para la recarga rápida y la CSP los bloquearía.
@@ -33,10 +34,12 @@ import {
  * funciona en una etiqueta <meta>; va en los encabezados del hosting (ver
  * Auditoria_Seguridad.md > Security Headers).
  */
-function cspPlugin(supabaseUrl) {
+function cspPlugin(supabaseUrl, apiUrl) {
   // Si falta la URL en .env.local se permite cualquier proyecto de Supabase
   const supabaseOrigin = supabaseUrl ? new URL(supabaseUrl).origin : 'https://*.supabase.co';
   const supabaseSocket = supabaseOrigin.replace('https://', 'wss://');
+  // Dirección del backend (VITE_API_URL). Sin ella, el navegador bloquearía las llamadas a la API.
+  const apiOrigin = apiUrl ? new URL(apiUrl).origin : '';
 
   const policy = [
     "default-src 'self'",
@@ -46,7 +49,7 @@ function cspPlugin(supabaseUrl) {
     "font-src 'self'",
     `img-src 'self' data: blob: ${supabaseOrigin} https://*.google-analytics.com https://*.googletagmanager.com`,
     `media-src 'self' blob: ${supabaseOrigin}`,
-    `connect-src 'self' ${supabaseOrigin} ${supabaseSocket} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com`,
+    `connect-src 'self' ${apiOrigin} ${supabaseOrigin} ${supabaseSocket} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -175,10 +178,10 @@ function seoPlugin(siteUrlFromEnv) {
 }
 
 export default defineConfig(({ mode }) => {
-  // Lee .env.local para saber la URL exacta del proyecto de Supabase y el dominio
+  // Lee .env.local para saber la URL exacta del proyecto de Supabase, de la API y el dominio
   const env = loadEnv(mode, process.cwd(), 'VITE_');
 
   return {
-    plugins: [react(), cspPlugin(env.VITE_SUPABASE_URL), seoPlugin(env.VITE_SITE_URL)],
+    plugins: [react(), cspPlugin(env.VITE_SUPABASE_URL, env.VITE_API_URL), seoPlugin(env.VITE_SITE_URL)],
   };
 });

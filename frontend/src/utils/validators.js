@@ -84,6 +84,25 @@ export function isValidPhone(phone) {
 }
 
 /**
+ * Valida una lista de textos (etiquetas, características o tecnologías):
+ * que no esté vacía, sin elementos en blanco ni demasiado largos.
+ * @param {string} singularName - Ej. 'una etiqueta' -> "Agrega al menos una etiqueta."
+ * @returns {string} mensaje de error o cadena vacía
+ */
+export function validateStringList(list, singularName) {
+  if (!Array.isArray(list) || list.length === 0) {
+    return `Agrega al menos ${singularName}.`;
+  }
+  if (list.some((item) => String(item).trim().length === 0)) {
+    return 'No dejes elementos vacíos.';
+  }
+  if (list.some((item) => isTooLong(item, MAX_LENGTH.CARD_ITEM))) {
+    return `Cada elemento puede tener máximo ${MAX_LENGTH.CARD_ITEM} caracteres.`;
+  }
+  return '';
+}
+
+/**
  * Normaliza un texto para comparar sin importar mayúsculas,
  * tildes ni espacios extra. "  App  Médica " -> "app medica"
  */

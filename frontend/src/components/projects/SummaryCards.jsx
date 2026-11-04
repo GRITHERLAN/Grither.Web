@@ -4,7 +4,6 @@
    Total cotizado (suma de precios), Activos, Inactivos y Cancelados.
    ========================================================================== */
 
-import { memo } from 'react';
 import { formatCOP } from '../../utils/format.js';
 import { countByStatus } from '../../utils/filterProjects.js';
 import './SummaryCards.css';
@@ -34,5 +33,4 @@ function SummaryCards({ projects }) {
   );
 }
 
-// memo: solo se vuelve a dibujar si cambian sus props (RENDIMIENTO)
-export default memo(SummaryCards);
+export default SummaryCards;

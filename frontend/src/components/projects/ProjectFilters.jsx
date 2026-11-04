@@ -9,7 +9,6 @@
    El componente no guarda estado propio: todo viene del padre por props.
    ========================================================================== */
 
-import { memo } from 'react';
 import Icon from '../ui/Icon.jsx';
 import Select from '../ui/Select.jsx';
 import { PROJECT_CATEGORIES } from '../../services/projectService.js';
@@ -134,5 +133,4 @@ function ProjectFilters({ filters, onChange, onReset, counts, hideStatus = false
   );
 }
 
-// memo: solo se vuelve a dibujar si cambian sus props (RENDIMIENTO)
-export default memo(ProjectFilters);
+export default ProjectFilters;

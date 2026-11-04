@@ -89,7 +89,7 @@ function AdminUsersPage() {
 
     setBusyUserId(targetUser.id);
     try {
-      await setUserActive(targetUser.id, nextActive, currentUser.id);
+      await setUserActive(targetUser.id, nextActive);
       reloadUsers();
       showToast(
         nextActive ? `${targetUser.name} fue activado.` : `${targetUser.name} fue inactivado y ya no puede iniciar sesión.`,
@@ -106,7 +106,7 @@ function AdminUsersPage() {
     const target = userToDelete;
     setUserToDelete(null);
     try {
-      await deleteUser(target.id, currentUser.id);
+      await deleteUser(target.id);
       showToast(`Usuario ${target.name} borrado.`, 'info');
       reloadUsers();
     } catch (actionError) {

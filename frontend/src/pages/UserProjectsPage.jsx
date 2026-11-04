@@ -6,7 +6,7 @@
 
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { getActiveProjectsByClient } from '../services/projectService.js';
+import { getProjects } from '../services/projectService.js';
 import ProjectCard from '../components/projects/ProjectCard.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import { useAsyncData } from '../hooks/useAsyncData.js';
@@ -14,10 +14,8 @@ import './UserProjectsPage.css';
 
 function UserProjectsPage() {
   const { user } = useAuth();
-  const { data: projects, error, reload } = useAsyncData(
-    () => getActiveProjectsByClient(user.id),
-    [user.id]
-  );
+  // El backend ya devuelve solo los proyectos de quien tiene la sesión
+  const { data: projects, error, reload } = useAsyncData(() => getProjects(), [user.id]);
 
   return (
     <div className="container">

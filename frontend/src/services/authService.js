@@ -1,20 +1,22 @@
 /* ==========================================================================
-   SERVICIO DE AUTENTICACIÓN Y USUARIOS (Supabase Auth)
+   SERVICIO DE AUTENTICACIÓN Y USUARIOS
    --------------------------------------------------------------------------
-   - Login: lo hace Supabase Auth. La contraseña NUNCA se compara ni se
-     guarda en el navegador; Supabase la guarda cifrada en su servidor.
-   - Roles y estado: tabla "profiles" (role = 'admin' | 'usuario', active).
+   - Login: lo hace Supabase Auth desde el navegador. La contraseña NUNCA se
+     compara ni se guarda aquí; Supabase la guarda cifrada en su servidor y
+     nos da un token (JWT).
+   - Perfil (nombre, rol y estado): lo responde la API con ese token
+     (GET /api/auth/me). El navegador ya no lee la tabla "profiles".
    - Sesión: la guarda supabase-js en localStorage ("Recordarme") o en
      sessionStorage (se borra al cerrar el navegador). Ver lib/supabaseClient.js.
    - Gestión de usuarios (crear, editar correo/contraseña/rol, activar,
      borrar): necesita la llave secreta de Supabase, que NO puede estar en el
-     navegador. Por eso se hace en la Edge Function "admin-users", que corre
-     en el servidor y vuelve a revisar todas las reglas ("BackEnd").
+     navegador. Por eso la hace el backend (/api/users), que vuelve a revisar
+     todas las reglas.
    ========================================================================== */
 
 import { supabase, setRememberSession } from '../lib/supabaseClient.js';
 import { AppError, ValidationError } from './errors.js';
-import { toAppError } from './supabaseErrors.js';
+import { apiRequest } from './apiClient.js';
 import { MAX_LENGTH, isTooLong, isValidEmail } from '../utils/validators.js';
 
 /* Roles posibles de un usuario */
@@ -52,9 +54,6 @@ export function getPasswordError(password) {
   return '';
 }
 
-/* Columnas de profiles que usa la app */
-const PROFILE_COLUMNS = 'id, name, email, role, active, created_at';
-
 /* Mensaje para cuentas inactivas */
 const INACTIVE_MESSAGE = 'Tu cuenta está inactiva. Contacta al administrador.';
 
@@ -67,74 +66,32 @@ export function isUserActive(user) {
   return user.active !== false;
 }
 
-/** Convierte una fila de "profiles" en el objeto de usuario que usa la app */
-function toUser(row) {
-  if (!row) return null;
-  return {
-    id: row.id,
-    name: row.name,
-    email: row.email,
-    role: row.role,
-    active: row.active,
-    createdAt: row.created_at,
-  };
-}
-
-/** Lee el perfil de un usuario (nombre, rol y estado) */
-async function getProfile(userId) {
-  const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', userId).maybeSingle();
-  if (error) throw toAppError(error, 'No se pudo leer tu perfil.');
-  return toUser(data);
-}
-
 /**
- * Llama a la Edge Function "admin-users" (solo el Administrador).
- * La función responde { user } si todo salió bien, o
- * { message, fieldErrors } con el error en español.
- * @param {string} action - 'create' | 'update' | 'setActive' | 'delete'
- * @param {object} payload - Datos de la acción.
+ * Pide al backend el perfil del dueño de la sesión (GET /api/auth/me).
+ * Devuelve null si la cuenta está inactiva o la sesión ya no sirve
+ * (el backend responde 401 o 403 en esos casos).
  */
-async function callAdminUsers(action, payload) {
-  const { data, error } = await supabase.functions.invoke('admin-users', {
-    body: { action, ...payload },
-  });
-
-  if (error) {
-    // Si el servidor respondió con un error nuestro, leemos su mensaje
-    let body = null;
-    try {
-      body = await error.context?.json();
-    } catch {
-      body = null;
-    }
-    if (body?.fieldErrors) throw new ValidationError(body.fieldErrors, body.message);
-    if (body?.message) throw new AppError(body.message);
-    throw new AppError('No se pudo completar la acción en el servidor. Inténtalo de nuevo.');
+async function getMyProfile() {
+  try {
+    return await apiRequest('/api/auth/me');
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) return null;
+    throw error;
   }
-
-  return data;
 }
 
 /* --------------------------------------------------------------------------
-   Lectura de usuarios
-   (La RLS hace que el admin vea todos y un cliente solo a sí mismo.)
+   Lectura de usuarios (solo el Administrador: lo revisa el backend)
    -------------------------------------------------------------------------- */
 
 /** Lista completa de usuarios */
 export async function getUsers() {
-  const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).order('created_at');
-  if (error) throw toAppError(error, 'No se pudieron cargar los usuarios.');
-  return data.map(toUser);
+  return apiRequest('/api/users');
 }
 
 /** Lista solo de clientes (rol usuario), usada en el select de proyectos */
 export async function getClients() {
   return (await getUsers()).filter((user) => user.role === ROLES.USER);
-}
-
-/** Busca un usuario por id */
-export async function getUserById(userId) {
-  return getProfile(userId);
 }
 
 /* --------------------------------------------------------------------------
@@ -150,8 +107,8 @@ export async function getCurrentUser() {
   const session = data.session;
   if (!session) return null;
 
-  const user = await getProfile(session.user.id);
-  if (!user || !isUserActive(user)) {
+  const user = await getMyProfile();
+  if (!user) {
     await logout();
     return null;
   }
@@ -226,7 +183,7 @@ export async function loginUser({ email, password, remember }) {
   // Se decide ANTES de entrar dónde se guardará la sesión
   setRememberSession(Boolean(remember));
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email: email.trim().toLowerCase(),
     password,
   });
@@ -252,8 +209,8 @@ export async function loginUser({ email, password, remember }) {
   failedAttempts = 0;
   lockedUntil = 0;
 
-  // Revisamos rol y estado en la tabla profiles
-  const user = await getProfile(data.user.id);
+  // El backend revisa el token y responde con el rol y el estado
+  const user = await getMyProfile();
   if (!user || !isUserActive(user)) {
     await logout();
     throw new AppError(INACTIVE_MESSAGE);
@@ -264,7 +221,7 @@ export async function loginUser({ email, password, remember }) {
 /* --------------------------------------------------------------------------
    Gestión de usuarios (solo el Administrador)
    --------------------------------------------------------------------------
-   Reglas que se controlan en el servidor (Edge Function + base de datos),
+   Reglas que se controlan en el servidor (backend: users.service.js),
    no solo en la pantalla:
      - Un administrador no puede inactivarse, borrarse ni cambiar su propio rol.
      - Siempre debe quedar al menos un administrador activo.
@@ -315,25 +272,28 @@ export async function updateUser(userId, data) {
     throw new ValidationError(errors);
   }
 
-  const result = await callAdminUsers('update', {
-    userId,
-    name: data.name.trim(),
-    email: data.email.trim().toLowerCase(),
-    role: data.role,
-    password: data.password || '',
+  return apiRequest(`/api/users/${encodeURIComponent(userId)}`, {
+    method: 'PATCH',
+    body: {
+      name: data.name.trim(),
+      email: data.email.trim().toLowerCase(),
+      role: data.role,
+      password: data.password || '',
+    },
   });
-  return result.user;
 }
 
 /** Activa o inactiva un usuario. Un usuario inactivo no puede iniciar sesión. */
 export async function setUserActive(userId, active) {
-  const result = await callAdminUsers('setActive', { userId, active: Boolean(active) });
-  return result.user;
+  return apiRequest(`/api/users/${encodeURIComponent(userId)}/active`, {
+    method: 'PATCH',
+    body: { active: Boolean(active) },
+  });
 }
 
 /** Borra un usuario definitivamente (su cuenta de acceso y su perfil) */
 export async function deleteUser(userId) {
-  await callAdminUsers('delete', { userId });
+  await apiRequest(`/api/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
 }
 
 /* --------------------------------------------------------------------------
@@ -384,11 +344,13 @@ export async function createUser(formData) {
     throw new ValidationError(errors);
   }
 
-  const result = await callAdminUsers('create', {
-    name: formData.name.trim(),
-    email: formData.email.trim().toLowerCase(),
-    password: formData.password,
-    consent: formData.consent === true, // el servidor guarda la fecha en profiles.consent_at
+  return apiRequest('/api/users', {
+    method: 'POST',
+    body: {
+      name: formData.name.trim(),
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password,
+      consent: formData.consent === true, // el servidor guarda la fecha en profiles.consent_at
+    },
   });
-  return result.user;
 }

@@ -12,7 +12,7 @@
    Después de cada cambio se vuelven a pedir los proyectos y usuarios.
    ========================================================================== */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useToast } from '../../context/ToastContext.jsx';
 import {
   getProjects,
@@ -34,9 +34,6 @@ import Icon from '../../components/ui/Icon.jsx';
 import LoadingState from '../../components/ui/LoadingState.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 
-/* Lista vacía estable: se usa mientras llegan los datos */
-const NO_ITEMS = [];
-
 /**
  * @param {boolean} isCompletedList - true muestra la sección "Terminados".
  */
@@ -52,8 +49,8 @@ function AdminProjectsPage({ isCompletedList = false }) {
     },
     []
   );
-  const allProjects = data ? data.projects : NO_ITEMS;
-  const users = data ? data.users : NO_ITEMS;
+  const allProjects = data ? data.projects : [];
+  const users = data ? data.users : [];
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
 
   // ---------- Ventanas abiertas ----------
@@ -62,47 +59,36 @@ function AdminProjectsPage({ isCompletedList = false }) {
   const [projectToCancel, setProjectToCancel] = useState(null);
   const [projectToDelete, setProjectToDelete] = useState(null);
 
-  /*
-    RENDIMIENTO:
-    - Los datos derivados se guardan con useMemo y las funciones que reciben
-      la tabla, los filtros y las tarjetas con useCallback.
-    - Esos tres componentes están envueltos en React.memo, así que al abrir o
-      cerrar una ventana (que solo cambia formState, projectToCancel...) NO se
-      vuelven a dibujar: solo se dibuja la ventana.
-  */
+  /* Datos que se calculan en cada render. Con la cantidad de proyectos de
+     Grither esto es instantáneo, así que no hace falta guardarlos en memoria
+     (useMemo/useCallback): el código queda más simple de leer. */
 
-  // Clientes para el formulario y mapa id -> usuario para la tabla.
-  // Se recalculan solo cuando llegan usuarios nuevos (al recargar).
-  const clients = useMemo(() => users.filter((user) => user.role === ROLES.USER), [users]);
-  const clientsById = useMemo(
-    () => Object.fromEntries(users.map((user) => [user.id, user])),
-    [users]
-  );
+  // Clientes para el formulario y mapa id -> usuario para la tabla
+  const clients = users.filter((user) => user.role === ROLES.USER);
+  const clientsById = Object.fromEntries(users.map((user) => [user.id, user]));
 
   // Proyectos de ESTA sección: Terminados o Pendientes (todo lo demás)
-  const projects = useMemo(
-    () =>
-      allProjects.filter(
-        (project) => (project.status === PROJECT_STATUS.COMPLETED) === isCompletedList
-      ),
-    [allProjects, isCompletedList]
+  const projects = allProjects.filter(
+    (project) => (project.status === PROJECT_STATUS.COMPLETED) === isCompletedList
   );
 
-  // Lista filtrada y ordenada (solo se recalcula si cambian datos o filtros)
-  const visibleProjects = useMemo(() => filterProjects(projects, filters), [projects, filters]);
-  const counts = useMemo(() => countByStatus(projects), [projects]);
+  // Lista filtrada y ordenada
+  const visibleProjects = filterProjects(projects, filters);
+  const counts = countByStatus(projects);
 
   // ---------- Filtros ----------
-  const handleFiltersChange = useCallback((changes) => {
+  function handleFiltersChange(changes) {
     setFilters((current) => ({ ...current, ...changes }));
-  }, []);
+  }
 
-  const handleFiltersReset = useCallback(() => {
+  function handleFiltersReset() {
     setFilters(DEFAULT_FILTERS);
-  }, []);
+  }
 
   // ---------- Abrir ventanas desde la tabla ----------
-  const handleEdit = useCallback((project) => setFormState({ project }), []);
+  function handleEdit(project) {
+    setFormState({ project });
+  }
 
   // ---------- Crear / Editar ----------
   function handleOpenCreate(event) {
@@ -122,7 +108,7 @@ function AdminProjectsPage({ isCompletedList = false }) {
   }
 
   // ---------- Activar / Inactivar ----------
-  const handleToggleStatus = useCallback(async (project) => {
+  async function handleToggleStatus(project) {
     // Inactivo o Cancelado -> Activo. Activo -> Inactivo.
     const nextStatus =
       project.status === PROJECT_STATUS.ACTIVE ? PROJECT_STATUS.INACTIVE : PROJECT_STATUS.ACTIVE;
@@ -139,10 +125,10 @@ function AdminProjectsPage({ isCompletedList = false }) {
     } catch (actionError) {
       showToast(actionError.message, 'error');
     }
-  }, [reloadProjects, showToast]);
+  }
 
   // ---------- Completado / Reabrir ----------
-  const handleComplete = useCallback(async (project) => {
+  async function handleComplete(project) {
     try {
       await completeProject(project.id);
       reloadProjects();
@@ -150,9 +136,9 @@ function AdminProjectsPage({ isCompletedList = false }) {
     } catch (actionError) {
       showToast(actionError.message, 'error');
     }
-  }, [reloadProjects, showToast]);
+  }
 
-  const handleReopen = useCallback(async (project) => {
+  async function handleReopen(project) {
     try {
       await setProjectStatus(project.id, PROJECT_STATUS.ACTIVE);
       reloadProjects();
@@ -160,7 +146,7 @@ function AdminProjectsPage({ isCompletedList = false }) {
     } catch (actionError) {
       showToast(actionError.message, 'error');
     }
-  }, [reloadProjects, showToast]);
+  }
 
   // ---------- Cancelar ----------
   function handleCancelled(cancelledProject) {

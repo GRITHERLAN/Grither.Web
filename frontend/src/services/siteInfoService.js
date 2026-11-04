@@ -5,18 +5,16 @@
      - Contacto  (correo, teléfono, redes, descripción, indicadores)
      - Nosotros  (descripción, indicadores, quién está detrás, fases)
 
-   Fuente de datos: Supabase.
-     Tablas contact_info, about_info e indicators.
-     Para guardar se usan las funciones SQL save_contact_info y
-     save_about_info, que guardan TODO el bloque en una sola transacción
-     (y solo funcionan si quien llama es Administrador, por la RLS).
+   Fuente de datos: la API del backend
+     GET/PUT /api/contact  y  GET/PUT /api/about
+   El backend vuelve a validar y guarda TODO el bloque (con sus indicadores).
+   Aquí se valida antes solo para mostrar los errores al instante.
    La UI recibe los mismos objetos de antes (camelCase), así que no cambia.
    ========================================================================== */
 
-import { supabase } from '../lib/supabaseClient.js';
 import { ValidationError } from './errors.js';
-import { toAppError } from './supabaseErrors.js';
-import { BUCKETS, removePublicFiles, uploadPublicFile } from './storageFiles.js';
+import { apiRequest } from './apiClient.js';
+import { BUCKETS, uploadPublicFile } from './storageFiles.js';
 import { MAX_LENGTH, isTooLong, isValidEmail, isValidPhone, isValidUrl, tooLongMessage } from '../utils/validators.js';
 
 /* --------------------------------------------------------------------------
@@ -42,73 +40,18 @@ function validateIndicators(indicators) {
     : '';
 }
 
-/* Estructuras en blanco: solo se usan si la tabla está vacía, para que la web
-   no se caiga y el admin pueda abrir el editor y llenar la información. */
-const EMPTY_CONTACT_INFO = {
-  email: '',
-  phone: '',
-  city: '',
-  brandDescription: '',
-  instagram: '',
-  linkedin: '',
-  portfolio: '',
-  indicators: [],
-};
-
-const EMPTY_ABOUT_INFO = {
-  brandDescription: '',
-  indicators: [],
-  owner: { name: '', role: '', bio: '', photo: '' },
-  phases: { reunion: '', bocetos: '', desarrollo: '', despliegue: '' },
-};
-
 /** Quita espacios extra de cada indicador */
 function cleanIndicators(indicators) {
   return indicators.map((item) => ({ value: item.value.trim(), label: item.label.trim() }));
-}
-
-/**
- * Lee los indicadores de una sección, en su orden.
- * @param {'contacto'|'nosotros'} section
- */
-async function getIndicators(section) {
-  const { data, error } = await supabase
-    .from('indicators')
-    .select('value, label')
-    .eq('section', section)
-    .order('position');
-  if (error) throw toAppError(error, 'No se pudieron cargar los indicadores.');
-  return data;
 }
 
 /* --------------------------------------------------------------------------
    Contacto
    -------------------------------------------------------------------------- */
 
+/** Contacto + sus indicadores (si la tabla está vacía, el backend manda todo en blanco) */
 export async function getContactInfo() {
-  // Se piden la fila de contacto y sus indicadores al mismo tiempo
-  const [contactResult, indicators] = await Promise.all([
-    supabase.from('contact_info').select('*').eq('id', 1).maybeSingle(),
-    getIndicators('contacto'),
-  ]);
-  if (contactResult.error) {
-    throw toAppError(contactResult.error, 'No se pudo cargar la información de contacto.');
-  }
-
-  // Si la tabla está vacía, se devuelve la estructura en blanco
-  const row = contactResult.data;
-  if (!row) return { ...EMPTY_CONTACT_INFO, indicators };
-
-  return {
-    email: row.email,
-    phone: row.phone,
-    city: row.city ?? '',
-    brandDescription: row.brand_description,
-    instagram: row.instagram,
-    linkedin: row.linkedin,
-    portfolio: row.portfolio,
-    indicators,
-  };
+  return apiRequest('/api/contact');
 }
 
 export function validateContactInfo(data) {
@@ -149,45 +92,17 @@ export async function saveContactInfo(data) {
     indicators: cleanIndicators(data.indicators),
   };
 
-  // Se guarda contacto + indicadores en una sola transacción
-  const { error } = await supabase.rpc('save_contact_info', { payload: cleanData });
-  if (error) throw toAppError(error, 'No se pudo guardar la información de contacto.');
-  return cleanData;
+  // El backend guarda contacto + indicadores y devuelve cómo quedó
+  return apiRequest('/api/contact', { method: 'PUT', body: cleanData });
 }
 
 /* --------------------------------------------------------------------------
    Sobre mí
    -------------------------------------------------------------------------- */
 
+/** "Sobre mí" + sus indicadores (si la tabla está vacía, el backend manda todo en blanco) */
 export async function getAboutInfo() {
-  const [aboutResult, indicators] = await Promise.all([
-    supabase.from('about_info').select('*').eq('id', 1).maybeSingle(),
-    getIndicators('nosotros'),
-  ]);
-  if (aboutResult.error) {
-    throw toAppError(aboutResult.error, 'No se pudo cargar la información de Sobre mí.');
-  }
-
-  const row = aboutResult.data;
-  if (!row) return { ...EMPTY_ABOUT_INFO, indicators };
-
-  // Se arma el mismo objeto que usaba la app con LocalStorage
-  return {
-    brandDescription: row.brand_description,
-    indicators,
-    owner: {
-      name: row.owner_name,
-      role: row.owner_role,
-      bio: row.owner_bio,
-      photo: row.owner_photo_url,
-    },
-    phases: {
-      reunion: row.phase_reunion,
-      bocetos: row.phase_bocetos,
-      desarrollo: row.phase_desarrollo,
-      despliegue: row.phase_despliegue,
-    },
-  };
+  return apiRequest('/api/about');
 }
 
 export function validateAboutInfo(data) {
@@ -225,15 +140,12 @@ export function validateAboutInfo(data) {
  *   - owner.photoFile (Blob): foto NUEVA elegida -> se sube a Storage.
  *   - owner.photo con una URL: se conserva la foto que ya estaba.
  *   - owner.photo vacío: se quitó la foto.
- * Si la foto cambió o se quitó, el archivo viejo se borra de Storage.
+ * Si la foto cambió o se quitó, el backend borra el archivo viejo de Storage
+ * (y si no se pudo guardar, también borra la foto recién subida).
  */
 export async function saveAboutInfo(data) {
   const errors = validateAboutInfo(data);
   if (Object.keys(errors).length > 0) throw new ValidationError(errors);
-
-  // URL de la foto guardada hoy (para borrarla si se reemplaza)
-  const { data: currentRow } = await supabase.from('about_info').select('owner_photo_url').eq('id', 1).maybeSingle();
-  const previousPhoto = currentRow?.owner_photo_url || '';
 
   // Foto nueva: primero se sube y se obtiene su URL pública
   let photoUrl = data.owner.photoFile ? '' : data.owner.photo || '';
@@ -255,16 +167,6 @@ export async function saveAboutInfo(data) {
     ),
   };
 
-  const { error } = await supabase.rpc('save_about_info', { payload: cleanData });
-  if (error) {
-    // No se guardó: la foto recién subida sobra y se borra
-    if (data.owner.photoFile) await removePublicFiles(BUCKETS.SITE_ASSETS, [photoUrl]);
-    throw toAppError(error, 'No se pudo guardar la información de Sobre mí.');
-  }
-
-  // Ya guardado: si la foto anterior ya no se usa, se borra de Storage
-  if (previousPhoto && previousPhoto !== photoUrl) {
-    await removePublicFiles(BUCKETS.SITE_ASSETS, [previousPhoto]);
-  }
-  return cleanData;
+  // El backend guarda todo, limpia las fotos que sobran y devuelve cómo quedó
+  return apiRequest('/api/about', { method: 'PUT', body: cleanData });
 }

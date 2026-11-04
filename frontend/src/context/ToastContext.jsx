@@ -6,7 +6,7 @@
    cierra solo a los pocos segundos o con su botón ×.
    ========================================================================== */
 
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { createContext, useContext, useRef, useState } from 'react';
 import ToastContainer from '../components/ui/ToastContainer.jsx';
 
 const ToastContext = createContext(null);
@@ -20,29 +20,26 @@ export function ToastProvider({ children }) {
   const nextId = useRef(1);
 
   /** Quita un aviso por su id */
-  const dismissToast = useCallback((toastId) => {
+  function dismissToast(toastId) {
     setToasts((current) => current.filter((toast) => toast.id !== toastId));
-  }, []);
+  }
 
   /**
    * Muestra un aviso.
    * @param {string} message - Texto a mostrar.
    * @param {'success'|'error'|'info'} type - Color e icono del aviso.
    */
-  const showToast = useCallback(
-    (message, type = 'success') => {
-      const id = nextId.current;
-      nextId.current += 1;
+  function showToast(message, type = 'success') {
+    const id = nextId.current;
+    nextId.current += 1;
 
-      setToasts((current) => [...current, { id, message, type }]);
+    setToasts((current) => [...current, { id, message, type }]);
 
-      // Se cierra solo pasado el tiempo definido
-      window.setTimeout(() => dismissToast(id), TOAST_DURATION_MS);
-    },
-    [dismissToast]
-  );
+    // Se cierra solo pasado el tiempo definido
+    window.setTimeout(() => dismissToast(id), TOAST_DURATION_MS);
+  }
 
-  const value = useMemo(() => ({ showToast }), [showToast]);
+  const value = { showToast };
 
   return (
     <ToastContext.Provider value={value}>

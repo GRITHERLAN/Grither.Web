@@ -15,7 +15,6 @@
    En celulares cada fila se convierte en una tarjeta (ver CSS).
    ========================================================================== */
 
-import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../ui/Icon.jsx';
 import StatusBadge from '../ui/StatusBadge.jsx';
@@ -208,5 +207,4 @@ function ProjectTable({
   );
 }
 
-// memo: solo se vuelve a dibujar si cambian sus props (RENDIMIENTO)
-export default memo(ProjectTable);
+export default ProjectTable;
