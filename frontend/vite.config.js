@@ -177,11 +177,22 @@ function seoPlugin(siteUrlFromEnv) {
   };
 }
 
+/*
+ * Variables de entorno que SÍ pueden llegar al navegador.
+ * Por defecto Vite solo deja pasar las que empiezan con "VITE_"; aquí se
+ * cambia por esta lista con los nombres EXACTOS. Ojo: todo lo que esté
+ * aquí queda visible en el JavaScript público, así que solo van datos
+ * públicos. La llave secreta (SUPABASE_SERVICE_ROLE_KEY) no empieza por
+ * ninguno de estos nombres, así que nunca se publica por error.
+ */
+const PUBLIC_ENV_NAMES = ['SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'API_URL', 'SITE_URL'];
+
 export default defineConfig(({ mode }) => {
   // Lee .env.local para saber la URL exacta del proyecto de Supabase, de la API y el dominio
-  const env = loadEnv(mode, process.cwd(), 'VITE_');
+  const env = loadEnv(mode, process.cwd(), PUBLIC_ENV_NAMES);
 
   return {
+    envPrefix: PUBLIC_ENV_NAMES,
     plugins: [react(), cspPlugin(env.SUPABASE_URL, env.API_URL), seoPlugin(env.SITE_URL)],
   };
 });
