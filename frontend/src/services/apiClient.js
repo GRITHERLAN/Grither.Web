@@ -2,7 +2,7 @@
    CLIENTE DE LA API (fetch base)
    --------------------------------------------------------------------------
    TODAS las peticiones al backend pasan por aquí. Así, en un solo lugar:
-     1) se arma la URL completa (VITE_API_URL + "/api/...");
+     1) se arma la URL completa (API_URL + "/api/...");
      2) se agrega el token de la sesión (header Authorization), que el
         backend usa para saber quién llama;
      3) se convierte la respuesta de error { message, fieldErrors } en los
@@ -17,11 +17,11 @@ import { supabase } from '../lib/supabaseClient.js';
 import { AppError, ValidationError } from './errors.js';
 
 /* Dirección del backend. En local: http://localhost:3000 (ver .env.example) */
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.API_URL;
 
 // Sin esta variable todas las peticiones fallarían sin una pista clara
 if (!API_URL) {
-  console.error('Falta VITE_API_URL (dirección del backend). Agrégala en .env.local o en Vercel > Environment Variables.');
+  console.error('Falta API_URL (dirección del backend). Agrégala en .env.local o en Vercel > Environment Variables.');
 }
 
 const OFFLINE_MESSAGE = 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.';

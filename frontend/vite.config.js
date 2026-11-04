@@ -38,7 +38,7 @@ function cspPlugin(supabaseUrl, apiUrl) {
   // Si falta la URL en .env.local se permite cualquier proyecto de Supabase
   const supabaseOrigin = supabaseUrl ? new URL(supabaseUrl).origin : 'https://*.supabase.co';
   const supabaseSocket = supabaseOrigin.replace('https://', 'wss://');
-  // Dirección del backend (VITE_API_URL). Sin ella, el navegador bloquearía las llamadas a la API.
+  // Dirección del backend (API_URL). Sin ella, el navegador bloquearía las llamadas a la API.
   const apiOrigin = apiUrl ? new URL(apiUrl).origin : '';
 
   const policy = [
@@ -182,6 +182,6 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
 
   return {
-    plugins: [react(), cspPlugin(env.VITE_SUPABASE_URL, env.VITE_API_URL), seoPlugin(env.VITE_SITE_URL)],
+    plugins: [react(), cspPlugin(env.VITE_SUPABASE_URL, env.API_URL), seoPlugin(env.VITE_SITE_URL)],
   };
 });
