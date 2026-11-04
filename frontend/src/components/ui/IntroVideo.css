@@ -20,6 +20,34 @@
   background-color: #ffffff;
 }
 
+/* --------------------------------------------------------------------------
+   Cortina mientras carga el JavaScript
+   --------------------------------------------------------------------------
+   El HTML trae un texto para Google (.seo-fallback, lo genera vite.config.js).
+   Mientras se descarga el JavaScript, esta cortina del mismo color que el
+   video lo tapa; cuando React arranca reemplaza ese texto (y la cortina con
+   él) y aparece el video sin que se note el cambio.
+   Seguro: si el JavaScript fallara, la cortina se quita sola a los 4 s para
+   que nunca quede la pantalla vacía. */
+.seo-fallback::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: #000000;
+  animation: seo-curtain-out 0s linear 4s forwards;
+}
+
+[data-theme='light'] .seo-fallback::before {
+  background-color: #ffffff;
+}
+
+@keyframes seo-curtain-out {
+  to {
+    visibility: hidden;
+  }
+}
+
 /* Salida: solo opacidad, que la GPU anima sin repintar */
 .intro-video--leaving {
   opacity: 0;

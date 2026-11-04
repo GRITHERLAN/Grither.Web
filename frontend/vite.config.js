@@ -132,8 +132,9 @@ function seoPlugin(siteUrlFromEnv) {
     const externalLinks = (page.externalLinks || [])
       .map((link) => `<a href="${escapeHtml(link.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)}</a>`)
       .join(' · ');
+    // "seo-fallback": IntroVideo.css lo tapa con una cortina mientras carga React
     const staticContent =
-      `<main class="container"><h1>${escapeHtml(page.h1)}</h1><p>${escapeHtml(page.intro)}</p>` +
+      `<main class="container seo-fallback"><h1>${escapeHtml(page.h1)}</h1><p>${escapeHtml(page.intro)}</p>` +
       `${sections}<nav aria-label="Principal">${links}</nav>` +
       `${externalLinks ? `<p>${externalLinks}</p>` : ''}</main>`;
 
