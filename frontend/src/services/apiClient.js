@@ -2,7 +2,9 @@
    CLIENTE DE LA API (fetch base)
    --------------------------------------------------------------------------
    TODAS las peticiones al backend pasan por aquí. Así, en un solo lugar:
-     1) se arma la URL completa (API_URL + "/api/...");
+     1) se llama a "/api/..." en el MISMO dominio de la web (en Cloudflare
+        el mismo Worker sirve la web y la API; en local, Vite reenvía /api
+        al backend, ver server.proxy en vite.config.js);
      2) se agrega el token de la sesión (header Authorization), que el
         backend usa para saber quién llama;
      3) se convierte la respuesta de error { message, fieldErrors } en los
@@ -15,14 +17,6 @@
 
 import { supabase } from '../lib/supabaseClient.js';
 import { AppError, ValidationError } from './errors.js';
-
-/* Dirección del backend. En local: http://localhost:3000 (ver .env.example) */
-const API_URL = import.meta.env.API_URL;
-
-// Sin esta variable todas las peticiones fallarían sin una pista clara
-if (!API_URL) {
-  console.error('Falta API_URL (dirección del backend). Agrégala en .env.local o en Vercel > Environment Variables.');
-}
 
 const OFFLINE_MESSAGE = 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.';
 
@@ -59,7 +53,7 @@ export async function apiRequest(path, { method = 'GET', body } = {}) {
 
   let response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(path, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -72,7 +66,7 @@ export async function apiRequest(path, { method = 'GET', body } = {}) {
   // 204 = "salió bien, pero no hay nada que devolver" (ej. al borrar)
   if (response.status === 204) return null;
 
-  // Si el cuerpo no es JSON (ej. error de Vercel), se usa un objeto vacío
+  // Si el cuerpo no es JSON (ej. error de Cloudflare), se usa un objeto vacío
   let data = {};
   try {
     data = await response.json();

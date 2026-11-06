@@ -8,7 +8,7 @@
 
 /* Tecnologías que se muestran en Sobre mí */
 export const TECHNOLOGIES = ['HTML', 'CSS', 'JavaScript', 'React', 'Node.js', 'Express', 'Supabase', 'Netlify', 'Vercel',
-  'PHP', 'Angular', 'IA Generativa', 'SDD', 'IA Agentica', 'Git'];
+  'Cloudflare', 'PHP', 'Angular', 'IA Generativa', 'SDD', 'IA Agentica', 'Git'];
 
 /* Opciones del formulario de contacto */
 export const CONTACT_NEEDS = ['Landing page', 'Sitio web', 'Web app / SaaS', 'Soporte y/o mantenimiento', 'Web a la medida'];

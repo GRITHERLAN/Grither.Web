@@ -24,22 +24,20 @@ import {
  *   - Estilos y fuentes: solo del propio sitio.
  *   - Imágenes y videos: del propio sitio, de Supabase Storage y vistas
  *     previas locales (blob:, data:).
- *   - Conexiones: a nuestra API (backend), a Supabase (Auth y subida de
- *     archivos a Storage) y a Google Analytics.
+ *   - Conexiones: al propio sitio (la API vive en /api del mismo dominio),
+ *     a Supabase (Auth y subida de archivos a Storage) y a Google Analytics.
  *
  * Solo se agrega al compilar (npm run build). En "npm run dev" Vite necesita
  * scripts en línea para la recarga rápida y la CSP los bloquearía.
  *
  * Nota: frame-ancestors (no dejar que otra web meta esta en un <iframe>) no
- * funciona en una etiqueta <meta>; va en los encabezados del hosting (ver
- * Auditoria_Seguridad.md > Security Headers).
+ * funciona en una etiqueta <meta>; va en los encabezados del hosting
+ * (public/_headers > X-Frame-Options).
  */
-function cspPlugin(supabaseUrl, apiUrl) {
+function cspPlugin(supabaseUrl) {
   // Si falta la URL en .env.local se permite cualquier proyecto de Supabase
   const supabaseOrigin = supabaseUrl ? new URL(supabaseUrl).origin : 'https://*.supabase.co';
   const supabaseSocket = supabaseOrigin.replace('https://', 'wss://');
-  // Dirección del backend (API_URL). Sin ella, el navegador bloquearía las llamadas a la API.
-  const apiOrigin = apiUrl ? new URL(apiUrl).origin : '';
 
   const policy = [
     "default-src 'self'",
@@ -49,7 +47,7 @@ function cspPlugin(supabaseUrl, apiUrl) {
     "font-src 'self'",
     `img-src 'self' data: blob: ${supabaseOrigin} https://*.google-analytics.com https://*.googletagmanager.com`,
     `media-src 'self' blob: ${supabaseOrigin}`,
-    `connect-src 'self' ${apiOrigin} ${supabaseOrigin} ${supabaseSocket} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com`,
+    `connect-src 'self' ${supabaseOrigin} ${supabaseSocket} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -186,14 +184,22 @@ function seoPlugin(siteUrlFromEnv) {
  * públicos. La llave secreta (SUPABASE_SERVICE_ROLE_KEY) no empieza por
  * ninguno de estos nombres, así que nunca se publica por error.
  */
-const PUBLIC_ENV_NAMES = ['SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'API_URL', 'SITE_URL'];
+const PUBLIC_ENV_NAMES = ['SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'SITE_URL'];
 
 export default defineConfig(({ mode }) => {
-  // Lee .env.local para saber la URL exacta del proyecto de Supabase, de la API y el dominio
+  // Lee .env.local para saber la URL exacta del proyecto de Supabase y el dominio
   const env = loadEnv(mode, process.cwd(), PUBLIC_ENV_NAMES);
+  // Solo para "npm run dev": dónde corre el backend local. No llega al navegador.
+  const { API_URL } = loadEnv(mode, process.cwd(), 'API_URL');
 
   return {
     envPrefix: PUBLIC_ENV_NAMES,
-    plugins: [react(), cspPlugin(env.SUPABASE_URL, env.API_URL), seoPlugin(env.SITE_URL)],
+    plugins: [react(), cspPlugin(env.SUPABASE_URL), seoPlugin(env.SITE_URL)],
+    // En local la web (5173) y la API (3000) corren separadas: Vite reenvía
+    // /api al backend para que el navegador lo vea como el mismo sitio,
+    // igual que en Cloudflare.
+    server: {
+      proxy: { '/api': API_URL || 'http://localhost:3000' },
+    },
   };
 });

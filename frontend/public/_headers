@@ -1,0 +1,22 @@
+# Encabezados HTTP de la web en Cloudflare Workers (reemplaza "headers" de vercel.json).
+# Aplican a las páginas y archivos del frontend; las respuestas de /api las arma Express.
+
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Zonas privadas: que Google no las indexe
+/ingresar*
+  X-Robots-Tag: noindex, nofollow
+
+/proyecto*
+  X-Robots-Tag: noindex, nofollow
+
+/administrador*
+  X-Robots-Tag: noindex, nofollow
+
+# Archivos compilados por Vite: llevan un hash en el nombre, se pueden guardar un año
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

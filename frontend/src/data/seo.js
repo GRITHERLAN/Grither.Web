@@ -42,7 +42,7 @@ export const PUBLIC_PAGES = [
         h2: 'Landing pages, sitios web y aplicaciones web',
         paragraphs: [
           'Una landing page es una página enfocada en una sola acción: que te escriban, te llamen o compren. Un sitio web reúne tus servicios, tu historia y tus datos de contacto en varias páginas. Una aplicación web resuelve un proceso de tu negocio, como reservas, inventarios o paneles de seguimiento para tus clientes.',
-          'Todos los proyectos se construyen con tecnologías modernas como React, JavaScript, Supabase y Vercel, son responsive (se ven bien en celular, tableta y computador) y están pensados para cargar rápido y posicionar en Google.',
+          'Todos los proyectos se construyen con tecnologías modernas como React, JavaScript, Supabase, Vercel y Cloudflare, son responsive (se ven bien en celular, tableta y computador) y están pensados para cargar rápido y posicionar en Google.',
         ],
       },
       {
@@ -97,7 +97,7 @@ export const PUBLIC_PAGES = [
       {
         h2: 'Quién soy',
         paragraphs: [
-          'Soy Grither, desarrollador web freelance con base en Dosquebradas, Risaralda. Trabajo con HTML, CSS, JavaScript, React, Node.js, Supabase y Vercel, y apoyo mi flujo de trabajo con inteligencia artificial para entregar más rápido sin perder calidad.',
+          'Soy Grither, desarrollador web freelance con base en Dosquebradas, Risaralda. Trabajo con HTML, CSS, JavaScript, React, Node.js, Supabase, Vercel y Cloudflare, y apoyo mi flujo de trabajo con inteligencia artificial para entregar más rápido sin perder calidad.',
         ],
       },
     ],

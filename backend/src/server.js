@@ -3,7 +3,7 @@
    --------------------------------------------------------------------------
    npm run dev  ->  node --watch --env-file=.env src/server.js
    "--watch" reinicia el servidor solo cada vez que se guarda un archivo.
-   En Vercel este archivo no se usa: Vercel toma "app" de app.js.
+   En Cloudflare este archivo no se usa: allá arranca worker.js.
    ========================================================================== */
 
 import app from './app.js';

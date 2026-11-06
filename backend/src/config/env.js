@@ -4,8 +4,9 @@
    Se leen UNA sola vez al arrancar. Si falta alguna obligatoria, el servidor
    no arranca y avisa cuál falta: es mejor fallar al inicio que a mitad de
    una petición de un usuario.
-   En local salen del archivo .env (node --env-file=.env); en Vercel, de
-   Project Settings > Environment Variables.
+   En local salen del archivo .env (node --env-file=.env); en Cloudflare,
+   de los secretos del Worker (npx wrangler secret put NOMBRE, o en el panel:
+   Workers > grither-web > Settings > Variables and Secrets).
    ========================================================================== */
 
 /** Devuelve la variable o lanza un error claro si no existe */
@@ -20,12 +21,6 @@ function readRequired(name) {
 export const env = {
   supabaseUrl: readRequired('SUPABASE_URL'),
   supabaseServiceRoleKey: readRequired('SUPABASE_SERVICE_ROLE_KEY'),
-
-  /* Lista de orígenes permitidos por CORS: "a,b" -> ['a', 'b'] */
-  frontendUrls: readRequired('FRONTEND_URLS')
-    .split(',')
-    .map((url) => url.trim())
-    .filter(Boolean),
 
   port: Number(process.env.PORT) || 3000,
 };

@@ -1,0 +1,4 @@
+# Redirecciones de la web en Cloudflare Workers (reemplaza "redirects" de vercel.json).
+# gritherweb.com -> www.gritherweb.com NO va aquí (este archivo solo ve rutas, no dominios):
+# se configura con una Redirect Rule en el panel de Cloudflare.
+/sobre-nosotros /sobre-mi 301

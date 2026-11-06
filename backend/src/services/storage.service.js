@@ -9,8 +9,8 @@
        detrás". En la tabla se guarda su URL pública.
 
    ¿Por qué el navegador sube los archivos y no el backend?
-   En Vercel una petición no puede pesar más de 4.5 MB y un video puede
-   pesar 50 MB. Por eso el backend solo da PERMISO (una URL firmada de
+   Un video puede pesar 50 MB: pasarlo por el Worker gastaría tiempo y
+   memoria del servidor para nada. Por eso el backend solo da PERMISO (una URL firmada de
    subida, válida para un único archivo y una única ruta) y el navegador
    sube directo a Storage. Borrar y firmar URLs de lectura lo hace siempre
    el backend.

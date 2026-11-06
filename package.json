@@ -1,0 +1,15 @@
+{
+  "name": "grither-web-cloudflare",
+  "private": true,
+  "description": "Deploy de Grither Web en Cloudflare Workers (frontend + API en un solo Worker).",
+  "type": "module",
+  "scripts": {
+    "postinstall": "npm ci --prefix backend && npm ci --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "preview": "npm run build && wrangler dev --env-file backend/.env",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.158.0"
+  }
+}

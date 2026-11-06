@@ -1,0 +1,24 @@
+// Configuración del Worker de Cloudflare: UN solo Worker sirve la web y la API.
+//   - Páginas y archivos (frontend/dist): los entrega Cloudflare directamente, sin
+//     ejecutar código (gratis y rápido). _headers y _redirects salen de frontend/public.
+//   - /api/*: lo atiende el Express de backend/src (ver backend/src/worker.js).
+// Secretos (NO van aquí): npx wrangler secret put SUPABASE_URL
+//                         npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "grither-web",
+  "main": "backend/src/worker.js",
+  "compatibility_date": "2026-11-01",
+  // Permite usar Express, node:crypto y process.env dentro del Worker
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "frontend/dist",
+    // Las rutas de React (/proyecto/GTH-1, /administrador...) devuelven index.html
+    "not_found_handling": "single-page-application",
+    // /contacto sirve contacto/index.html sin redirigir a /contacto/ (así coincide con el canonical)
+    "html_handling": "drop-trailing-slash",
+    // La API siempre va al Worker, nunca a los archivos estáticos
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": { "enabled": true }
+}
