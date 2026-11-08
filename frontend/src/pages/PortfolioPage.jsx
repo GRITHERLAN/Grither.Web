@@ -28,7 +28,7 @@ function PortfolioPage() {
     <div className="container">
       {/* ---------- 1. Héroe ---------- */}
       <section className="portfolio-hero">
-        <span className="eyebrow eyebrow--pill">Portafolio</span>
+        <span className="eyebrow">Portafolio</span>
         <h1 className="portfolio-hero__title">
           Proyectos que ya <span className="text-gradient">levantaron vuelo.</span>
         </h1>

@@ -42,7 +42,7 @@ function ServicesPage() {
     <div className="container">
       {/* ---------- 1. Héroe ---------- */}
       <section className="services-hero">
-        <span className="eyebrow eyebrow--pill">Servicios Grither</span>
+        <span className="eyebrow">Servicios Grither</span>
         <h1 className="services-hero__title">
           Construyo la web que tu negocio <span className="text-gradient">necesita para crecer.</span>
         </h1>

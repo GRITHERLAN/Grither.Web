@@ -61,24 +61,6 @@
   color: var(--color-accent);
 }
 
-/* Variante en forma de píldora con punto: "● SERVICIOS GRITHER" */
-.eyebrow--pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.6rem 1.6rem;
-  border: 0.1rem solid var(--color-accent-border);
-  border-radius: var(--radius-full);
-}
-
-.eyebrow--pill::before {
-  content: "";
-  width: 0.6rem;
-  height: 0.6rem;
-  border-radius: 50%;
-  background-color: var(--color-accent);
-}
-
 /* ---------- Texto resaltado (palabras destacadas en títulos) ---------- */
 .text-gradient {
   color: var(--color-accent);
