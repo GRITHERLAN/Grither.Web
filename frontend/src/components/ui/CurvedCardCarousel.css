@@ -42,11 +42,14 @@
 
 /* ---------- Cada tarjeta ----------
    El ancho imita al de la grilla original (~33.5rem en escritorio).
-   Arranca invisible: el bucle de animación la muestra en su sitio. */
+   Arranca invisible: el bucle de animación la muestra en su sitio.
+   container-type: las tarjetas pueden medir su ancho con unidades cqi
+   (ej. el precio de los planes se encoge en celulares angostos). */
 .ccc__item {
   grid-area: 1 / 1;
   justify-self: center;
   position: relative;
+  container-type: inline-size;
   width: min(33.5rem, 80%);
   opacity: 0;
   transform-origin: 50% 50%;
@@ -73,7 +76,9 @@
 }
 
 /* Lente 1: oscurece hacia los bordes (en modo claro, aclara).
-   Capa propia: el JS le escribe "opacity" directo (solo composición). */
+   El JS le escribe "opacity" en cada fotograma. will-change la sube a su
+   propia capa de GPU: sin eso, en celular (sin el 3D del TiltCard) queda
+   pintada dentro de la tarjeta y cada cambio obliga a repintarla entera. */
 .ccc__dim {
   position: absolute;
   inset: 0;
@@ -82,6 +87,7 @@
   background-color: var(--color-bg);
   opacity: 0;
   pointer-events: none;
+  will-change: opacity;
 }
 
 /* Lente 2 (solo con chromatic): aberración cromática en el borde, crece

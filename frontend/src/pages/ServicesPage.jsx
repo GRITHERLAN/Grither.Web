@@ -147,7 +147,11 @@ function OfferSections({ services, plans, plansRef }) {
                 </div>
 
                 <p className="plan-card__price text-mono">
-                  {plan.price !== null && <span className="plan-card__from">Desde</span>}
+                  {/* Sin precio se deja el renglón vacío: así la píldora queda a la
+                      misma altura que en las demás cards */}
+                  <span className="plan-card__from" aria-hidden={plan.price === null || undefined}>
+                    {plan.price === null ? ' ' : 'Desde'}
+                  </span>
                   <span className="plan-card__pill">
                     {plan.price === null ? (
                       'Cotización'

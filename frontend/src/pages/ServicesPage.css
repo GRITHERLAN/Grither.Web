@@ -116,11 +116,15 @@
   box-shadow: var(--logo-glow);
 }
 
+/* min-height = alto de la píldora "Más elegido": así el precio queda a la
+   misma altura en todas las cards, tengan o no la píldora */
 .plan-card__top {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 0.6rem 1rem;
+  min-height: 2.6rem;
 }
 
 .plan-card__name {
@@ -138,6 +142,7 @@
 .plan-card__badge {
   padding: 0.3rem 1rem;
   font-size: 1.2rem;
+  line-height: 2rem;
   font-weight: 700;
   border-radius: var(--radius-full);
   background: var(--btn-primary-bg);
@@ -155,22 +160,29 @@
   color: var(--color-text-muted);
 }
 
-/* Precio en píldora oscura (como la etiqueta de precio de la card de referencia) */
+/* Precio en píldora oscura (como la etiqueta de precio de la card de referencia).
+   El tamaño se ajusta al ancho de la tarjeta (cqi = 1 % del ancho del
+   .ccc__item, ver CurvedCardCarousel.css) para que "$ 1.400.000 COP" quepa
+   en celulares angostos sin salirse de la card. En escritorio queda en 2.4rem.
+   "COP" y el espacio van en em para encoger junto con el número. */
 .plan-card__pill {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.8rem;
+  gap: 0.35em;
+  max-width: 100%;
   padding: 0.6rem 1.6rem;
   border-radius: var(--radius-full);
   border: 0.1rem solid var(--color-accent-border);
   background-color: color-mix(in srgb, var(--color-bg) 60%, transparent);
   font-size: 2.4rem;
+  font-size: clamp(1.4rem, 12.5cqi - 1.2rem, 2.4rem);
   line-height: 1.3;
+  white-space: nowrap;
   color: var(--color-accent);
 }
 
 .plan-card__currency {
-  font-size: 1.3rem;
+  font-size: 0.55em;
   color: var(--color-text-muted);
 }
 
@@ -196,4 +208,31 @@
   width: 1.8rem;
   height: 1.8rem;
   color: var(--color-accent);
+}
+
+/* ---------- Celular ----------
+   - Menos relleno: en una card de ~26rem, 2.8rem por lado se comía el
+     espacio del precio.
+   - Halo del plan destacado más corto. RENDIMIENTO: un box-shadow de 6rem
+     de desenfoque agranda la capa que mueve el carrusel (~450x750 px en vez
+     de ~270x570): la GPU del celular mezcla 2,2x más píxeles en cada
+     fotograma y se notaba la caída de FPS justo en esa card. */
+@media (max-width: 640px) {
+  .service-card,
+  .plan-card {
+    padding: 2rem;
+  }
+
+  .service-card__glass,
+  .plan-card__glass {
+    padding: 1.2rem;
+  }
+
+  .plan-card__pill {
+    padding: 0.6rem 1.2rem;
+  }
+
+  .plan-card--featured {
+    box-shadow: 0 0 1.6rem var(--color-accent-soft);
+  }
 }
