@@ -102,6 +102,19 @@ function PlansForm({ initialPlans }) {
     setErrors({});
   }
 
+  /** Mueve la card de "index" una posición (direction: -1 = antes, 1 = después) */
+  function movePlan(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= plans.length) return;
+    setPlans((current) => {
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+    // Los errores van por índice ("0.name"): al reordenar dejan de corresponder
+    setErrors({});
+  }
+
   function handleConfirmRemove() {
     setPlans((current) => current.filter((plan) => plan.id !== planToRemove.id));
     setPlanToRemove(null);
@@ -171,19 +184,41 @@ function PlansForm({ initialPlans }) {
             <li key={plan.id} className="offer-card">
               <header className="offer-card__header">
                 <p className="offer-card__code text-mono">PLAN {index + 1}</p>
-                <button
-                  type="button"
-                  className="icon-btn icon-btn--danger"
-                  aria-label={`Quitar plan ${plan.name || index + 1}`}
-                  title="Quitar plan"
-                  disabled={plans.length <= MIN_CARDS}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    setPlanToRemove(plan);
-                  }}
-                >
-                  <Icon name="trash" />
-                </button>
+                <div className="offer-card__tools">
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    aria-label={`Mover plan ${plan.name || index + 1} antes`}
+                    title="Mover antes"
+                    disabled={index === 0}
+                    onClick={() => movePlan(index, -1)}
+                  >
+                    <Icon name="chevronUp" />
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    aria-label={`Mover plan ${plan.name || index + 1} después`}
+                    title="Mover después"
+                    disabled={index === plans.length - 1}
+                    onClick={() => movePlan(index, 1)}
+                  >
+                    <Icon name="chevronDown" />
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn icon-btn--danger"
+                    aria-label={`Quitar plan ${plan.name || index + 1}`}
+                    title="Quitar plan"
+                    disabled={plans.length <= MIN_CARDS}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setPlanToRemove(plan);
+                    }}
+                  >
+                    <Icon name="trash" />
+                  </button>
+                </div>
               </header>
 
               <div className="form__row">

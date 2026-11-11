@@ -50,6 +50,17 @@
   justify-content: space-between;
 }
 
+.offer-card__tools {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.offer-card__tools .icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .offer-card__code {
   font-size: 1.3rem;
   letter-spacing: 0.15em;
