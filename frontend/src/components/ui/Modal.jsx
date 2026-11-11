@@ -21,8 +21,9 @@ import './Modal.css';
  * @param {string} title - Título de la ventana.
  * @param {string} description - Texto corto bajo el título (opcional).
  * @param {'sm'|'md'|'lg'} size - Ancho máximo.
+ * @param {'solid'|'glass'} variant - Panel sólido (por defecto) o de vidrio (ver Modal.css).
  */
-function Modal({ isOpen, onClose, title, description = '', size = 'md', children }) {
+function Modal({ isOpen, onClose, title, description = '', size = 'md', variant = 'solid', children }) {
   const dialogRef = useRef(null);
   // Id único para enlazar el título con el dialog (accesibilidad)
   const titleId = useId();
@@ -65,7 +66,9 @@ function Modal({ isOpen, onClose, title, description = '', size = 'md', children
   return (
     <dialog
       ref={dialogRef}
-      className={`modal modal--${size}`}
+      className={`modal modal--${size}${variant === 'glass' ? ' modal--glass' : ''}`}
+      // La rueda del ratón dentro del modal (o sobre su fondo) no mueve la página con Lenis
+      data-lenis-prevent=""
       onCancel={handleCancel}
       onClick={handleBackdropClick}
       aria-labelledby={titleId}

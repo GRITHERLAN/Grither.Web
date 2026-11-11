@@ -251,6 +251,10 @@ function CurvedCardCarousel({
     };
 
     // ---------- Arrastre con ratón, dedo o lápiz ----------
+    // El puntero se captura recién cuando el gesto pasa a ser arrastre
+    // (DRAG_THRESHOLD). Si se capturara al presionar, el navegador mandaría el
+    // "click" al escenario y no al botón: con ratón, los botones de las
+    // tarjetas ("Elegir...", "Características") no respondían.
     const onDown = (e) => {
       if (e.button !== 0) return;
       dragging = true;
@@ -261,12 +265,16 @@ function CurvedCardCarousel({
       moved = 0;
       const item = e.target.closest('[data-ccc-index]');
       downItem = item ? Number(item.dataset.cccIndex) : -1;
-      stage.setPointerCapture(e.pointerId);
       kick();
     };
 
     const onMove = (e) => {
       if (!dragging) return;
+      // Se soltó fuera del escenario antes de capturar: no hubo "pointerup" aquí
+      if (e.pointerType === 'mouse' && e.buttons === 0) {
+        onUp();
+        return;
+      }
       moved = Math.max(moved, Math.abs(e.clientX - dragX));
       const dts = Math.max(1, e.timeStamp - lastT) / 1000;
       flick = flick * 0.6 + (-(e.clientX - lastX) / step / dts) * 0.4;
@@ -274,7 +282,10 @@ function CurvedCardCarousel({
       lastX = e.clientX;
       lastT = e.timeStamp;
       pos = dragPos - (e.clientX - dragX) / step;
-      if (moved > DRAG_THRESHOLD) stage.dataset.dragging = 'true';
+      if (moved > DRAG_THRESHOLD && !stage.dataset.dragging) {
+        stage.dataset.dragging = 'true';
+        stage.setPointerCapture(e.pointerId);
+      }
       kick();
     };
 

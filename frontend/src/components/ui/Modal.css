@@ -87,6 +87,75 @@
   margin-top: 0.8rem;
 }
 
+/* ---------- Variante vidrio (glassmorphism) ----------
+   Panel translúcido con desenfoque real, línea de luz arriba y un tinte
+   verde de la marca. RENDIMIENTO, para que el vidrio no tire los FPS:
+     - El desenfoque va SOLO en el panel, nunca en el fondo de pantalla
+       completa (ver la nota del ::backdrop de arriba).
+     - El navegador recalcula el desenfoque solo si cambia lo que hay
+       detrás. Por eso: la entrada es solo un fundido (si el panel se
+       deslizara, cada fotograma "vería" otra parte de la página) y la
+       página queda bloqueada mientras está abierto (sin scroll detrás).
+     - Sin soporte de backdrop-filter, o con "reducir transparencia" en el
+       sistema, el panel queda sólido. */
+.modal--glass::backdrop {
+  /* Más claro que el normal: si no, el vidrio no deja ver nada detrás */
+  background-color: color-mix(in srgb, var(--overlay) 65%, transparent);
+}
+
+.modal--glass .modal__panel {
+  border-color: color-mix(in srgb, var(--color-text) 14%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface) 58%, transparent);
+  background-image: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--color-accent) 12%, transparent),
+    transparent 45%
+  );
+  box-shadow:
+    inset 0 0.1rem 0 color-mix(in srgb, var(--color-text) 18%, transparent),
+    var(--shadow-card);
+  -webkit-backdrop-filter: blur(1.8rem) saturate(150%);
+  backdrop-filter: blur(1.8rem) saturate(150%);
+}
+
+.modal--glass .modal__header {
+  border-bottom-color: color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+
+.modal--glass[open] .modal__panel {
+  animation-name: modal-fade;
+}
+
+/* Página quieta detrás del vidrio. scrollbar-gutter evita que el contenido
+   salte de lado al desaparecer la barra de scroll en escritorio. */
+html:has(.modal--glass[open]) {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .modal--glass .modal__panel {
+    background-color: var(--color-surface);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .modal--glass .modal__panel {
+    background-color: var(--color-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@keyframes modal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes backdrop-in {
   from {
     opacity: 0;

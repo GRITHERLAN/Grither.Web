@@ -223,7 +223,7 @@
 
   /* Capas internas: en reposo están planas; al inclinar se separan de la
      tarjeta (más Z = más cerca), como en la card de referencia */
-  :root[data-motion] .tilt-card :is(.service-card__glass, .plan-card__glass, .tag-list, .plan-card__features) {
+  :root[data-motion] .tilt-card :is(.service-card__glass, .plan-card__glass, .tag-list, .plan-card__actions) {
     transform-style: preserve-3d;
     transition: transform var(--motion-slide) var(--ease-spring);
   }
@@ -240,7 +240,7 @@
     transform: translateZ(2rem);
   }
 
-  :root[data-motion] .tilt-card[data-tilt="active"] :is(.tag-list, .plan-card__features) {
+  :root[data-motion] .tilt-card[data-tilt="active"] :is(.tag-list, .plan-card__actions) {
     transform: translateZ(1.6rem);
   }
 }

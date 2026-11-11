@@ -7,12 +7,13 @@
      3. "Planes": 3 planes de referencia.
    ========================================================================== */
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../components/ui/Icon.jsx';
 import TiltCard from '../components/ui/TiltCard.jsx';
 import CurvedCardCarousel from '../components/ui/CurvedCardCarousel.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
+import Modal from '../components/ui/Modal.jsx';
 import { useAsyncData } from '../hooks/useAsyncData.js';
 import { getServices, getPlans } from '../services/offerService.js';
 import { formatCOP } from '../utils/format.js';
@@ -81,6 +82,9 @@ function ServicesPage() {
  * @param {object} plansRef - Referencia para el botón "Ver planes".
  */
 function OfferSections({ services, plans, plansRef }) {
+  // Plan cuyo modal de características está abierto (null = cerrado)
+  const [featuresPlan, setFeaturesPlan] = useState(null);
+
   return (
     <>
       {/* ---------- 2. Qué hago ---------- */}
@@ -167,29 +171,73 @@ function OfferSections({ services, plans, plansRef }) {
 
               <p className="plan-card__text">{plan.description}</p>
 
-              <ul className="plan-card__features">
-                {plan.features.map((feature) => (
-                  <li key={feature}>
-                    <Icon name="check" className="plan-card__check" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              {/* El administrador define el enlace de cada botón (ej. WhatsApp) */}
-              <a
-                href={toSafeHref(plan.cta_url)}
-                className={`btn btn--block ${plan.featured ? 'btn--primary' : 'btn--outline'}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {plan.cta}
-              </a>
+              <div className="plan-card__actions">
+                {/* La lista de características vive en un modal: la card queda corta */}
+                {plan.features.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn--block btn--soft plan-card__features-btn"
+                    aria-haspopup="dialog"
+                    onClick={() => setFeaturesPlan(plan)}
+                  >
+                    Características
+                  </button>
+                )}
+                <PlanCta plan={plan} />
+              </div>
             </TiltCard>
           ))}
         </CurvedCardCarousel>
       </section>
+
+      {/* Modal de vidrio con las características del plan elegido */}
+      <Modal
+        isOpen={featuresPlan !== null}
+        onClose={() => setFeaturesPlan(null)}
+        title={featuresPlan?.name ?? ''}
+        description={featuresPlan ? planPriceLabel(featuresPlan) : ''}
+        size="sm"
+        variant="glass"
+      >
+        {featuresPlan && (
+          <>
+            <ul className="plan-card__features">
+              {featuresPlan.features.map((feature) => (
+                <li key={feature}>
+                  <Icon name="check" className="plan-card__check" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <div className="plan-features__cta">
+              <PlanCta plan={featuresPlan} />
+            </div>
+          </>
+        )}
+      </Modal>
     </>
+  );
+}
+
+/** "Desde $ 650.000 COP" o "Precio por cotización" (texto bajo el título del modal) */
+function planPriceLabel(plan) {
+  return plan.price === null ? 'Precio por cotización' : `Desde ${formatCOP(plan.price)} COP`;
+}
+
+/**
+ * Botón del plan; el administrador define su enlace (ej. WhatsApp).
+ * @param {object} plan - Plan con cta, cta_url y featured.
+ */
+function PlanCta({ plan }) {
+  return (
+    <a
+      href={toSafeHref(plan.cta_url)}
+      className={`btn btn--block ${plan.featured ? 'btn--primary' : 'btn--outline'}`}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {plan.cta}
+    </a>
   );
 }
 
