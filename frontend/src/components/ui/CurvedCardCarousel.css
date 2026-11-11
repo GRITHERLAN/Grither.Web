@@ -1,0 +1,220 @@
+/* ==========================================================================
+   CARRUSEL CURVO DE TARJETAS
+   --------------------------------------------------------------------------
+   Las tarjetas por dentro NO se tocan: usan sus clases de siempre
+   (.card, .plan-card...). Aquí solo va el escenario, la lente
+   (oscurecido + borde cromático opcional) y los controles, todo con los
+   tokens de variables.css para que funcione en modo oscuro y claro.
+   ========================================================================== */
+
+.ccc {
+  position: relative;
+}
+
+/* ---------- Escenario ----------
+   Todas las tarjetas comparten la misma celda del grid: la celda toma la
+   altura de la tarjeta más alta y todas quedan del mismo alto.
+   overflow-x: clip corta lo que sale por los lados sin crear scroll.
+   La máscara funde los bordes como en el original. */
+.ccc__stage {
+  position: relative;
+  display: grid;
+  padding-block: 4rem;
+  perspective: 120rem;
+  overflow-x: clip;
+  outline: none;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+}
+
+.ccc__stage[data-dragging] {
+  cursor: grabbing;
+}
+
+.ccc__stage:focus-visible {
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 0 0.2rem var(--color-accent-border);
+}
+
+/* ---------- Cada tarjeta ----------
+   El ancho imita al de la grilla original (~33.5rem en escritorio).
+   Arranca invisible: el bucle de animación la muestra en su sitio. */
+.ccc__item {
+  grid-area: 1 / 1;
+  justify-self: center;
+  position: relative;
+  width: min(33.5rem, 80%);
+  opacity: 0;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+
+.ccc__item > * {
+  height: 100%;
+}
+
+/* Las tarjetas laterales no reaccionan al puntero (ni inclinación ni foco
+   neón): un clic sobre ellas la trae al centro */
+.ccc__item:not(.is-active) {
+  cursor: pointer;
+}
+
+.ccc__item:not(.is-active) > * {
+  pointer-events: none;
+}
+
+/* Mientras se arrastra, ninguna tarjeta reacciona al hover */
+.ccc__stage[data-dragging] .ccc__item > * {
+  pointer-events: none;
+}
+
+/* Lente 1: oscurece hacia los bordes (en modo claro, aclara).
+   Capa propia: el JS le escribe "opacity" directo (solo composición). */
+.ccc__dim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Lente 2 (solo con chromatic): aberración cromática en el borde, crece
+   hacia los lados y con la velocidad. La variable va en esta capa sin hijos. */
+.ccc__fringe {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--radius-lg);
+  box-shadow:
+    calc(var(--ccc-ca, 0) * 1px) 0 0 rgba(255, 40, 120, 0.35),
+    calc(var(--ccc-ca, 0) * -1px) 0 0 rgba(40, 220, 255, 0.35);
+  pointer-events: none;
+}
+
+/* ---------- Pie: ayuda a la izquierda, controles a la derecha ---------- */
+.ccc__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.6rem;
+  margin-top: 0.8rem;
+}
+
+.ccc__hint {
+  font-size: 1.2rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.ccc__controls {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+.ccc__count {
+  font-size: 1.3rem;
+  letter-spacing: 0.18em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.ccc__count i {
+  font-style: normal;
+  color: var(--color-text-muted);
+}
+
+.ccc__bar {
+  width: 13.2rem;
+  height: 0.2rem;
+  border-radius: 0.2rem;
+  background-color: var(--color-border-strong);
+  overflow: hidden;
+}
+
+.ccc__bar > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-brand);
+  transform-origin: 0 50%;
+  transition: transform 700ms var(--ease-spring);
+}
+
+.ccc__buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.ccc__btn {
+  display: grid;
+  place-items: center;
+  width: 4.6rem;
+  height: 4.6rem;
+  border-radius: var(--radius-full);
+  border: 0.1rem solid var(--color-border-strong);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    transform 350ms cubic-bezier(0.3, 1.6, 0.5, 1),
+    border-color var(--transition),
+    color var(--transition),
+    box-shadow var(--transition);
+}
+
+.ccc__btn:hover {
+  transform: translateY(-0.2rem) scale(1.06);
+  border-color: var(--color-accent-border);
+  color: var(--color-accent);
+  box-shadow: 0 0 2.4rem var(--color-accent-soft);
+}
+
+.ccc__btn:active {
+  transform: scale(0.94);
+}
+
+.ccc__btn:focus-visible {
+  outline: 0.2rem solid var(--color-accent);
+  outline-offset: 0.3rem;
+}
+
+.ccc__btn svg {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+/* ---------- Celular: tarjeta más ancha y controles en una fila ---------- */
+@media (max-width: 640px) {
+  .ccc__item {
+    width: min(33.5rem, 78%);
+  }
+
+  .ccc__hint {
+    display: none;
+  }
+
+  .ccc__footer {
+    justify-content: center;
+  }
+
+  .ccc__bar {
+    width: 9.6rem;
+  }
+}
+
+/* ---------- Reducir movimiento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ccc__bar > span,
+  .ccc__btn {
+    transition: none;
+  }
+}

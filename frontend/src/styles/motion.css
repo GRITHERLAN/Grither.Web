@@ -192,7 +192,22 @@
      - Al salir: vuelve al centro con resorte (sin rebote).
      - isolation: auto porque "isolate" aplana el 3D. El transform siempre
        presente ya crea la capa propia que necesita el foco neón (::before).
+     - --tilt-rx / --tilt-ry registradas SIN herencia: cambian en cada
+       movimiento del ratón y, si se heredaran, el navegador recalcularía el
+       estilo de todo el contenido de la tarjeta en cada fotograma.
    ========================================================================== */
+@property --tilt-rx {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --tilt-ry {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @media (hover: hover) and (pointer: fine) {
   :root[data-motion] .tilt-card {
     isolation: auto;

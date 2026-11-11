@@ -11,6 +11,7 @@ import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../components/ui/Icon.jsx';
 import TiltCard from '../components/ui/TiltCard.jsx';
+import CurvedCardCarousel from '../components/ui/CurvedCardCarousel.jsx';
 import LoadingState from '../components/ui/LoadingState.jsx';
 import { useAsyncData } from '../hooks/useAsyncData.js';
 import { getServices, getPlans } from '../services/offerService.js';
@@ -91,34 +92,33 @@ function OfferSections({ services, plans, plansRef }) {
           <p className="section__meta">{String(services.length).padStart(2, '0')} servicios</p>
         </header>
 
-        <ul className="services-grid">
+        {/* Carrusel curvo (sin bordes de color): las cards de servicio de siempre */}
+        <CurvedCardCarousel label="Servicios de Grither" chromatic={false}>
           {services.map((service, index) => (
-            <li key={service.id}>
-              {/* TiltCard: se inclina en 3D siguiendo al puntero */}
-              <TiltCard className="card service-card">
-                {/* Encabezado de vidrio: en 3D "flota" por encima de la tarjeta */}
-                <header className="service-card__glass">
-                  <div className="service-card__top">
-                    <span className="card__icon">
-                      <Icon name={service.icon} />
-                    </span>
-                    {/* El código SRV-0X sale de la posición de la card */}
-                    <span className="service-card__code text-mono">SRV-{String(index + 1).padStart(2, '0')}</span>
-                  </div>
-                  <h3 className="service-card__title">{service.title}</h3>
-                </header>
-                <p className="service-card__text">{service.description}</p>
-                <ul className="tag-list">
-                  {service.tags.map((tag) => (
-                    <li key={tag} className="tag">
-                      {tag}
-                    </li>
-                  ))}
-                </ul>
-              </TiltCard>
-            </li>
+            /* TiltCard: se inclina en 3D siguiendo al puntero (solo la del centro) */
+            <TiltCard key={service.id} className="card service-card">
+              {/* Encabezado de vidrio: en 3D "flota" por encima de la tarjeta */}
+              <header className="service-card__glass">
+                <div className="service-card__top">
+                  <span className="card__icon">
+                    <Icon name={service.icon} />
+                  </span>
+                  {/* El código SRV-0X sale de la posición de la card */}
+                  <span className="service-card__code text-mono">SRV-{String(index + 1).padStart(2, '0')}</span>
+                </div>
+                <h3 className="service-card__title">{service.title}</h3>
+              </header>
+              <p className="service-card__text">{service.description}</p>
+              <ul className="tag-list">
+                {service.tags.map((tag) => (
+                  <li key={tag} className="tag">
+                    {tag}
+                  </li>
+                ))}
+              </ul>
+            </TiltCard>
           ))}
-        </ul>
+        </CurvedCardCarousel>
       </section>
 
       {/* ---------- 3. Planes ---------- */}
@@ -130,59 +130,60 @@ function OfferSections({ services, plans, plansRef }) {
             </h2>
             <p className="section__subtitle">Precios de referencia; cada proyecto se cotiza según su alcance.</p>
           </div>
+          <p className="section__meta">{String(plans.length).padStart(2, '0')} planes</p>
         </header>
 
-        <ul className="plans-grid">
+        {/* Carrusel curvo (sin bordes de color): las cards de plan de siempre.
+            El orden es el que define el administrador. */}
+        <CurvedCardCarousel label="Planes de Grither" chromatic={false}>
           {plans.map((plan) => (
-            <li key={plan.id}>
-              {/* TiltCard: se inclina en 3D siguiendo al puntero */}
-              <TiltCard className={`card plan-card ${plan.featured ? 'plan-card--featured' : ''}`}>
-                {/* Encabezado de vidrio con el nombre y el precio en píldora */}
-                <header className="plan-card__glass">
-                  <div className="plan-card__top">
-                    <h3 className="plan-card__name text-mono">{plan.name}</h3>
-                    {plan.featured && <span className="plan-card__badge">Más elegido</span>}
-                  </div>
+            /* TiltCard: se inclina en 3D siguiendo al puntero (solo la del centro) */
+            <TiltCard key={plan.id} className={`card plan-card ${plan.featured ? 'plan-card--featured' : ''}`}>
+              {/* Encabezado de vidrio con el nombre y el precio en píldora */}
+              <header className="plan-card__glass">
+                <div className="plan-card__top">
+                  <h3 className="plan-card__name text-mono">{plan.name}</h3>
+                  {plan.featured && <span className="plan-card__badge">Más elegido</span>}
+                </div>
 
-                  <p className="plan-card__price text-mono">
-                    {plan.price !== null && <span className="plan-card__from">Desde</span>}
-                    <span className="plan-card__pill">
-                      {plan.price === null ? (
-                        'Cotización'
-                      ) : (
-                        <>
-                          {formatCOP(plan.price)}
-                          <span className="plan-card__currency">COP</span>
-                        </>
-                      )}
-                    </span>
-                  </p>
-                </header>
+                <p className="plan-card__price text-mono">
+                  {plan.price !== null && <span className="plan-card__from">Desde</span>}
+                  <span className="plan-card__pill">
+                    {plan.price === null ? (
+                      'Cotización'
+                    ) : (
+                      <>
+                        {formatCOP(plan.price)}
+                        <span className="plan-card__currency">COP</span>
+                      </>
+                    )}
+                  </span>
+                </p>
+              </header>
 
-                <p className="plan-card__text">{plan.description}</p>
+              <p className="plan-card__text">{plan.description}</p>
 
-                <ul className="plan-card__features">
-                  {plan.features.map((feature) => (
-                    <li key={feature}>
-                      <Icon name="check" className="plan-card__check" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+              <ul className="plan-card__features">
+                {plan.features.map((feature) => (
+                  <li key={feature}>
+                    <Icon name="check" className="plan-card__check" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
 
-                {/* El administrador define el enlace de cada botón (ej. WhatsApp) */}
-                <a
-                  href={toSafeHref(plan.cta_url)}
-                  className={`btn btn--block ${plan.featured ? 'btn--primary' : 'btn--outline'}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {plan.cta}
-                </a>
-              </TiltCard>
-            </li>
+              {/* El administrador define el enlace de cada botón (ej. WhatsApp) */}
+              <a
+                href={toSafeHref(plan.cta_url)}
+                className={`btn btn--block ${plan.featured ? 'btn--primary' : 'btn--outline'}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {plan.cta}
+              </a>
+            </TiltCard>
           ))}
-        </ul>
+        </CurvedCardCarousel>
       </section>
     </>
   );

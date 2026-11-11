@@ -33,9 +33,10 @@ const REVEAL_SELECTOR = [
   '.empty-state',
 ].join(', ');
 
-/* Las cards del carrusel no aparecen una por una: entran y salen por los
-   lados con su propio movimiento 3D, así que entra el carrusel completo */
-const NO_REVEAL_SELECTOR = '.portfolio-carousel__track';
+/* Las cards de los carruseles no aparecen una por una: entran y salen por
+   los lados con su propio movimiento (y el carrusel curvo tiene su propia
+   entrada escalonada), así que aquí no se tocan */
+const NO_REVEAL_SELECTOR = '.portfolio-carousel__track, .ccc__stage';
 
 /* Bloques del inicio de cada página: ya entran con su propia animación en
    CSS (motion.css), así que sus hijos no se ocultan otra vez */

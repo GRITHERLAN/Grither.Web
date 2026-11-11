@@ -50,13 +50,7 @@
   text-underline-offset: 0.3rem;
 }
 
-/* ---------- Tarjetas de servicios: 3 columnas que bajan a 1 ---------- */
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
-  gap: 2rem;
-}
-
+/* ---------- Tarjetas de servicios (van dentro de CurvedCardCarousel) ---------- */
 .service-card {
   display: flex;
   flex-direction: column;
@@ -107,14 +101,7 @@
   color: var(--color-text-muted);
 }
 
-/* ---------- Planes ---------- */
-.plans-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
-  gap: 2rem;
-  align-items: stretch;
-}
-
+/* ---------- Planes (van dentro de CurvedCardCarousel) ---------- */
 .plan-card {
   display: flex;
   flex-direction: column;
